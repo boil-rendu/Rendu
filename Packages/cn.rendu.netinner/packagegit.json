@@ -1,0 +1,18 @@
+﻿{
+    "Name": "NetInner",
+    "ScriptsReferences": 
+    {
+        "ModelView": [
+            "RD.Core"
+        ],
+        "Model": [
+            "RD.Core"
+        ],
+        "HotfixView": [
+            "RD.Core"
+        ],
+        "Hotfix": [
+            "RD.Core"
+        ]
+    }
+}
