@@ -1,0 +1,13 @@
+{
+    "name": "cn.rendu.excel",
+    "displayName": "RD.Excel",
+    "version": "1.0.0",
+    "unity": "2022.3",
+    "description": "excel 导出代码和数据",
+    "keywords": [],
+    "author": {
+        "name": "Boil",
+        "email": "rendu-core@outlook.com",
+        "url": "https://github.com/RenduPackages"
+    }
+}
