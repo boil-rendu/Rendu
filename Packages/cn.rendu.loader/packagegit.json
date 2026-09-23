@@ -1,0 +1,35 @@
+﻿{
+    "Name": "Loader",
+    "ScriptsReferences": 
+    {
+        "ModelView": [
+            "RD.Loader",
+            "RD.SourceGeneratorAttribute"
+        ],
+        "Model": [
+            "RD.Core",
+            "Unity.Mathematics",
+            "RD.MemoryPack",
+            "RD.YooAsset",
+            "RD.SourceGeneratorAttribute"
+        ],
+        "HotfixView": [
+            "RD.Core",
+            "Unity.Mathematics",
+            "RD.Loader",
+            "RD.MemoryPack",
+            "RD.Model",
+            "RD.Hotfix",
+            "RD.ModelView",
+            "RD.YooAsset",
+            "RD.SourceGeneratorAttribute"
+        ],
+        "Hotfix": [
+            "RD.Core",
+            "Unity.Mathematics",
+            "RD.MemoryPack",
+            "RD.Model",
+            "RD.SourceGeneratorAttribute"
+        ]
+    }
+}

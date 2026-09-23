@@ -1,0 +1,19 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <ui:VisualElement name="Container">
+        <ui:Label name="TitleLabel" text="📝 Script References Config" style="unity-font-style: bold; font-size: 18px; margin-top: 10px;" />
+        <ui:VisualElement name="HeaderLine" style="height: 2px; background-color: rgb(64, 141, 242); margin-bottom: 15px;" />
+        
+        <ui:ScrollView name="ScrollView">
+            <ui:VisualElement name="ContentBox">
+                <ui:Label name="InfoLabel" text="" style="margin-bottom: 15px;" />
+                
+                <ui:VisualElement name="ActionsBox" style="padding: 10px;">
+                    <ui:Label text="Action Options" style="unity-font-style: bold; margin-bottom: 10px;" />
+                    <ui:Button name="GenerateButton" text="🔄 Generate Script References" style="height: 35px; background-color: rgb(51, 179, 77); margin-bottom: 5px;" />
+                    <ui:Button name="UpdateButton" text="📝 Update Script References" style="height: 35px; background-color: rgb(77, 141, 242); margin-bottom: 5px;" />
+                    <ui:Button name="ViewConfigButton" text="👁️ View Current Config" style="height: 35px; background-color: rgb(230, 179, 28);" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:ScrollView>
+    </ui:VisualElement>
+</ui:UXML>

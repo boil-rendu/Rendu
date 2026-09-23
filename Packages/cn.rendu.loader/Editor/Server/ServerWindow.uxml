@@ -1,0 +1,33 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <ui:VisualElement name="Container">
+        <ui:Label name="TitleLabel" text="🖥️ Server Management" style="unity-font-style: bold; font-size: 18px; margin-top: 10px;" />
+        <ui:VisualElement name="HeaderLine" style="height: 2px; background-color: rgb(64, 141, 242); margin-bottom: 15px;" />
+        
+        <ui:ScrollView name="ScrollView">
+            <ui:VisualElement name="ContentBox">
+                <ui:VisualElement name="StatusBox" style="padding: 10px; margin-bottom: 15px;">
+                    <ui:Label text="Server Status" style="unity-font-style: bold; margin-bottom: 5px;" />
+                    <ui:Label name="GameServerStatusLabel" text="Game Server: " style="margin-bottom: 5px;" />
+                    <ui:Label name="MongoStatusLabel" text="MongoDB: " style="margin-bottom: 5px;" />
+                    <ui:Label name="WatcherStatusLabel" text="File Watcher: " />
+                </ui:VisualElement>
+                
+                <ui:VisualElement name="ServerControlsBox" style="padding: 10px; margin-bottom: 15px;">
+                    <ui:Label text="Game Server" style="unity-font-style: bold; margin-bottom: 10px;" />
+                    <ui:VisualElement name="ServerButtonsContainer" style="flex-direction: row;">
+                        <ui:Button name="ToggleServerButton" text="" style="height: 35px; flex-grow: 1; margin-right: 5px;" />
+                        <ui:Button name="RestartServerButton" text="🔄 Restart Server" style="height: 35px; flex-grow: 1; margin-left: 5px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                
+                <ui:VisualElement name="MongoControlsBox" style="padding: 10px;">
+                    <ui:Label text="MongoDB Database" style="unity-font-style: bold; margin-bottom: 10px;" />
+                    <ui:VisualElement name="MongoButtonsContainer" style="flex-direction: row;">
+                        <ui:Button name="ToggleMongoButton" text="" style="height: 35px; flex-grow: 1; margin-right: 5px;" />
+                        <ui:Button name="ToggleWatcherButton" text="" style="height: 35px; flex-grow: 1; margin-left: 5px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:ScrollView>
+    </ui:VisualElement>
+</ui:UXML>

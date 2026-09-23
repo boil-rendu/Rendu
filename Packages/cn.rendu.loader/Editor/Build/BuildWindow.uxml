@@ -1,0 +1,38 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <ui:VisualElement name="Container">
+        <ui:Label name="TitleLabel" text="📦 Build Package" style="unity-font-style: bold; font-size: 18px; margin-top: 10px;" />
+        <ui:VisualElement name="HeaderLine" style="height: 2px; background-color: rgb(64, 141, 242); margin-bottom: 15px;" />
+        
+        <ui:VisualElement name="ContentBox" style="padding: 10px;">
+            <ui:VisualElement style="flex-direction: row; margin-bottom: 10px;">
+                <ui:Label text="Current Build Platform:" style="unity-font-style: bold; width: 180px;" />
+                <ui:Label name="BuildPlatformLabel" text="" style="flex-grow: 1;" />
+            </ui:VisualElement>
+
+            <ui:VisualElement style="flex-direction: row; margin-bottom: 10px;">
+                <ui:Label text="Code Mode:" style="unity-font-style: bold; width: 180px;" />
+                <ui:Label name="CodeModeLabel" text="" style="flex-grow: 1;" />
+            </ui:VisualElement>
+            
+            <ui:VisualElement style="flex-direction: row; margin-bottom: 10px;">
+                <ui:Label text="Target Platform:" style="unity-font-style: bold; width: 180px;" />
+                <ui:DropdownField name="PlatformDropdown" style="flex-grow: 1;" />
+            </ui:VisualElement>
+
+            <ui:VisualElement style="flex-direction: row; margin-bottom: 10px;">
+                <ui:Label text="Start Scene:" style="unity-font-style: bold; width: 180px;" />
+                <ui:Label name="StartSceneLabel" text="" style="flex-grow: 1; white-space: normal;" />
+            </ui:VisualElement>
+
+            <ui:Toggle name="DevelopmentToggle" label="Development Build" style="width: 100%; margin-bottom: 20px;" />
+            
+            <ui:Button name="BuildButton" text="🚀 Start Build" style="height: 45px; background-color: rgb(51, 179, 77); font-size: 14px;" />
+        </ui:VisualElement>
+        
+        <ui:VisualElement name="OptionsBox" style="margin-top: 10px; padding: 10px;">
+            <ui:Label text="Other Options" style="unity-font-style: bold; margin-bottom: 10px;" />
+            <ui:Button name="OpenSettingsButton" text="Open Build Settings" style="height: 30px; margin-bottom: 5px;" />
+            <ui:Button name="ClearCacheButton" text="Clear Build Cache" style="height: 30px;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

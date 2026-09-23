@@ -1,0 +1,22 @@
+﻿{
+    "name": "RD.Loader",
+    "rootNamespace": "RD.Loader",
+    "references": [
+        "RD.Core",
+        "RD.SourceGeneratorAttribute",
+        "RD.HybridCLR",
+        "RD.YooAsset",
+        "RD.Inspector"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        ""
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

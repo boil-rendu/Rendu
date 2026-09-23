@@ -1,0 +1,22 @@
+﻿{
+    "name": "RD.Loader.Editor",
+    "rootNamespace": "RD.Loader.Editor",
+    "references": [
+        "RD.Init",
+        "RD.Init.Editor",
+        "RD.Core",
+        "RD.Loader",
+        "RD.YooAsset"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
