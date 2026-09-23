@@ -1,0 +1,8 @@
+﻿{
+    "Name": "ActorLocation",
+    "ScriptsReferences": 
+    {
+        "Hotfix": ["RD.ActorLocation"],
+        "Model": ["RD.ActorLocation"]
+    }
+}
