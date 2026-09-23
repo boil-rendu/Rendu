@@ -1,0 +1,19 @@
+﻿{
+    "name": "RD.Protocol.Editor",
+    "rootNamespace": "RD.Protocol.Editor",
+    "references": [
+        "RD.Init",
+        "RD.Init.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
