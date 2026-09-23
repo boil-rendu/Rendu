@@ -1,0 +1,8 @@
+﻿{
+    "Name": "Move",
+    "ScriptsReferences": 
+    {
+        "Hotfix": ["RD.Move"],
+        "Model": ["RD.Move"]
+    }
+}
