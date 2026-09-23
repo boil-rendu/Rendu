@@ -1,0 +1,10 @@
+{
+"Id": 1600,
+"Name": "Inspector",
+"ScriptsReferences":
+{
+    "Model": ["RD.Inspector"],
+    "ModelView": ["RD.Inspector"],
+    "HotfixView": ["RD.Inspector"]
+}
+}

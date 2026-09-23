@@ -1,0 +1,19 @@
+﻿{
+  "name": "cn.rendu.inspector",
+  "displayName": "RD.Inspector",
+  "version": "3.0.0",
+  "unity": "2022.3",
+  "description": "声明式 Inspector 扩展: 提供属性特性与自绘检视器, 供 RD/UI 使用",
+  "author": {
+    "name": "tanghai",
+    "url": "https://github.com/egametang/RD"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/egametang/RD"
+  },
+  "relatedPackages": {},
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/@RD-Packages"
+  }
+}
