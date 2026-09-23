@@ -1,0 +1,7 @@
+﻿{
+    "Name": "StartConfig",
+    "ScriptsReferences": 
+    {
+        "Model": ["RD.StartConfig"]
+    }
+}
