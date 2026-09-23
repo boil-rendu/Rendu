@@ -1,0 +1,20 @@
+﻿{
+    "name": "RD.HybridCLR.Editor",
+    "rootNamespace": "RD.HybridCLR.Editor",
+    "references": [
+        "RD.HybridCLR",
+        "RD.Init",
+        "RD.Init.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
