@@ -1,0 +1,15 @@
+﻿
+using RD.Core;
+
+namespace RD.Server
+{
+	[MessageHandler(SceneType.Map)]
+	public class C2M_PathfindingResultHandler : MessageLocationHandler<Unit, C2M_PathfindingResult>
+	{
+		protected override async Promise Run(Unit unit, C2M_PathfindingResult message)
+		{
+			unit.FindPathMoveToAsync(message.Position).NoContext();
+			await Promise.CompletedTask;
+		}
+	}
+}

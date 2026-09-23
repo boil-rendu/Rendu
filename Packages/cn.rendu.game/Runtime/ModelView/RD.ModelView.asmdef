@@ -1,0 +1,29 @@
+﻿{
+    "name": "RD.ModelView",
+    "rootNamespace": "RD.Client",
+    "references": [
+        "RD.UI",
+        "RD.Inspector",
+        "RD.Core",
+        "RD.Init",
+        "RD.Loader",
+        "RD.Model",
+        "RD.SourceGeneratorAttribute",
+        "RD.YooAsset",
+        "Unity.Mathematics"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        ""
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [],
+    "additionalReferences": [],
+    "compilerOptions": ""
+}

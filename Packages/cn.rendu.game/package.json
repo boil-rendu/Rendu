@@ -1,0 +1,16 @@
+{
+    "name": "cn.rendu.game",
+    "displayName": "RD.Game",
+    "version": "1.0.0",
+    "unity": "2022.3",
+    "description": "游戏",
+    "keywords": [
+        "utility",
+        "tools"
+    ],
+    "author": {
+        "name": "Boil",
+        "email": "rendu-core@outlook.com",
+        "url": "https://github.com/RenduPackages"
+    }
+}

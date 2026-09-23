@@ -1,0 +1,22 @@
+﻿{
+    "name": "RD.Game.Editor",
+    "rootNamespace": "RD.Game.Editor",
+    "references": [
+        "RD.Init.Editor",
+        "RD.HybridCLR.Editor",
+        "RD.Excel.Editor",
+        "RD.Protocol.Editor",
+        "RD.Loader.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

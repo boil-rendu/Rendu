@@ -1,0 +1,26 @@
+﻿{
+    "name": "RD.Model",
+    "rootNamespace": "RD",
+    "references": [
+        "RD.Core",
+        "RD.Recast",
+        "RD.SourceGeneratorAttribute",
+        "RD.YooAsset",
+        "Unity.Mathematics",
+        "RD.Inspector"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        ""
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [],
+    "additionalReferences": [],
+    "compilerOptions": ""
+}

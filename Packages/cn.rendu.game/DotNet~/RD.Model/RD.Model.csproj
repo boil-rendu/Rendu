@@ -1,0 +1,59 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <RootNamespace>RD</RootNamespace>
+        <LangVersion>12</LangVersion>
+        <AssemblyName>RD.Model</AssemblyName>
+    </PropertyGroup>
+    <PropertyGroup>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <DefineConstants>DOTNET</DefineConstants>
+        <OutputPath>$(SolutionDir)Bin</OutputPath>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <Optimize>false</Optimize>
+        <NoWarn>0169,0649,3021,8981,CS9193,CS9192</NoWarn>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <DefineConstants>DOTNET</DefineConstants>
+        <OutputPath>$(SolutionDir)Bin</OutputPath>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <Optimize>true</Optimize>
+        <NoWarn>0169,0649,3021,8981,CS9193,CS9192</NoWarn>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <PreserveCompilationContext>true</PreserveCompilationContext>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="$(SolutionDir)Packages/cn.rendu.*/Scripts/Model/Share/**/*.cs">
+            <Link>%(RecursiveDir)%(FileName)%(Extension)</Link>
+        </Compile>
+
+        <Compile Include="$(SolutionDir)Packages/cn.rendu.*/Scripts/Model/Server/**/*.cs">
+            <Link>%(RecursiveDir)%(FileName)%(Extension)</Link>
+        </Compile>
+        
+        <Compile Include="$(SolutionDir)Packages/cn.rendu.*/CodeMode/Model/Server/**/*.cs">
+            <Link>%(RecursiveDir)%(FileName)%(Extension)</Link>
+        </Compile>
+
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="$(SolutionDir)Packages/cn.rendu.sourcegenerator/DotNet~/RD.SourceGenerator/RD.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="$(SolutionDir)Packages/cn.rendu.loader/DotNet~/RD.Loader/RD.Loader.csproj" />
+        <ProjectReference Include="$(SolutionDir)Packages/cn.rendu.mathematics/DotNet~/RD.Mathematics/RD.Mathematics.csproj" />
+        <ProjectReference Include="$(SolutionDir)Packages/cn.rendu.recast/DotNet~/RD.Recast/RD.Recast.csproj" />
+        <ProjectReference Include="$(SolutionDir)Packages/cn.rendu.sourcegenerator/DotNet~/RD.SourceGeneratorAttribute/RD.SourceGeneratorAttribute.csproj" />
+    </ItemGroup>
+
+    <!-- sourcegenerator use -->
+    <ItemGroup>
+        <CompilerVisibleProperty Include="DotNetAssembly" />
+    </ItemGroup>
+</Project>

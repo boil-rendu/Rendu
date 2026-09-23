@@ -1,0 +1,40 @@
+﻿{
+    "Name": "Game",
+    "ScriptsReferences": {
+        "ModelView": [
+            "RD.Core",
+            "Unity.Mathematics",
+            "RD.Loader",
+            "RD.Model",
+            "RD.UI",
+            "RD.Init"
+        ],
+        "Model": [
+            "RD.Core",
+            "Unity.Mathematics",
+            "RD.MemoryPack",
+            "RD.Recast"
+        ],
+        "HotfixView": [
+            "RD.Core",
+            "Unity.Mathematics",
+            "RD.Loader",
+            "RD.MemoryPack",
+            "RD.Model",
+            "RD.Hotfix",
+            "RD.ModelView",
+            "RD.YooAsset",
+            "RD.UI",
+            "RD.ReferenceRegistry",
+            "RD.Init"
+        ],
+        "Hotfix": [
+            "RD.Core",
+            "Unity.Mathematics",
+            "RD.Loader",
+            "RD.MemoryPack",
+            "RD.Model",
+            "RD.Recast"
+        ]
+    }
+}

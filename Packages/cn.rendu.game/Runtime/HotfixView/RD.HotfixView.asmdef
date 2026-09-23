@@ -1,0 +1,32 @@
+﻿{
+    "name": "RD.HotfixView",
+    "rootNamespace": "RD.Client",
+    "references": [
+        "RD.Inspector",
+        "RD.Core",
+        "RD.Hotfix",
+        "RD.Init",
+        "RD.Loader",
+        "RD.Model",
+        "RD.ModelView",
+        "RD.ReferenceRegistry",
+        "RD.SourceGeneratorAttribute",
+        "RD.YooAsset",
+        "RD.UI",
+        "Unity.Mathematics"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        ""
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [],
+    "additionalReferences": [],
+    "compilerOptions": ""
+}
