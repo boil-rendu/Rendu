@@ -1,0 +1,8 @@
+﻿{
+    "Name": "Router",
+    "ScriptsReferences": 
+    {
+        "Hotfix": ["RD.Router"],
+        "Model": ["RD.Router"]
+    }
+}
