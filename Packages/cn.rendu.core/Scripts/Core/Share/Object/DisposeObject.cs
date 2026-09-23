@@ -1,0 +1,30 @@
+﻿using System;
+using System.ComponentModel;
+using MongoDB.Bson.Serialization.Attributes;
+
+namespace RD.Core
+{
+    public abstract class DisposeObject: Object, IDisposable, ISupportInitialize
+    {
+        public virtual void Dispose()
+        {
+        }
+        
+        public virtual void BeginInit()
+        {
+        }
+        
+        public virtual void EndInit()
+        {
+        }
+    }
+
+    public interface IPool: IDisposable
+    {
+        bool IsFromPool
+        {
+            get;
+            set;
+        }
+    }
+}

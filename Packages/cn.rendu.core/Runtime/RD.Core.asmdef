@@ -1,0 +1,18 @@
+﻿{
+    "name": "RD.Core",
+    "rootNamespace": "RD.Core",
+    "references": [
+        "RD.SourceGeneratorAttribute"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        ""
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

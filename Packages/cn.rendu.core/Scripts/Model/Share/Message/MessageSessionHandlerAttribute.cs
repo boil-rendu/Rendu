@@ -1,0 +1,14 @@
+﻿using RD.Core;
+
+namespace RD
+{
+    public class MessageSessionHandlerAttribute: BaseAttribute
+    {
+        public int SceneType { get; }
+
+        public MessageSessionHandlerAttribute(int sceneType)
+        {
+            this.SceneType = sceneType;
+        }
+    }
+}

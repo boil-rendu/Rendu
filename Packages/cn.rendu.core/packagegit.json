@@ -1,0 +1,10 @@
+﻿{
+    "Name": "Core",
+    "ScriptsReferences": 
+    {
+        "Hotfix": ["RD.Core"],
+        "HotfixView": ["RD.Core"],
+        "Model": ["RD.Core"],
+        "ModelView": ["RD.Core"]
+    }
+}

@@ -1,0 +1,19 @@
+﻿{
+    "name": "RD.Core.Editor",
+    "rootNamespace": "RD.Core.Editor",
+    "references": [
+        "Unity.Mathematics",
+        "RD.Core"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
