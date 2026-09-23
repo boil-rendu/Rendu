@@ -1,0 +1,19 @@
+{
+    "name": "RD.UI",
+    "rootNamespace": "RD",
+    "references": [
+        "RD.Core",
+        "Unity.TextMeshPro",
+        "RD.SourceGeneratorAttribute",
+        "RD.Inspector"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

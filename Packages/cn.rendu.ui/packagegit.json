@@ -1,0 +1,23 @@
+﻿{
+    "Id": 25,
+    "Name": "UI",
+    "Level": 2,
+    "AllowSameLevelAccess": true,
+    "ScriptsReferences": {
+        "Loader": [
+            "RD.Inspector"
+        ],
+        "ModelView": [
+            "RD.UI",
+            "Unity.TextMeshPro",
+            "RD.ReferenceRegistry",
+            "RD.Inspector"
+        ],
+        "HotfixView": [
+            "RD.UI",
+            "Unity.TextMeshPro",
+            "RD.ReferenceRegistry",
+            "RD.Inspector"
+        ]
+    }
+}

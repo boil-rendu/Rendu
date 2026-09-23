@@ -1,0 +1,25 @@
+﻿{
+  "name": "cn.rendu.ui",
+  "displayName": "RD.UI",
+  "version": "3.1.4",
+  "unity": "2022.3",
+  "category": "UI",
+  "description": "RD.UI 框架（原 UI 实现） >>> 文档: https://lib9kmxvq7k.feishu.cn/wiki/ES7Gwz4EAiVGKSkotY5cRbTznuh",
+  "author": {
+    "name": "Boil",
+    "email": "rendu-core@outlook.com",
+    "url": "https://github.com/RenduPackages"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RD-Packages/cn.rendu.ui"
+  },
+  "relatedPackages": {},
+  "dependencies": {
+    "cn.rendu.core": "1.0.0",
+    "cn.rendu.uiinvoke": "4.0.3"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/@RD-Packages"
+  }
+}

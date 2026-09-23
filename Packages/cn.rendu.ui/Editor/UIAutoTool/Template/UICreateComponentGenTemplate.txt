@@ -1,0 +1,21 @@
+﻿using System;
+using UnityEngine;
+using RD.Client;
+using System.Collections.Generic;
+
+namespace ${Namespace}
+{
+${PanelViewEnum}
+    /// <summary>
+    /// 由UI工具自动创建 请勿修改
+    /// </summary>
+    [UI(EUICodeType.${CodeType}${PanelLayer})]
+    [ComponentOf(typeof(UIChild))]
+    public partial class ${ResName}Component : Entity, IDestroy, IAwake, IUIBind, IUIInitialize, IUIOpen
+    {
+        public const string PkgName = "${PkgName}";
+        public const string ResName = "${ResName}";
+
+${Variables}
+    }
+}

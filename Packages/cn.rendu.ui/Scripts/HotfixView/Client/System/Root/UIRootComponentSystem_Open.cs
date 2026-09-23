@@ -1,0 +1,50 @@
+﻿using RD.Client;
+using RD.Core;
+
+namespace RD.Client
+{
+    public static partial class UIRootComponentSystem
+    {
+        public static async Promise<T> OpenPanelAsync<T>(this UIRootComponent self)
+        where T : Entity, IAwake, IUIOpen
+        {
+            return await self.UIMgr.OpenPanelAsync<T>(self);
+        }
+
+        public static async Promise<T> OpenPanelParamAsync<T>(this UIRootComponent self, params object[] paramMore)
+        where T : Entity, IUIOpen<ParamVo>
+        {
+            return await self.UIMgr.OpenPanelParamAsync<T>(self, paramMore);
+        }
+
+        public static async Promise<T> OpenPanelAsync<T, P1>(this UIRootComponent self, P1 p1)
+        where T : Entity, IUIOpen<P1>
+        {
+            return await self.UIMgr.OpenPanelAsync<T, P1>(self, p1);
+        }
+
+        public static async Promise<T> OpenPanelAsync<T, P1, P2>(this UIRootComponent self, P1 p1, P2 p2)
+        where T : Entity, IUIOpen<P1, P2>
+        {
+            return await self.UIMgr.OpenPanelAsync<T, P1, P2>(self, p1, p2);
+        }
+
+        public static async Promise<T> OpenPanelAsync<T, P1, P2, P3>(this UIRootComponent self, P1 p1, P2 p2, P3 p3)
+        where T : Entity, IUIOpen<P1, P2, P3>
+        {
+            return await self.UIMgr.OpenPanelAsync<T, P1, P2, P3>(self, p1, p2, p3);
+        }
+
+        public static async Promise<T> OpenPanelAsync<T, P1, P2, P3, P4>(this UIRootComponent self, P1 p1, P2 p2, P3 p3, P4 p4)
+        where T : Entity, IUIOpen<P1, P2, P3, P4>
+        {
+            return await self.UIMgr.OpenPanelAsync<T, P1, P2, P3, P4>(self, p1, p2, p3, p4);
+        }
+
+        public static async Promise<T> OpenPanelAsync<T, P1, P2, P3, P4, P5>(this UIRootComponent self, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
+        where T : Entity, IUIOpen<P1, P2, P3, P4, P5>
+        {
+            return await self.UIMgr.OpenPanelAsync<T, P1, P2, P3, P4, P5>(self, p1, p2, p3, p4, p5);
+        }
+    }
+}

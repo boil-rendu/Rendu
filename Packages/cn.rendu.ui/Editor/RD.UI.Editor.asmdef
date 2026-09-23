@@ -1,0 +1,26 @@
+{
+    "name": "RD.UI.Editor",
+    "rootNamespace": "",
+    "references": [
+        "RD.Core",
+        "RD.Core.Editor",
+        "RD.UI",
+        "RD.Loader",
+        "Unity.TextMeshPro",
+        "Unity.EditorCoroutines.Editor",
+        "RD.SourceGeneratorAttribute",
+        "RD.Inspector",
+        "RD.Inspector.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
