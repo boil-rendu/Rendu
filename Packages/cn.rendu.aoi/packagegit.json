@@ -1,0 +1,8 @@
+﻿{
+    "Name": "Aoi",
+    "ScriptsReferences": 
+    {
+        "Hotfix": ["RD.Aoi"],
+        "Model": ["RD.Aoi"]
+    }
+}
