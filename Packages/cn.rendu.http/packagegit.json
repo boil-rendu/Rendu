@@ -1,0 +1,8 @@
+﻿{
+    "Name": "Http",
+    "ScriptsReferences": 
+    {
+        "Hotfix": ["RD.Http"],
+        "Model": ["RD.Http"]
+    }
+}
