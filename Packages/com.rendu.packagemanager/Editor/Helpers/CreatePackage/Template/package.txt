@@ -1,0 +1,19 @@
+﻿{
+  "name": "${FormalName}",
+  "displayName": "${DisplayName}",
+  "version": "${Version}",
+  "unity": "${Unity}",
+  "description": "${Description}",
+  "keywords": ${Keywords},
+  "author": {
+    "name": "${AuthorName}",
+    "email": "${AuthorEmail}",
+    "url": "${AuthorUrl}"
+  },
+  "repository": {},
+  "relatedPackages": {},
+  "dependencies": {},
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/@RenduPackages"
+  }
+}

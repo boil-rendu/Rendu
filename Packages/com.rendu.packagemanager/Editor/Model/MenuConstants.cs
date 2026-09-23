@@ -1,0 +1,4 @@
+namespace RD.PackageManager.Editor
+{
+
+}
