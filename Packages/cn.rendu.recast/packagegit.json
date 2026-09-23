@@ -1,0 +1,8 @@
+﻿{
+    "Name": "Recast",
+    "ScriptsReferences": 
+    {
+        "Hotfix": ["RD.Recast"],
+        "Model": ["RD.Recast"]
+    }
+}

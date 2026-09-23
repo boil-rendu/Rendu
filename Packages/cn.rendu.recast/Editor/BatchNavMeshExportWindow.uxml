@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <ui:VisualElement name="container" style="padding-left: 10px; padding-right: 10px; padding-top: 10px; padding-bottom: 10px;">
+        <ui:Label name="titleLabel" text="📦 批量导出导航网格" style="font-size: 18px; unity-font-style-and-weight: bold; margin-bottom: 5px;" />
+
+        <ui:VisualElement name="helpBoxContainer" />
+
+        <ui:VisualElement name="sceneListBox" style="background-color: rgba(50, 50, 50, 0.5); padding-left: 10px; padding-right: 10px; padding-top: 10px; padding-bottom: 10px;">
+            <ui:Label name="sceneListLabel" text="📋 场景列表 (共 0 个)" style="unity-font-style-and-weight: bold; margin-bottom: 5px;" />
+
+            <ui:ScrollView name="sceneScrollView" style="height: 200px;">
+                <ui:ListView name="sceneListView" />
+            </ui:ScrollView>
+
+            <ui:VisualElement name="sceneButtons" style="flex-direction: row; margin-top: 5px;">
+                <ui:Button name="selectAllButton" text="✓ 全选" style="margin-right: 5px;" />
+                <ui:Button name="deselectAllButton" text="✗ 全不选" style="margin-right: 5px;" />
+                <ui:Button name="rescanButton" text="🔄 重新扫描" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="exportSettingsBox" style="background-color: rgba(50, 50, 50, 0.5); padding-left: 10px; padding-right: 10px; padding-top: 10px; padding-bottom: 10px;">
+            <ui:Label text="⚙️ 导出设置" style="unity-font-style-and-weight: bold; margin-bottom: 5px;" />
+
+            <ui:VisualElement name="exportPathRow" style="flex-direction: row; align-items: center;">
+                <ui:Label text="导出路径" style="width: 80px; margin-right: 5px;" />
+                <ui:TextField name="exportPathField" style="flex-grow: 1;" />
+                <ui:Button name="browsePathButton" text="..." style="width: 30px; margin-left: 5px;" />
+            </ui:VisualElement>
+
+            <ui:Toggle name="keepIntermediateToggle" label="保留中间文件" />
+
+            <ui:Label text="🔧 Recast 参数" style="unity-font-style-and-weight: bold; margin-top: 10px; margin-bottom: 5px;" />
+
+            <ui:FloatField name="cellSizeField" label="单元格大小" value="0.1666667" />
+            <ui:FloatField name="cellHeightField" label="单元格高度" value="0.05" />
+            <ui:FloatField name="agentRadiusField" label="角色半径" value="0.5" />
+            <ui:FloatField name="agentHeightField" label="角色高度" value="2.0" />
+            <ui:FloatField name="agentMaxClimbField" label="最大攀爬高度" value="0.25" />
+            <ui:FloatField name="agentMaxSlopeField" label="最大斜坡角度" value="45.0" />
+        </ui:VisualElement>
+
+        <ui:Button name="exportButton" text="🚀 开始批量导出" style="height: 40px; font-size: 14px; font-weight: bold;" />
+
+        <ui:VisualElement name="progressBox" style="display: none;">
+            <ui:Label name="statusLabel" text="" style="font-weight: bold; margin-bottom: 5px;" />
+            <ui:ProgressBar name="progressBar" value="0" title="进度" low-value="0" high-value="1" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,0 +1,20 @@
+{
+    "name": "RD.Recast.Editor",
+    "references": [
+        "RD.Recast",
+        "RD.Init.Editor",
+        "Unity.Mathematics"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "languageVersion": 10.0
+}

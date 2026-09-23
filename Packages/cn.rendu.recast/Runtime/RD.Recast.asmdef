@@ -1,0 +1,19 @@
+{
+    "name": "RD.Recast",
+    "rootNamespace": "RD.Recast",
+    "references": [
+        "RD.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        ""
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "languageVersion": 10.0
+}
