@@ -1,0 +1,8 @@
+﻿{
+    "Name": "Console",
+    "ScriptsReferences": 
+    {
+        "Hotfix": ["RD.Console"],
+        "Model": ["RD.Console"]
+    }
+}

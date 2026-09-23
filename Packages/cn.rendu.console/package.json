@@ -1,0 +1,19 @@
+﻿{
+  "name": "cn.rendu.console",
+  "displayName": "RD.Console",
+  "version": "1.0.0",
+  "unity": "2022.3",
+  "description": "控制台命令输出",
+  "keywords": ["utility", "tools"],
+  "author": {
+    "name": "Boil",
+    "email": "rendu-core@outlook.com",
+    "url": "https://github.com/RenduPackages"
+  },
+  "repository": {},
+  "relatedPackages": {},
+  "dependencies": {},
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/@RenduPackages"
+  }
+}
