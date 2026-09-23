@@ -1,0 +1,24 @@
+﻿{
+  "name": "cn.rendu.uiinvoke",
+  "displayName": "RD.UI.Invoke",
+  "version": "4.0.3",
+  "unity": "2022.3",
+  "category": "UI|Extend/Event",
+  "description": "独立功能不依赖UI 框架 >>> 文档: https://lib9kmxvq7k.feishu.cn/wiki/TpyYwbWIUizhfKkcubocTZgInse",
+  "author": {
+    "name": "Boil",
+    "email": "rendu-core@outlook.com",
+    "url": "https://github.com/RenduPackages"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RD-Packages/cn.rendu.uiinvoke"
+  },
+  "relatedPackages": {},
+  "dependencies": {
+    "cn.rendu.core": "1.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/@RD-Packages"
+  }
+}
