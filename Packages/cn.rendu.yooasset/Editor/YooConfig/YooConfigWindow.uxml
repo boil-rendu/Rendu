@@ -1,0 +1,23 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <ui:VisualElement name="Container">
+        <ui:Label name="TitleLabel" text="⚙️ Yoo Config" style="unity-font-style: bold; font-size: 18px; margin-top: 10px;" />
+        <ui:VisualElement name="HeaderLine" style="height: 2px; background-color: rgb(64, 141, 242); margin-bottom: 15px;" />
+
+        <ui:VisualElement name="FieldsBox" style="padding: 10px;">
+            <ui:Label text="E Play Mode" style="unity-font-style: bold; margin-bottom: 5px;" />
+            <ui:EnumField name="PlayModeField" label="" style="margin-bottom: 10px;" />
+
+            <ui:Label text="Host Server Url" style="unity-font-style: bold; margin-bottom: 5px;" />
+            <ui:TextField name="UrlField" label="" style="margin-bottom: 10px;" />
+
+            <ui:Label text="Editor Force Redownload" style="unity-font-style: bold; margin-bottom: 5px;" />
+            <ui:Toggle name="EditorForceRedownloadField" label="" style="margin-bottom: 10px;" />
+
+            <ui:Label text="Editor Simulate Download Speed (bytes/s)" style="unity-font-style: bold; margin-bottom: 5px;" />
+            <ui:IntegerField name="EditorSimulateDownloadSpeedField" label="" style="margin-bottom: 10px;" />
+
+            <ui:Label text="Host Force Clear Sandbox" style="unity-font-style: bold; margin-bottom: 5px;" />
+            <ui:Toggle name="HostForceClearSandboxField" label="" style="margin-bottom: 20px;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

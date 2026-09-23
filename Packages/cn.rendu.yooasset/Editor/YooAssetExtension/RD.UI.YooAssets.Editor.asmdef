@@ -1,0 +1,19 @@
+{
+    "name": "RD.UI.YooAssets.Editor",
+    "rootNamespace": "",
+    "references": [
+        "RD.YooAsset.Editor",
+        "RD.UI"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

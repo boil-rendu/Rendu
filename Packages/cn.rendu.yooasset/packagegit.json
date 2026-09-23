@@ -1,0 +1,9 @@
+﻿{
+    "Name": "YooAssets",
+    "ScriptsReferences": 
+    {
+        "Hotfix": ["RD.YooAsset"],
+        "Model": ["RD.YooAsset"],
+        "ModelView": ["RD.YooAsset"]
+    }
+}
