@@ -1,0 +1,8 @@
+﻿{
+    "Name": "Numeric",
+    "ScriptsReferences": 
+    {
+        "Hotfix": ["RD.Numeric"],
+        "Model": ["RD.Numeric"]
+    }
+}
