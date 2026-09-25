@@ -209,7 +209,7 @@ namespace RD.UI.Editor
                 if (uiEventBase.IsTaskEvent)
                 {
                     content = @$"
-        [UIInvoke({$"{component}.{onEvent}"})]
+        [Invoke({$"{component}.{onEvent}"})]
         private static async Promise {onEvent}(this {component} self{systemEventParam})
         {{
             
@@ -220,7 +220,7 @@ namespace RD.UI.Editor
                 else
                 {
                     content = @$"
-        [UIInvoke({$"{component}.{onEvent}"})]
+        [Invoke({$"{component}.{onEvent}"})]
         private static void {onEvent}(this {component} self{systemEventParam})
         {{
 

@@ -4,7 +4,7 @@ using RD.Core;
 
 namespace RD.Client
 {
-    [Invoke(EUIInvokeType.Async)]
+    [Invoke(EInvokeType.Async)]
     public class UIInvokeCoroutineLockHandler : AInvokeEntityHandler<UIInvokeEntity_CoroutineLock, Promise<Entity>>
     {
         public override async Promise<Entity> Handle(Entity entity, UIInvokeEntity_CoroutineLock args)

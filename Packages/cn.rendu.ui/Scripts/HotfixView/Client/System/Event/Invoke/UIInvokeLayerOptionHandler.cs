@@ -3,7 +3,7 @@ using RD.Core;
 
 namespace RD.Client
 {
-    [Invoke(EUIInvokeType.Sync)]
+    [Invoke(EInvokeType.Sync)]
     public class UIInvokeBanLayerOptionForeverHandler : AInvokeEntityHandler<UIInvokeEntity_BanLayerOptionForever, long>
     {
         public override long Handle(Entity entity, UIInvokeEntity_BanLayerOptionForever args)
@@ -12,7 +12,7 @@ namespace RD.Client
         }
     }
 
-    [Invoke(EUIInvokeType.Sync)]
+    [Invoke(EInvokeType.Sync)]
     public class UIInvokeRecoverLayerOptionForeverHandler : AInvokeEntityHandler<UIInvokeEntity_RecoverLayerOptionForever>
     {
         public override void Handle(Entity entity, UIInvokeEntity_RecoverLayerOptionForever args)

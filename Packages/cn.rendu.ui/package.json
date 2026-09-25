@@ -17,7 +17,7 @@
   "relatedPackages": {},
   "dependencies": {
     "cn.rendu.core": "1.0.0",
-    "cn.rendu.uiinvoke": "4.0.3"
+    "cn.rendu.invoke": "4.0.3"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/@RD-Packages"

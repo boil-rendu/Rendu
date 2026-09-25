@@ -2,11 +2,7 @@
 
 namespace RD.Core
 {
-    #if ET10
     public interface IDynamicEvent<A> : IEvent<A> where A : struct
-    #else
-    public interface IDynamicEvent<A> : IClassEvent<A> where A : struct
-    #endif
     {
     }
 
@@ -16,11 +12,7 @@ namespace RD.Core
     }
 
     [EntitySystem]
-    #if ET10
     public abstract class DynamicEventSystem<T, A> : EventSystem<T, A>, IDynamicEventSystem<A>
-    #else
-    public abstract class DynamicEventSystem<T, A> : ClassEventSystem<T, A>, IDynamicEventSystem<A>
-    #endif
             where T : Entity, IDynamicEvent<A> where A : struct
     {
         Type ISystemType.Type()
@@ -33,18 +25,6 @@ namespace RD.Core
             return typeof(IDynamicEventSystem<A>);
         }
 
-        #if ET10
-        public new async Promise Run(Entity o, A message)
-        {
-            await DynamicEvent((T)o, message);
-        }
-
-        protected override void Event(T e, A t)
-        {
-            throw new NotImplementedException();
-        }
-
-        #else
         public new async Promise Run(Entity o, A message)
         {
             await DynamicEvent((T)o, message);
@@ -54,7 +34,6 @@ namespace RD.Core
         {
             throw new NotImplementedException();
         }
-        #endif
 
         protected abstract Promise DynamicEvent(T self, A message);
     }

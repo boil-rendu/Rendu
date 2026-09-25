@@ -20,7 +20,7 @@ namespace RD.Client
         }
     }
 
-    [Invoke(EUIInvokeType.Sync)]
+    [Invoke(EInvokeType.Sync)]
     public class UIInvokeGetAssetsInfoSyncHandler : AInvokeEntityHandler<UIInvokeEntity_GetAssetInfo, AssetInfo>
     {
         public override AssetInfo Handle(Entity entity, UIInvokeEntity_GetAssetInfo args)
@@ -29,7 +29,7 @@ namespace RD.Client
         }
     }
 
-    [Invoke(EUIInvokeType.Sync)]
+    [Invoke(EInvokeType.Sync)]
     public class UIInvokeGetAssetInfoByGUIDSyncHandler : AInvokeEntityHandler<UIInvokeEntity_GetAssetInfoByGUID, AssetInfo>
     {
         public override AssetInfo Handle(Entity entity, UIInvokeEntity_GetAssetInfoByGUID args)

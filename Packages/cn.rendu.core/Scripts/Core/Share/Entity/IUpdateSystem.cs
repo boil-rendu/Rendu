@@ -6,12 +6,12 @@ namespace RD.Core
 	{
 	}
 	
-	public interface IUpdate: IClassEvent<UpdateEvent>
+	public interface IUpdate: IEvent<UpdateEvent>
 	{
 	}
 
 	[EntitySystem]
-	public abstract class UpdateSystem<T> : ClassEventSystem<T, UpdateEvent> where T: Entity, IUpdate
+	public abstract class UpdateSystem<T> : EventSystem<T, UpdateEvent> where T: Entity, IUpdate
 	{
 		protected override void Handle(Entity e, UpdateEvent t)
 		{

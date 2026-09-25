@@ -38,7 +38,7 @@ namespace RD.Core
         public void Publish<T>(T t) where T: struct
         {
             using var _ = Profiler.Section("EntitySystem.Publish");
-            Type systemType = typeof(AClassEventSystem<T>);
+            Type systemType = typeof(AEventSystem<T>);
 
             Queue<EntityRef<Entity>> queue = this.GetQueue(systemType);
             int count = queue.Count;
@@ -53,7 +53,7 @@ namespace RD.Core
                 {
                     continue;
                 }
-                if (component is not IClassEvent<T>)
+                if (component is not IEvent<T>)
                 {
                     continue;
                 }
@@ -70,11 +70,11 @@ namespace RD.Core
 
                     queue.Enqueue(component);
 
-                    foreach (AClassEventSystem<T> classSystem in systems)
+                    foreach (AEventSystem<T> eventSystem in systems)
                     {
                         try
                         {
-                            classSystem.Run(component, t);
+                            eventSystem.Run(component, t);
                         }
                         catch (Exception e)
                         {

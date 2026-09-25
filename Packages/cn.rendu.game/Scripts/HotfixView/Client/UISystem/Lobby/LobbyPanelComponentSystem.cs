@@ -28,7 +28,7 @@ namespace RD.Client
 
         #region UIEvent开始
 
-        [UIInvoke(LobbyPanelComponent.OnEventEnterMapInvoke)]
+        [Invoke(LobbyPanelComponent.OnEventEnterMapInvoke)]
         private static async Promise OnEventEnterMapInvoke(this LobbyPanelComponent self)
         {
             self.UIBase.SetActive(false);

@@ -38,9 +38,6 @@
         </Compile>
         <ProjectReference Include="$(SolutionDir)Packages/cn.rendu.sourcegenerator/DotNet~/RD.SourceGenerator/RD.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
         <ProjectReference Include="$(SolutionDir)Packages/cn.rendu.sourcegenerator/DotNet~/RD.SourceGeneratorAttribute/RD.SourceGeneratorAttribute.csproj" />
-        <Compile Remove="..\..\..\cn.rendu.ui\Scripts\Core\Share\Entity\**" />
-        <Compile Remove="..\..\..\cn.rendu.ui\Scripts\Core\Share\Event\**" />
-        <Compile Remove="..\..\..\cn.rendu.ui\Scripts\Core\Share\Pool\**" />
     </ItemGroup>
 
     <ItemGroup>

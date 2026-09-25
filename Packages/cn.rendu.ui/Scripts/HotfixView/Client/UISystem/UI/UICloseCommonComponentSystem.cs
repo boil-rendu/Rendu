@@ -49,7 +49,7 @@ namespace RD.Client
 
         #region UIEvent开始
 
-        [UIInvoke(UICloseCommonComponent.OnEventCloseInvoke)]
+        [Invoke(UICloseCommonComponent.OnEventCloseInvoke)]
         private static async Promise OnEventCloseInvoke(this UICloseCommonComponent self)
         {
             await self.CloseUI(self.Parent);

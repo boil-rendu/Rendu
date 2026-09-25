@@ -28,6 +28,9 @@ namespace RD.Client
 
         public string OnEventInvokeType { get; private set; }
 
+        // 统一 Invoke 键：字符串只在绑定期哈希一次，调用期走 long
+        private long m_InvokeId;
+
         public UITaskEventHandleP2()
         {
         }
@@ -38,6 +41,7 @@ namespace RD.Client
             m_UITaskEventNode = uiTaskEventNode;
             m_Trigger         = trigger;
             OnEventInvokeType = onEventInvokeType;
+            m_InvokeId        = InvokeId.Of(onEventInvokeType);
             return this;
         }
 
@@ -59,7 +63,12 @@ namespace RD.Client
                     return;
                 }
 
-                await UIInvokeSystem.Instance.InvokeTask(Trigger, OnEventInvokeType, p1, p2);
+                if (!EventSystem.Instance.TryInvokeEntity(Trigger, m_InvokeId, new InvokeArgs<P1, P2>(p1, p2), out Promise promise))
+                {
+                    Log.Error($"未找到 Invoke 实现请检查 {OnEventInvokeType} 类型:InvokeArgs<{typeof(P1).Name},{typeof(P2).Name}>");
+                    return;
+                }
+                await promise;
             }
             else if (UITaskEventParamDelegate != null)
             {
@@ -81,6 +90,7 @@ namespace RD.Client
         public void Dispose()
         {
             OnEventInvokeType        = null;
+            m_InvokeId               = 0;
             UITaskEventParamDelegate = null;
             m_Trigger                = default;
             if (m_UITaskEventList == null || m_UITaskEventNode == null) return;

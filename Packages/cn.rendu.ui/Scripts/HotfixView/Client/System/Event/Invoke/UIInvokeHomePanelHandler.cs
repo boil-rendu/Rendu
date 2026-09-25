@@ -1,7 +1,7 @@
 ﻿using RD.Core;
 namespace RD.Client
 {
-    [Invoke(EUIInvokeType.Sync)]
+    [Invoke(EInvokeType.Sync)]
     public class UIInvokeHomePanelHandler : AInvokeEntityHandler<UIInvokeEntity_HomePanel>
     {
         public override void Handle(Entity entity, UIInvokeEntity_HomePanel args)
@@ -10,7 +10,7 @@ namespace RD.Client
         }
     }
 
-    [Invoke(EUIInvokeType.Async)]
+    [Invoke(EInvokeType.Async)]
     public class UIInvokeHomePanelWaitHandler : AInvokeEntityHandler<UIInvokeEntity_HomePanel, Promise<bool>>
     {
         public override async Promise<bool> Handle(Entity entity, UIInvokeEntity_HomePanel args)

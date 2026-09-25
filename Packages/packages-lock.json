@@ -146,11 +146,11 @@
       "source": "embedded",
       "dependencies": {
         "cn.rendu.core": "1.0.0",
-        "cn.rendu.uiinvoke": "4.0.3"
+        "cn.rendu.invoke": "4.0.3"
       }
     },
-    "cn.rendu.uiinvoke": {
-      "version": "file:cn.rendu.uiinvoke",
+    "cn.rendu.invoke": {
+      "version": "file:cn.rendu.invoke",
       "depth": 0,
       "source": "embedded",
       "dependencies": {

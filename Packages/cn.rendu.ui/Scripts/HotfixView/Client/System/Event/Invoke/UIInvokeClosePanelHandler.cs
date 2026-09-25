@@ -1,7 +1,7 @@
 ﻿using RD.Core;
 namespace RD.Client
 {
-    [Invoke(EUIInvokeType.Sync)]
+    [Invoke(EInvokeType.Sync)]
     public class UIInvokeClosePanelSyncHandler : AInvokeEntityHandler<UIInvokeEntity_ClosePanel>
     {
         public override void Handle(Entity entity, UIInvokeEntity_ClosePanel args)
@@ -10,7 +10,7 @@ namespace RD.Client
         }
     }
 
-    [Invoke(EUIInvokeType.Async)]
+    [Invoke(EInvokeType.Async)]
     public class UIInvokeClosePanelAsyncHandler : AInvokeEntityHandler<UIInvokeEntity_ClosePanel, Promise<bool>>
     {
         public override async Promise<bool> Handle(Entity entity, UIInvokeEntity_ClosePanel args)
@@ -21,7 +21,7 @@ namespace RD.Client
         }
     }
 
-    [Invoke(EUIInvokeType.Sync)]
+    [Invoke(EInvokeType.Sync)]
     public class UIInvokeViewClosePanelSyncHandler : AInvokeEntityHandler<UIInvokeEntity_ViewClosePanel>
     {
         public override void Handle(Entity entity, UIInvokeEntity_ViewClosePanel args)
@@ -37,7 +37,7 @@ namespace RD.Client
         }
     }
 
-    [Invoke(EUIInvokeType.Async)]
+    [Invoke(EInvokeType.Async)]
     public class UIInvokeViewClosePanelAsyncHandler : AInvokeEntityHandler<UIInvokeEntity_ViewClosePanel, Promise<bool>>
     {
         public override async Promise<bool> Handle(Entity entity, UIInvokeEntity_ViewClosePanel args)

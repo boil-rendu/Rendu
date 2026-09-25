@@ -6,7 +6,7 @@ using RD.Core;
 namespace RD.Client
 {
     #if !UIMACRO_SYNCLOAD_CLOSE
-    [Invoke(EUIInvokeType.Sync)]
+    [Invoke(EInvokeType.Sync)]
     public class UIInvokeLoadSyncHandler : AInvokeEntityHandler<UIInvokeEntity_Load, UnityObject>
     {
         public override UnityObject Handle(Entity entity, UIInvokeEntity_Load args)
@@ -30,7 +30,7 @@ namespace RD.Client
     }
     #endif
 
-    [Invoke(EUIInvokeType.Async)]
+    [Invoke(EInvokeType.Async)]
     public class UIInvokeLoadAsyncHandler : AInvokeEntityHandler<UIInvokeEntity_Load, Promise<UnityObject>>
     {
         public override async Promise<UnityObject> Handle(Entity entity, UIInvokeEntity_Load args)
@@ -54,7 +54,7 @@ namespace RD.Client
     }
 
     #if !UIMACRO_SYNCLOAD_CLOSE
-    [Invoke(EUIInvokeType.Sync)]
+    [Invoke(EInvokeType.Sync)]
     public class UIInvokeLoadTexture2DSyncHandler : AInvokeEntityHandler<UIInvokeEntity_LoadTexture2D, Texture2D>
     {
         public override Texture2D Handle(Entity entity, UIInvokeEntity_LoadTexture2D args)
@@ -86,7 +86,7 @@ namespace RD.Client
     }
     #endif
 
-    [Invoke(EUIInvokeType.Async)]
+    [Invoke(EInvokeType.Async)]
     public class UIInvokeLoadTexture2DAsyncHandler : AInvokeEntityHandler<UIInvokeEntity_LoadTexture2D, Promise<Texture2D>>
     {
         public override async Promise<Texture2D> Handle(Entity entity, UIInvokeEntity_LoadTexture2D args)

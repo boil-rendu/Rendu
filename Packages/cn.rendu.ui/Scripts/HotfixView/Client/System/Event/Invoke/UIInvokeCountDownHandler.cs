@@ -3,7 +3,7 @@ using RD.Core;
 
 namespace RD.Client
 {
-    [Invoke(EUIInvokeType.Sync)]
+    [Invoke(EInvokeType.Sync)]
     public class UIInvokeCountDownAddSyncHandler : AInvokeEntityHandler<UIInvokeEntity_CountDownAdd>
     {
         public override void Handle(Entity entity, UIInvokeEntity_CountDownAdd args)
@@ -30,7 +30,7 @@ namespace RD.Client
         }
     }
 
-    [Invoke(EUIInvokeType.SyncHandler_1)]
+    [Invoke(EInvokeType.SyncHandler_1)]
     public class UIInvokeCountDownAddSyncHandler_1 : AInvokeEntityHandler<UIInvokeEntity_CountDownAdd, bool>
     {
         public override bool Handle(Entity entity, UIInvokeEntity_CountDownAdd args)
@@ -57,7 +57,7 @@ namespace RD.Client
         }
     }
 
-    [Invoke(EUIInvokeType.Sync)]
+    [Invoke(EInvokeType.Sync)]
     public class UIInvokeCountDownRemoveSyncHandler : AInvokeEntityHandler<UIInvokeEntity_CountDownRemove>
     {
         public override void Handle(Entity entity, UIInvokeEntity_CountDownRemove args)
@@ -66,7 +66,7 @@ namespace RD.Client
         }
     }
 
-    [Invoke(EUIInvokeType.SyncHandler_1)]
+    [Invoke(EInvokeType.SyncHandler_1)]
     public class UIInvokeCountDownRemoveSyncHandler_1 : AInvokeEntityHandler<UIInvokeEntity_CountDownRemove, bool>
     {
         public override bool Handle(Entity entity, UIInvokeEntity_CountDownRemove args)

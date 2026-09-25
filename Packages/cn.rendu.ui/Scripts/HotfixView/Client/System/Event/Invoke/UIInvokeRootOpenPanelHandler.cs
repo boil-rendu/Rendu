@@ -1,7 +1,7 @@
 ﻿using RD.Core;
 namespace RD.Client
 {
-    [Invoke(EUIInvokeType.Async)]
+    [Invoke(EInvokeType.Async)]
     public class UIInvokeRootOpenPanelAsyncHandler : AInvokeEntityHandler<UIInvokeEntity_SceneOpenPanel, Promise<bool>>
     {
         public override async Promise<bool> Handle(Entity entity, UIInvokeEntity_SceneOpenPanel args)
@@ -10,7 +10,7 @@ namespace RD.Client
         }
     }
 
-    [Invoke(EUIInvokeType.Sync)]
+    [Invoke(EInvokeType.Sync)]
     public class UIInvokeRootOpenPanelSyncHandler : AInvokeEntityHandler<UIInvokeEntity_SceneOpenPanel>
     {
         public override void Handle(Entity entity, UIInvokeEntity_SceneOpenPanel args)

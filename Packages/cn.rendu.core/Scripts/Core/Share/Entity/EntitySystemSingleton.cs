@@ -22,7 +22,7 @@ namespace RD.Core
                     TypeSystems.OneTypeSystems oneTypeSystems = this.TypeSystems.GetOrCreateOneTypeSystems(iSystemType.Type());
                     oneTypeSystems.Map.Add(iSystemType.SystemType(), obj);
                     
-                    if (iSystemType is IClassEventSystem)
+                    if (iSystemType is IEventSystem)
                     {
                         oneTypeSystems.ClassType.Add(iSystemType.SystemType());
                     }

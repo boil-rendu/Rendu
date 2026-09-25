@@ -117,6 +117,7 @@ public class AOTGenericReferences : UnityEngine.MonoBehaviour
 	// RD.Core.AInvokeEntityHandler<RD.Client.UIInvokeEntity_WaitAsync,object>
 	// RD.Core.AInvokeEntityHandler<RD.Client.UIInvokeEntity_WaitFrameAsync,object>
 	// RD.Core.AInvokeEntityHandler<RD.Client.UIInvokeEntity_WaitSecondAsync,object>
+	// RD.Core.AInvokeEntityHandler<RD.Core.InvokeArgs,object>
 	// RD.Core.AInvokeHandler<RD.ConfigLoader.GetAllConfigBytes,object>
 	// RD.Core.AInvokeHandler<RD.ConfigLoader.GetOneConfigBytes,object>
 	// RD.Core.AInvokeHandler<RD.Core.FiberInit,object>
@@ -144,8 +145,8 @@ public class AOTGenericReferences : UnityEngine.MonoBehaviour
 	// RD.Core.AwakeSystem<object,object,object>
 	// RD.Core.AwakeSystem<object,object>
 	// RD.Core.AwakeSystem<object>
-	// RD.Core.ClassEventSystem<object,RD.Core.LateUpdateEvent>
-	// RD.Core.ClassEventSystem<object,RD.Core.UpdateEvent>
+	// RD.Core.EventSystem<object,RD.Core.LateUpdateEvent>
+	// RD.Core.EventSystem<object,RD.Core.UpdateEvent>
 	// RD.Core.DestroySystem<object>
 	// RD.Core.EntityRef<object>
 	// RD.Core.IAwakeSystem<RD.Client.UIBindVo,object>
@@ -545,7 +546,6 @@ public class AOTGenericReferences : UnityEngine.MonoBehaviour
 	// RD.Core.StructBsonSerialize<Unity.Mathematics.quaternion>
 	// RD.Core.TreeSet<System.Collections.Generic.KeyValuePair<long,object>>
 	// RD.Core.TreeWalkPredicate<System.Collections.Generic.KeyValuePair<long,object>>
-	// RD.Core.UIInvokeReturnHandler<object,object>
 	// RD.Core.UpdateSystem<object>
 	// RD.ResultCallback<RD.Client.Wait_CreateMyUnit>
 	// RD.ResultCallback<RD.Client.Wait_SceneChangeFinish>

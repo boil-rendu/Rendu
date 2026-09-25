@@ -3,7 +3,7 @@ using RD.Core;
 
 namespace RD.Client
 {
-    [Invoke(EUIInvokeType.Sync)]
+    [Invoke(EInvokeType.Sync)]
     public class UIInvokeReleaseSpriteSyncHandler : AInvokeEntityHandler<UIInvokeEntity_ReleaseSprite>
     {
         public override void Handle(Entity entity, UIInvokeEntity_ReleaseSprite args)

@@ -41,7 +41,7 @@ Scripts/
 ## 包依赖（从底层到顶层）
 
 ```
-sourcegenerator → init → inspector → uiinvoke → core
+sourcegenerator → init → inspector → invoke → core
                                      └→ mathematics / referenceregistry
 ui → yooasset → hybridclr → loader
 excel / protocol / recast            // 工具链
@@ -55,7 +55,7 @@ gameres → game → packagemanager      // 资源 / 主入口 / 工具
 | `cn.rendu.sourcegenerator` | Roslyn 分析器与源生成器（RD0032 规则、EntitySystemOf 等） |
 | `cn.rendu.core` | 核心框架：Entity / Scene / Fiber / Promise / 网络 / 定时器 / 序列化 |
 | `cn.rendu.ui` | UI 框架：Panel / Bind 源生成 / 事件 |
-| `cn.rendu.uiinvoke` | UIInvoke 源生成器与运行时 |
+| `cn.rendu.invoke` | Invoke 源生成器与运行时 |
 | `cn.rendu.yooasset` | YooAsset 资源系统封装 |
 | `cn.rendu.hybridclr` | HybridCLR 集成 |
 | `cn.rendu.loader` | 服务端热重载加载器（AssemblyLoadContext） |
@@ -74,7 +74,7 @@ gameres → game → packagemanager      // 资源 / 主入口 / 工具
 | `RD.Loader` | net10.0 | 服务端程序集热重载 |
 | `RD.AppHost` | net10.0 | 服务端宿主（Exe） |
 | `RD.ExcelExporter` / `RD.ProtocolExporter` | net10.0 | 导出工具（Exe） |
-| `RD.SourceGenerator` / `RD.SourceGeneratorAttribute` / `RD.UI.BindSourceGenerator` / `RD.UI.InvokeSourceGenerator` | **netstandard2.0（硬约束）** | Roslyn 分析器 |
+| `RD.SourceGenerator` / `RD.SourceGeneratorAttribute` / `RD.UI.BindSourceGenerator` / `RD.InvokeSourceGenerator` | **netstandard2.0（硬约束）** | Roslyn 分析器 |
 
 **构建与验证**：
 

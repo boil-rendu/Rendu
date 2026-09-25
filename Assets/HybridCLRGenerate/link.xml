@@ -65,6 +65,7 @@
     <type fullname="RD.Core.IScene" preserve="all" />
     <type fullname="RD.Core.ITransfer" preserve="all" />
     <type fullname="RD.Core.IdGenerator" preserve="all" />
+    <type fullname="RD.Core.InvokeArgs" preserve="all" />
     <type fullname="RD.Core.InvokeAttribute" preserve="all" />
     <type fullname="RD.Core.KService" preserve="all" />
     <type fullname="RD.Core.LateUpdateSystem`1" preserve="all" />
@@ -108,9 +109,6 @@
     <type fullname="RD.Core.TService" preserve="all" />
     <type fullname="RD.Core.TcpTransport" preserve="all" />
     <type fullname="RD.Core.TimeInfo" preserve="all" />
-    <type fullname="RD.Core.UIInvokeAttribute" preserve="all" />
-    <type fullname="RD.Core.UIInvokeReturnHandler`2" preserve="all" />
-    <type fullname="RD.Core.UIInvokeSystemAttribute" preserve="all" />
     <type fullname="RD.Core.UdpTransport" preserve="all" />
     <type fullname="RD.Core.UpdateSystem`1" preserve="all" />
     <type fullname="RD.Core.World" preserve="all" />

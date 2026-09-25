@@ -29,21 +29,21 @@ namespace RD.Client
 
         #region UIEvent开始
 
-        [UIInvoke(LoginPanelComponent.OnEventLoginInvoke)]
+        [Invoke(LoginPanelComponent.OnEventLoginInvoke)]
         private static async Promise OnEventLoginInvoke(this LoginPanelComponent self)
         {
             Log.Info($"登录");
             await self.DoLogin("账号");
         }
 
-        [UIInvoke(LoginPanelComponent.OnEventWeChatInvoke)]
+        [Invoke(LoginPanelComponent.OnEventWeChatInvoke)]
         private static async Promise OnEventWeChatInvoke(this LoginPanelComponent self)
         {
             Log.Info($"第三方登录点击：微信（未接入SDK，按普通登录进入）");
             await self.DoLogin("微信");
         }
 
-        [UIInvoke(LoginPanelComponent.OnEventQQInvoke)]
+        [Invoke(LoginPanelComponent.OnEventQQInvoke)]
         private static async Promise OnEventQQInvoke(this LoginPanelComponent self)
         {
             Log.Info($"第三方登录点击：QQ（未接入SDK，按普通登录进入）");

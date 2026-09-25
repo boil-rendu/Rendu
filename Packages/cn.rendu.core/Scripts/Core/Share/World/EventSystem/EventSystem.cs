@@ -71,14 +71,20 @@ namespace RD.Core
                     }
                     
                     InvokeAttribute invokeAttribute = attr as InvokeAttribute;
-                    
+
+                    // Invoke 统一键：字符串 invokeType（如 Invoke 源生成器产出的 [Invoke("LoginPanelComponent.OnEventLoginInvoke")]）
+                    // 在这里稳定映射成 long；无字符串时回退到 long Type。
+                    long invokeId = string.IsNullOrEmpty(invokeAttribute.InvokeType)
+                            ? invokeAttribute.Type
+                            : InvokeId.Of(invokeAttribute.InvokeType);
+
                     try
                     {
-                        dict.Add(invokeAttribute.Type, obj);
+                        dict.Add(invokeId, obj);
                     }
                     catch (Exception e)
                     {
-                        throw new Exception($"action type duplicate: {iInvoke.Type.Name} {invokeAttribute.Type}", e);
+                        throw new Exception($"action type duplicate: {iInvoke.Type.Name} {invokeId}", e);
                     }
                 }
             }

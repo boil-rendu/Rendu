@@ -1,5 +1,4 @@
-﻿#if !ET10
-using System;
+﻿using System;
 
 namespace RD.Core
 {
@@ -258,4 +257,3 @@ namespace RD.Core
         }
     }
 }
-#endif

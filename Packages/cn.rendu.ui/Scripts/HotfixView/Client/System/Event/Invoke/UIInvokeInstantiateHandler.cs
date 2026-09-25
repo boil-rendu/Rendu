@@ -5,7 +5,7 @@ using RD.Core;
 
 namespace RD.Client
 {
-    [Invoke(EUIInvokeType.Async)]
+    [Invoke(EInvokeType.Async)]
     public class UIInvokeLoadInstantiateAsyncHandler : AInvokeEntityHandler<UIInvokeEntity_LoadInstantiate, Promise<Entity>>
     {
         public override async Promise<Entity> Handle(Entity entity, UIInvokeEntity_LoadInstantiate args)
@@ -15,7 +15,7 @@ namespace RD.Client
     }
 
     #if !UIMACRO_SYNCLOAD_CLOSE
-    [Invoke(EUIInvokeType.Sync)]
+    [Invoke(EInvokeType.Sync)]
     public class UIInvokeLoadInstantiateSyncHandler : AInvokeEntityHandler<UIInvokeEntity_LoadInstantiate, Entity>
     {
         public override Entity Handle(Entity entity, UIInvokeEntity_LoadInstantiate args)
@@ -25,7 +25,7 @@ namespace RD.Client
     }
     #endif
 
-    [Invoke(EUIInvokeType.Async)]
+    [Invoke(EInvokeType.Async)]
     public class UIInvokeLoadInstantiateByVoAsyncHandler : AInvokeEntityHandler<UIInvokeEntity_LoadInstantiateByVo, Promise<Entity>>
     {
         public override async Promise<Entity> Handle(Entity entity, UIInvokeEntity_LoadInstantiateByVo args)
@@ -35,7 +35,7 @@ namespace RD.Client
     }
 
     #if !UIMACRO_SYNCLOAD_CLOSE
-    [Invoke(EUIInvokeType.Sync)]
+    [Invoke(EInvokeType.Sync)]
     public class UIInvokeLoadInstantiateByVoSyncHandler : AInvokeEntityHandler<UIInvokeEntity_LoadInstantiateByVo, Entity>
     {
         public override Entity Handle(Entity entity, UIInvokeEntity_LoadInstantiateByVo args)
@@ -44,7 +44,7 @@ namespace RD.Client
         }
     }
 
-    [Invoke(EUIInvokeType.Sync)]
+    [Invoke(EInvokeType.Sync)]
     public class UIInvokeInstantiateGameObjectSyncHandler : AInvokeEntityHandler<UIInvokeEntity_InstantiateGameObject, UnityGameObject>
     {
         public override UnityGameObject Handle(Entity entity, UIInvokeEntity_InstantiateGameObject args)
@@ -54,7 +54,7 @@ namespace RD.Client
     }
     #endif
 
-    [Invoke(EUIInvokeType.Async)]
+    [Invoke(EInvokeType.Async)]
     public class UIInvokeInstantiateGameObjectAsyncHandler : AInvokeEntityHandler<UIInvokeEntity_InstantiateGameObject, Promise<UnityGameObject>>
     {
         public override async Promise<UnityGameObject> Handle(Entity entity, UIInvokeEntity_InstantiateGameObject args)

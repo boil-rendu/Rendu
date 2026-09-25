@@ -7,7 +7,7 @@ using RD.Core;
 namespace RD.Client
 {
     #if !UIMACRO_SYNCLOAD_CLOSE
-    [Invoke(EUIInvokeType.Sync)]
+    [Invoke(EInvokeType.Sync)]
     public class UIInvokeLoadSpriteSyncHandler : AInvokeEntityHandler<UIInvokeEntity_LoadSprite, Sprite>
     {
         public override Sprite Handle(Entity entity, UIInvokeEntity_LoadSprite args)
@@ -31,7 +31,7 @@ namespace RD.Client
     }
     #endif
 
-    [Invoke(EUIInvokeType.Async)]
+    [Invoke(EInvokeType.Async)]
     public class UIInvokeLoadSpriteAsyncHandler : AInvokeEntityHandler<UIInvokeEntity_LoadSprite, Promise<Sprite>>
     {
         public override async Promise<Sprite> Handle(Entity entity, UIInvokeEntity_LoadSprite args)

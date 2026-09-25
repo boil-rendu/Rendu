@@ -128,5 +128,5 @@ crashlytics-build.properties
 # Unity 在 package 根目录查找 source generator dll，每个开发者本地 build 后都会变，噪音过大
 /Packages/cn.rendu.sourcegenerator/RD.SourceGenerator.dll
 /Packages/cn.rendu.sourcegenerator/RD.SourceGenerator.dll.meta
-/Packages/cn.rendu.uiinvoke/RD.UI.InvokeSourceGenerator.dll
-/Packages/cn.rendu.uiinvoke/RD.UI.InvokeSourceGenerator.dll.meta
+/Packages/cn.rendu.invoke/RD.InvokeSourceGenerator.dll
+/Packages/cn.rendu.invoke/RD.InvokeSourceGenerator.dll.meta
