@@ -124,3 +124,9 @@ crashlytics-build.properties
 /HybridCLRData/**/[Bb]in/
 # HybridCLRData/ 整体忽略：本地 il2cpp 副本 + 裁剪/热更 dll，由 HybridCLR/Installer 重新生成（约 900MB）
 /HybridCLRData/
+# ----- 源生成器预编译 dll（本地 build 产物，按机器/时间戳变化） -----
+# Unity 在 package 根目录查找 source generator dll，每个开发者本地 build 后都会变，噪音过大
+/Packages/cn.rendu.sourcegenerator/RD.SourceGenerator.dll
+/Packages/cn.rendu.sourcegenerator/RD.SourceGenerator.dll.meta
+/Packages/cn.rendu.uiinvoke/RD.UI.InvokeSourceGenerator.dll
+/Packages/cn.rendu.uiinvoke/RD.UI.InvokeSourceGenerator.dll.meta
