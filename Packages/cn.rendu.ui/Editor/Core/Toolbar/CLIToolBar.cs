@@ -15,7 +15,7 @@ namespace RD.UI.Editor
             ToolbarExtender.AddRightToolbarGUI(OnCLIToolbarGUI, 1000);
         }
 
-        const string iconPath = "Packages\\cn.rendu.ui\\Editor\\Toolbar\\Icon\\icon_ai_cli.png";
+        const string iconPath = "Packages/cn.rendu.ui/Editor/Core/Toolbar/Icon/icon_ai_cli.png";
         private static Texture _cachedIcon;
 
         private static void OnCLIToolbarGUI()
