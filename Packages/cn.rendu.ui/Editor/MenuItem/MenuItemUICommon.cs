@@ -14,19 +14,19 @@ namespace RD.UI.Editor
             var activeObject = Selection.activeObject as DefaultAsset;
             if (activeObject == null)
             {
-                UnityTipsHelper.ShowError($"请在路径 {UIConstHelper.Const.UIProjectResPath}/xxx/{UIConstHelper.Const.UIPrefabs} 下右键创建");
+                UnityTipsHelper.ShowError($"请在路径 {UIConstHelper.Const.ProjectResPath}/xxx/{UIConstHelper.Const.Prefabs} 下右键创建");
                 return;
             }
 
             var path = AssetDatabase.GetAssetPath(Selection.activeObject);
 
-            if (!path.Contains(UIConstHelper.Const.UIProjectResPath))
+            if (!path.Contains(UIConstHelper.Const.ProjectResPath))
             {
-                UnityTipsHelper.ShowError($"请在路径 {UIConstHelper.Const.UIProjectResPath}/xxx/{UIConstHelper.Const.UIPrefabs} 下右键创建");
+                UnityTipsHelper.ShowError($"请在路径 {UIConstHelper.Const.ProjectResPath}/xxx/{UIConstHelper.Const.Prefabs} 下右键创建");
                 return;
             }
 
-            var saveName = $"{UIConstHelper.Const.UIProjectName}{UIConstHelper.Const.UICommonName}";
+            var saveName = $"{UIConstHelper.Const.ProjectName}{UIConstHelper.Const.CommonName}";
             var savePath = $"{path}/{saveName}.prefab";
 
             if (AssetDatabase.LoadAssetAtPath(savePath, typeof(Object)) != null)
@@ -38,7 +38,7 @@ namespace RD.UI.Editor
             var createCommon = CreateUICommon();
             PrefabUtility.SaveAsPrefabAsset(createCommon, savePath);
             Object.DestroyImmediate(createCommon);
-            UIMenuItemHelper.SelectAssetAtPath(savePath);
+            MenuItemHelper.SelectAssetAtPath(savePath);
         }
 
         [MenuItem("GameObject/UI/Create UICommon", false, 3)]
@@ -57,7 +57,7 @@ namespace RD.UI.Editor
         public static GameObject CreateUICommon(GameObject activeObject = null)
         {
             var commonObject = new GameObject();
-            commonObject.name = $"{UIConstHelper.Const.UIProjectName}{UIConstHelper.Const.UICommonName}";
+            commonObject.name = $"{UIConstHelper.Const.ProjectName}{UIConstHelper.Const.CommonName}";
             var viewRect = commonObject.GetOrAddComponent<RectTransform>();
             commonObject.GetOrAddComponent<CanvasRenderer>();
             var cdeTable = commonObject.GetOrAddComponent<UIBindCDETable>();

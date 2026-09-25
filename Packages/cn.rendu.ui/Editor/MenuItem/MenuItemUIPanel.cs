@@ -14,15 +14,15 @@ namespace RD.UI.Editor
             var activeObject = Selection.activeObject as DefaultAsset;
             if (activeObject == null)
             {
-                UnityTipsHelper.ShowError($"请在路径 {UIConstHelper.Const.UIProjectResPath}/xxx/{UIConstHelper.Const.UIPrefabs} 下右键创建");
+                UnityTipsHelper.ShowError($"请在路径 {UIConstHelper.Const.ProjectResPath}/xxx/{UIConstHelper.Const.Prefabs} 下右键创建");
                 return;
             }
 
             var path = AssetDatabase.GetAssetPath(Selection.activeObject);
 
-            if (!path.Contains(UIConstHelper.Const.UIProjectResPath))
+            if (!path.Contains(UIConstHelper.Const.ProjectResPath))
             {
-                UnityTipsHelper.ShowError($"请在路径 {UIConstHelper.Const.UIProjectResPath}/xxx/{UIConstHelper.Const.UIPrefabs} 下右键创建");
+                UnityTipsHelper.ShowError($"请在路径 {UIConstHelper.Const.ProjectResPath}/xxx/{UIConstHelper.Const.Prefabs} 下右键创建");
                 return;
             }
 
@@ -31,13 +31,13 @@ namespace RD.UI.Editor
 
         internal static void CreateUIPanelByPath(string path)
         {
-            if (!path.Contains(UIConstHelper.Const.UIProjectResPath))
+            if (!path.Contains(UIConstHelper.Const.ProjectResPath))
             {
-                UnityTipsHelper.ShowError($"请在路径 {UIConstHelper.Const.UIProjectResPath}/xxx/{UIConstHelper.Const.UIPrefabs} 下右键创建");
+                UnityTipsHelper.ShowError($"请在路径 {UIConstHelper.Const.ProjectResPath}/xxx/{UIConstHelper.Const.Prefabs} 下右键创建");
                 return;
             }
 
-            var saveName = $"{UIConstHelper.Const.UIProjectName}{UIConstHelper.Const.UIPanelName}";
+            var saveName = $"{UIConstHelper.Const.ProjectName}{UIConstHelper.Const.PanelName}";
             var savePath = $"{path}/{saveName}.prefab";
 
             if (AssetDatabase.LoadAssetAtPath(savePath, typeof(Object)) != null)
@@ -49,7 +49,7 @@ namespace RD.UI.Editor
             var createPanel = CreateUIPanel();
             PrefabUtility.SaveAsPrefabAsset(createPanel, savePath);
             Object.DestroyImmediate(createPanel);
-            UIMenuItemHelper.SelectAssetAtPath(savePath);
+            MenuItemHelper.SelectAssetAtPath(savePath);
         }
 
         private static GameObject CreateUIPanel(GameObject activeObject = null)
@@ -65,7 +65,7 @@ namespace RD.UI.Editor
 
             var panelEditorData = cdeTable.PanelSplitData;
             panelEditorData.Panel = panelObject;
-            panelObject.name      = $"{UIConstHelper.Const.UIProjectName}{UIConstHelper.Const.UIPanelName}";
+            panelObject.name      = $"{UIConstHelper.Const.ProjectName}{UIConstHelper.Const.PanelName}";
             if (activeObject != null)
             {
                 panelRect.SetParent(activeObject.transform, false);

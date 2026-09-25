@@ -42,7 +42,7 @@ namespace RD.UI.Editor
         public static GameObject CreateUIAllPopupView(UIBindCDETable panelCdeTable )
         {
             var allViewObject = new GameObject();
-            allViewObject.name = UIConstHelper.Const.UIAllPopupViewParentName;
+            allViewObject.name = UIConstHelper.Const.AllPopupViewParentName;
             var viewRect = allViewObject.GetOrAddComponent<RectTransform>();
             allViewObject.GetOrAddComponent<CanvasRenderer>();
             viewRect.SetParent(panelCdeTable.transform, false);

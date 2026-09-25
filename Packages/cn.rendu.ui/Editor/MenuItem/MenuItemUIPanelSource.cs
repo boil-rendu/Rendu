@@ -14,16 +14,16 @@ namespace RD.UI.Editor
             var activeObject = Selection.activeObject as DefaultAsset;
             if (activeObject == null)
             {
-                UnityTipsHelper.ShowError($"请在路径 {UIConstHelper.Const.UIProjectResPath}/xxx/{UIConstHelper.Const.UISource} 下右键创建");
+                UnityTipsHelper.ShowError($"请在路径 {UIConstHelper.Const.ProjectResPath}/xxx/{UIConstHelper.Const.Source} 下右键创建");
                 return;
             }
 
             var path = AssetDatabase.GetAssetPath(Selection.activeObject);
 
-            if (activeObject.name != UIConstHelper.Const.UISource ||
-                !path.Contains(UIConstHelper.Const.UIProjectResPath))
+            if (activeObject.name != UIConstHelper.Const.Source ||
+                !path.Contains(UIConstHelper.Const.ProjectResPath))
             {
-                UnityTipsHelper.ShowError($"请在路径 {UIConstHelper.Const.UIProjectResPath}/xxx/{UIConstHelper.Const.UISource} 下右键创建");
+                UnityTipsHelper.ShowError($"请在路径 {UIConstHelper.Const.ProjectResPath}/xxx/{UIConstHelper.Const.Source} 下右键创建");
                 return;
             }
 
@@ -32,15 +32,15 @@ namespace RD.UI.Editor
 
         internal static void CreateUIPanelByPath(string path, string name = null)
         {
-            if (!path.Contains(UIConstHelper.Const.UIProjectResPath))
+            if (!path.Contains(UIConstHelper.Const.ProjectResPath))
             {
-                UnityTipsHelper.ShowError($"请在路径 {UIConstHelper.Const.UIProjectResPath}/xxx/{UIConstHelper.Const.UISource} 下右键创建");
+                UnityTipsHelper.ShowError($"请在路径 {UIConstHelper.Const.ProjectResPath}/xxx/{UIConstHelper.Const.Source} 下右键创建");
                 return;
             }
 
             var saveName = string.IsNullOrEmpty(name)
-                    ? UIConstHelper.Const.UIUIPanelSourceName
-                    : $"{name}{UIConstHelper.Const.UIPanelSourceName}";
+                    ? UIConstHelper.Const.GetDefaultName(UIConstHelper.Const.PanelSourceName)
+                    : $"{name}{UIConstHelper.Const.PanelSourceName}";
             var savePath = $"{path}/{saveName}.prefab";
 
             if (AssetDatabase.LoadAssetAtPath(savePath, typeof(Object)) != null)
@@ -52,7 +52,7 @@ namespace RD.UI.Editor
             var createPanel = CreateUIPanel();
             PrefabUtility.SaveAsPrefabAsset(createPanel, savePath);
             Object.DestroyImmediate(createPanel);
-            UIMenuItemHelper.SelectAssetAtPath(savePath);
+            MenuItemHelper.SelectAssetAtPath(savePath);
         }
 
         public static GameObject CreateUIPanel(GameObject activeObject = null)
@@ -68,7 +68,7 @@ namespace RD.UI.Editor
 
             var panelEditorData = cdeTable.PanelSplitData;
             panelEditorData.Panel = panelObject;
-            panelObject.name      = UIConstHelper.Const.UIUIPanelSourceName;
+            panelObject.name      = UIConstHelper.Const.GetDefaultName(UIConstHelper.Const.PanelSourceName);
             if (activeObject != null)
                 panelRect.SetParent(activeObject.transform, false);
             panelRect.ResetToFullScreen();
@@ -85,7 +85,7 @@ namespace RD.UI.Editor
             // 添加allView节点
             var allViewObject = new GameObject();
             var allViewRect   = allViewObject.GetOrAddComponent<RectTransform>();
-            allViewObject.name = UIConstHelper.Const.UIAllViewParentName;
+            allViewObject.name = UIConstHelper.Const.AllViewParentName;
             allViewRect.SetParent(panelRect, false);
             allViewRect.ResetToFullScreen();
             panelEditorData.AllViewParent = allViewRect;
@@ -93,7 +93,7 @@ namespace RD.UI.Editor
             // 添加AllPopupView节点
             var allPopupViewObject = new GameObject();
             var allPopupViewRect   = allPopupViewObject.GetOrAddComponent<RectTransform>();
-            allPopupViewObject.name = UIConstHelper.Const.UIAllPopupViewParentName;
+            allPopupViewObject.name = UIConstHelper.Const.AllPopupViewParentName;
             allPopupViewRect.SetParent(panelRect, false);
             allPopupViewRect.ResetToFullScreen();
             panelEditorData.AllPopupViewParent = allPopupViewRect;

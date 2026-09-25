@@ -26,10 +26,10 @@ namespace RD.UI.Editor
 
             var path = AssetDatabase.GetAssetPath(Selection.activeObject);
 
-            var containsPath = $"{UIConstHelper.Const.UIProjectResPath}/";
+            var containsPath = $"{UIConstHelper.Const.ProjectResPath}/";
             if (!path.Contains(containsPath))
             {
-                UnityTipsHelper.ShowError($"请在路径 {UIConstHelper.Const.UIProjectResPath}/xxx/ 下右键选择一个Panel 进行转换");
+                UnityTipsHelper.ShowError($"请在路径 {UIConstHelper.Const.ProjectResPath}/xxx/ 下右键选择一个Panel 进行转换");
                 return;
             }
 
@@ -73,8 +73,8 @@ namespace RD.UI.Editor
                 return;
             }
 
-            var newSourceName = $"{panelCdeTable.name}{UIConstHelper.Const.UISource}";
-            var savePath      = $"{pathRoot}{containsPath}{pkgName}/{UIConstHelper.Const.UISource}/{newSourceName}.prefab";
+            var newSourceName = $"{panelCdeTable.name}{UIConstHelper.Const.Source}";
+            var savePath      = $"{pathRoot}{containsPath}{pkgName}/{UIConstHelper.Const.Source}/{newSourceName}.prefab";
 
             //TODO 有人不按要求操作直接不使用view 关联了其他组件 这个组件的引用逆向时会无法关联
             if (AssetDatabase.LoadAssetAtPath(savePath, typeof(Object)) != null)
@@ -96,10 +96,10 @@ namespace RD.UI.Editor
                 return;
             }
 
-            var newSource   = UIMenuItemHelper.CopyGameObject(loadPanel);
+            var newSource   = MenuItemHelper.CopyGameObject(loadPanel);
             var oldCdeTable = newSource.GetComponent<UIBindCDETable>();
             oldCdeTable.IsSplitData = true;
-            newSource.name          = $"{loadPanel.name}{UIConstHelper.Const.UISource}";
+            newSource.name          = $"{loadPanel.name}{UIConstHelper.Const.Source}";
 
             CorrelationView(oldCdeTable);
             var pathRoot = Path.GetDirectoryName(savePath);
@@ -133,11 +133,11 @@ namespace RD.UI.Editor
             {
                 if (viewParent == null) continue;
 
-                var viewName = viewParent.name.Replace(UIConstHelper.Const.UIParentName, "");
+                var viewName = viewParent.name.Replace(UIConstHelper.Const.ParentName, "");
 
                 //防止修改了生成的view路径 所以改为全局查找
-                //var viewPath = $"{m_PanelPath}/{UIConstHelper.Const.UIPrefabs}/{viewName}.prefab";
-                var viewPath = UIMenuItemHelper.GetOnlyPrefabAssetsPath(viewName);
+                //var viewPath = $"{m_PanelPath}/{UIConstHelper.Const.Prefabs}/{viewName}.prefab";
+                var viewPath = MenuItemHelper.GetOnlyPrefabAssetsPath(viewName);
 
                 if (string.IsNullOrEmpty(viewPath))
                 {

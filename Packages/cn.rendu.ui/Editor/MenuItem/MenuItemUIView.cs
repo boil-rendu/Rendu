@@ -14,19 +14,19 @@ namespace RD.UI.Editor
             var activeObject = Selection.activeObject as DefaultAsset;
             if (activeObject == null)
             {
-                UnityTipsHelper.ShowError($"请在路径 {UIConstHelper.Const.UIProjectResPath}/xxx/{UIConstHelper.Const.UIPrefabs} 下右键创建");
+                UnityTipsHelper.ShowError($"请在路径 {UIConstHelper.Const.ProjectResPath}/xxx/{UIConstHelper.Const.Prefabs} 下右键创建");
                 return;
             }
 
             var path = AssetDatabase.GetAssetPath(Selection.activeObject);
 
-            if (!path.Contains(UIConstHelper.Const.UIProjectResPath))
+            if (!path.Contains(UIConstHelper.Const.ProjectResPath))
             {
-                UnityTipsHelper.ShowError($"请在路径 {UIConstHelper.Const.UIProjectResPath}/xxx/{UIConstHelper.Const.UIPrefabs} 下右键创建");
+                UnityTipsHelper.ShowError($"请在路径 {UIConstHelper.Const.ProjectResPath}/xxx/{UIConstHelper.Const.Prefabs} 下右键创建");
                 return;
             }
 
-            var saveName = $"{UIConstHelper.Const.UIProjectName}{UIConstHelper.Const.UIViewName}";
+            var saveName = UIConstHelper.Const.GetDefaultName(UIConstHelper.Const.ViewName);
             var savePath = $"{path}/{saveName}.prefab";
 
             if (AssetDatabase.LoadAssetAtPath(savePath, typeof(Object)) != null)
@@ -38,7 +38,7 @@ namespace RD.UI.Editor
             var createView = CreateUIView();
             PrefabUtility.SaveAsPrefabAsset(createView, savePath);
             Object.DestroyImmediate(createView);
-            UIMenuItemHelper.SelectAssetAtPath(savePath);
+            MenuItemHelper.SelectAssetAtPath(savePath);
         }
 
         [MenuItem("GameObject/UI/Create UIView", false, 2)]
@@ -76,7 +76,7 @@ namespace RD.UI.Editor
             //ViewParent
             var viewParentObject = new GameObject();
             var viewParentRect = viewParentObject.GetOrAddComponent<RectTransform>();
-            viewParentObject.name = UIConstHelper.Const.UIUIViewParentName;
+            viewParentObject.name = UIConstHelper.Const.GetDefaultName(UIConstHelper.Const.ViewParentName);
             viewParentRect.SetParent(activeObject.transform, false);
             viewParentRect.ResetToFullScreen();
 
@@ -101,7 +101,7 @@ namespace RD.UI.Editor
         public static GameObject CreateUIView(GameObject activeObject = null)
         {
             var viewObject = new GameObject();
-            viewObject.name = $"{UIConstHelper.Const.UIProjectName}{UIConstHelper.Const.UIViewName}";
+            viewObject.name = UIConstHelper.Const.GetDefaultName(UIConstHelper.Const.ViewName);
             var viewRect = viewObject.GetOrAddComponent<RectTransform>();
             viewObject.GetOrAddComponent<CanvasRenderer>();
             var cdeTable = viewObject.GetOrAddComponent<UIBindCDETable>();
