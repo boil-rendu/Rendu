@@ -1,12 +1,10 @@
 ﻿#if UNITY_EDITOR
-using RD;
 using System.IO;
 using UnityEditorInternal;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using RD.Core;
 
-namespace RD.Core
+namespace RD.Core.Editor
 {
     public static class ScriptHelper
     {

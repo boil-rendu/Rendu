@@ -1,9 +1,8 @@
 ﻿#if UNITY_EDITOR
-using RD;
 using System;
 using System.Collections.Generic;
 using RD.Inspector;
-using RD.Core;
+using RD.Core.Editor;
 
 namespace RD.Client
 {
@@ -58,8 +57,8 @@ namespace RD.Client
             var searchName = $"On{m_EventName.Replace("u_", "")}Invoke";
 
             try
-            {
-                RD.Core.ScriptHelper.OpenScript($"{resName}ComponentSystem", searchName);
+            { 
+                ScriptHelper.OpenScript($"{resName}ComponentSystem", searchName);
             }
             catch (Exception e)
             {
