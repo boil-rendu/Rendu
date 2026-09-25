@@ -58,7 +58,7 @@ namespace RD.Client
             if (info?.UIBase == null) return true; //没有也算成功关闭
 
             EntityRef<UIMgrComponent> selfRef = self;
-            var coroutineLockCode = info.PanelLayer == EPanelLayer.Panel ? UIConstHelper.Const.UIProjectName.GetHashCode() : panelName.GetHashCode();
+            var coroutineLockCode = info.PanelLayer == EPanelLayer.Panel ? UIConstHelper.Const.ProjectName.GetHashCode() : panelName.GetHashCode();
 
             using var _ = ignoreLock ? null : await self.Root().GetComponent<CoroutineLockComponent>()?.Wait(CoroutineLockType.UIPanel, coroutineLockCode);
 

@@ -72,7 +72,7 @@ namespace RD.Client
                 return true;
             }
 
-            var coroutineLockCode = panelInfo.PanelLayer == EPanelLayer.Panel ? UIConstHelper.Const.UIProjectName.GetHashCode() : panelName.GetHashCode();
+            var coroutineLockCode = panelInfo.PanelLayer == EPanelLayer.Panel ? UIConstHelper.Const.ProjectName.GetHashCode() : panelName.GetHashCode();
 
             using var coroutineLock = await self.Root().GetComponent<CoroutineLockComponent>().Wait(CoroutineLockType.UIPanel, coroutineLockCode);
 

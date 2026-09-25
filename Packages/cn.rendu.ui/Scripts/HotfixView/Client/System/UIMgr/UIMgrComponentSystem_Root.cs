@@ -25,12 +25,12 @@ namespace RD.Client
             self.UIRoot = GameObject.Find(UIRootPath);
             if (self.UIRoot == null)
             {
-                self.UIRoot = GameObject.Find(UIConstHelper.Const.UIRootName);
+                self.UIRoot = GameObject.Find(UIConstHelper.Const.RootName);
             }
 
             if (self.UIRoot == null)
             {
-                self.UIRoot = await self.GetComponent<UILoadComponent>().LoadAssetAsyncInstantiate(UIConstHelper.Const.UIRootPkgName, UIConstHelper.Const.UIRootName);
+                self.UIRoot = await self.GetComponent<UILoadComponent>().LoadAssetAsyncInstantiate(UIConstHelper.Const.RootPkgName, UIConstHelper.Const.RootName);
             }
 
             self = selfRef;
@@ -55,7 +55,7 @@ namespace RD.Client
 
             self.UICanvasRoot = self.UICanvas.gameObject;
 
-            self.UILayerRoot = self.UICanvasRoot.transform.FindChildByName(UIConstHelper.Const.UILayerRootName)?.GetComponent<RectTransform>();
+            self.UILayerRoot = self.UICanvasRoot.transform.FindChildByName(UIConstHelper.Const.LayerRootName)?.GetComponent<RectTransform>();
             if (self.UILayerRoot == null)
             {
                 Debug.LogError($"初始化错误 没有找到UILayerRoot");

@@ -29,7 +29,7 @@ namespace RD.Client
                 return false;
             }
 
-            if (!Panel.name.EndsWith(UIConstHelper.Const.UIPanelName))
+            if (!Panel.name.EndsWith(UIConstHelper.Const.PanelName))
             {
                 return false;
             }
@@ -45,7 +45,7 @@ namespace RD.Client
                 return false;
             }
 
-            if (!Panel.name.EndsWith(UIConstHelper.Const.UISource))
+            if (!Panel.name.EndsWith(UIConstHelper.Const.Source))
             {
                 return false;
             }
@@ -129,9 +129,9 @@ namespace RD.Client
         {
             if (Panel == null) return;
 
-            if (AllViewParent == null || AllViewParent?.name != UIConstHelper.Const.UIAllViewParentName)
+            if (AllViewParent == null || AllViewParent?.name != UIConstHelper.Const.AllViewParentName)
             {
-                AllViewParent = Panel.transform.FindChildByName(UIConstHelper.Const.UIAllViewParentName)?.GetComponent<RectTransform>();
+                AllViewParent = Panel.transform.FindChildByName(UIConstHelper.Const.AllViewParentName)?.GetComponent<RectTransform>();
             }
 
             if (AllViewParent != null)
@@ -143,9 +143,9 @@ namespace RD.Client
                 }
             }
 
-            if (AllPopupViewParent == null || AllPopupViewParent?.name != UIConstHelper.Const.UIAllPopupViewParentName)
+            if (AllPopupViewParent == null || AllPopupViewParent?.name != UIConstHelper.Const.AllPopupViewParentName)
             {
-                AllPopupViewParent = Panel.transform.FindChildByName(UIConstHelper.Const.UIAllPopupViewParentName)?.GetComponent<RectTransform>();
+                AllPopupViewParent = Panel.transform.FindChildByName(UIConstHelper.Const.AllPopupViewParentName)?.GetComponent<RectTransform>();
             }
 
             if (AllPopupViewParent != null)
@@ -172,7 +172,7 @@ namespace RD.Client
                 for (int i = 0; i < AllViewParent.childCount; i++)
                 {
                     var child = AllViewParent.GetChild(i).GetComponent<RectTransform>();
-                    if (child.name.EndsWith(UIConstHelper.Const.UIViewParentName))
+                    if (child.name.EndsWith(UIConstHelper.Const.ViewParentName))
                     {
                         if (!AllCommonView.Contains(child) && !AllCreateView.Contains(child))
                         {
@@ -187,7 +187,7 @@ namespace RD.Client
                 for (int i = 0; i < AllPopupViewParent.childCount; i++)
                 {
                     var child = AllPopupViewParent.GetChild(i).GetComponent<RectTransform>();
-                    if (child.name.EndsWith(UIConstHelper.Const.UIViewParentName))
+                    if (child.name.EndsWith(UIConstHelper.Const.ViewParentName))
                     {
                         if (!AllPopupView.Contains(child))
                         {
@@ -220,23 +220,23 @@ namespace RD.Client
                 Panel.name = qualifiedName;
             }
 
-            var sourceName = Panel.name == UIConstHelper.Const.UIUIPanelSourceName;
-            var panelName  = Panel.name == $"{UIConstHelper.Const.UIProjectName}{UIConstHelper.Const.UIPanelName}";
+            var sourceName = Panel.name == UIConstHelper.Const.GetDefaultName(UIConstHelper.Const.PanelSourceName);
+            var panelName  = Panel.name == $"{UIConstHelper.Const.ProjectName}{UIConstHelper.Const.PanelName}";
             if (sourceName || panelName)
             {
-                Debug.LogError($"当前是默认名称 请手动修改名称 {(sourceName ? $"Xxx{UIConstHelper.Const.UIPanelSourceName}" : "")} {(panelName ? $"Xxx{UIConstHelper.Const.UIPanelName}" : "")}");
+                Debug.LogError($"当前是默认名称 请手动修改名称 {(sourceName ? $"Xxx{UIConstHelper.Const.PanelSourceName}" : "")} {(panelName ? $"Xxx{UIConstHelper.Const.PanelName}" : "")}");
                 return false;
             }
 
-            var sourceEndsWith = Panel.name.EndsWith($"{UIConstHelper.Const.UIPanelSourceName}");
-            var panelEndsWith  = Panel.name.EndsWith($"{UIConstHelper.Const.UIPanelName}");
+            var sourceEndsWith = Panel.name.EndsWith($"{UIConstHelper.Const.PanelSourceName}");
+            var panelEndsWith  = Panel.name.EndsWith($"{UIConstHelper.Const.PanelName}");
 
             if (sourceEndsWith || panelEndsWith)
             {
                 return true;
             }
 
-            Debug.LogError($"{Panel.name} 命名必须以指定规则结尾: [{UIConstHelper.Const.UIPanelName} / {UIConstHelper.Const.UIPanelSourceName}] 请勿随意修改");
+            Debug.LogError($"{Panel.name} 命名必须以指定规则结尾: [{UIConstHelper.Const.PanelName} / {UIConstHelper.Const.PanelSourceName}] 请勿随意修改");
             return false;
         }
 
@@ -251,7 +251,7 @@ namespace RD.Client
                     continue;
                 }
 
-                var viewName = current.name.Replace(UIConstHelper.Const.UIParentName, "");
+                var viewName = current.name.Replace(UIConstHelper.Const.ParentName, "");
 
                 var viewPath = GetOnlyPrefabAssetsPath(viewName, false);
 
@@ -322,7 +322,7 @@ namespace RD.Client
 
         private string ViewSaveAsPrefabAsset(RectTransform current)
         {
-            var viewName = current.name.Replace(UIConstHelper.Const.UIParentName, "");
+            var viewName = current.name.Replace(UIConstHelper.Const.ParentName, "");
             var view     = CreateUIView(viewName);
             var source   = Panel.GetComponent<UIBindCDETable>();
             var pkgName  = source?.PkgName;
@@ -386,18 +386,18 @@ namespace RD.Client
                     current.name = qualifiedName;
                 }
 
-                if (current.name == UIConstHelper.Const.UIUIViewParentName)
+                if (current.name == UIConstHelper.Const.GetDefaultName(UIConstHelper.Const.ViewParentName))
                 {
                     list.RemoveAt(i);
-                    Debug.LogError($"{current.parent?.parent?.name}的{current.parent?.name}下的ViewParent 当前是默认名称 请手动修改名称 Xxx{UIConstHelper.Const.UIViewParentName}",
+                    Debug.LogError($"{current.parent?.parent?.name}的{current.parent?.name}下的ViewParent 当前是默认名称 请手动修改名称 Xxx{UIConstHelper.Const.ViewParentName}",
                         current);
                     continue;
                 }
 
-                if (!current.name.EndsWith(UIConstHelper.Const.UIViewParentName))
+                if (!current.name.EndsWith(UIConstHelper.Const.ViewParentName))
                 {
                     list.RemoveAt(i);
-                    Debug.LogError($"{current.parent?.parent?.name}的{current.parent?.name}下的ViewParent: [{current.name}] 命名必须以 {UIConstHelper.Const.UIViewParentName} 结尾 请勿随意修改",
+                    Debug.LogError($"{current.parent?.parent?.name}的{current.parent?.name}下的ViewParent: [{current.name}] 命名必须以 {UIConstHelper.Const.ViewParentName} 结尾 请勿随意修改",
                         current);
                     continue;
                 }
@@ -414,7 +414,7 @@ namespace RD.Client
                 {
                     var firstChild = current.transform.GetChild(0);
                     var viewCde    = firstChild.GetOrAddComponent<UIBindCDETable>();
-                    viewCde.gameObject.name = current.name.Replace(UIConstHelper.Const.UIParentName, "");
+                    viewCde.gameObject.name = current.name.Replace(UIConstHelper.Const.ParentName, "");
                 }
             }
         }
@@ -446,11 +446,11 @@ namespace RD.Client
                     //因为只有2个父级 所以如果不是这个就会自动帮你移动到另外一个上面
                     //如果多了还是不要自动了
                     var currentParentName = parentP.name;
-                    if (currentParentName == UIConstHelper.Const.UIAllViewParentName)
+                    if (currentParentName == UIConstHelper.Const.AllViewParentName)
                     {
                         AllCreateView.Add(current);
                     }
-                    else if (currentParentName == UIConstHelper.Const.UIAllPopupViewParentName)
+                    else if (currentParentName == UIConstHelper.Const.AllPopupViewParentName)
                     {
                         AllPopupView.Add(current);
                     }

@@ -8,7 +8,7 @@ using RD.Core;
 namespace RD.UI.Editor
 {
     [HideReferenceObjectPicker]
-    public abstract class BaseTreeMenuItem : BaseUIToolModule
+    public abstract class BaseTreeMenuItem : BaseToolModule
     {
         private bool m_InitEnd;
 
@@ -18,7 +18,7 @@ namespace RD.UI.Editor
 
         protected BaseTreeMenuItem(InspectorMenuEditorWindow autoTool, InspectorMenuTree tree)
         {
-            AutoTool = autoTool;
+            Window = autoTool;
             Tree     = tree;
         }
 
@@ -39,7 +39,7 @@ namespace RD.UI.Editor
     }
 
     [HideReferenceObjectPicker]
-    public class TreeMenuItem<T> : BaseTreeMenuItem where T : BaseUIToolModule, new()
+    public class TreeMenuItem<T> : BaseTreeMenuItem where T : BaseToolModule, new()
     {
         [ShowInInspector]
         [HideLabel]
@@ -75,7 +75,7 @@ namespace RD.UI.Editor
         {
             Instance = new T
                        {
-                           AutoTool   = AutoTool,
+                           Window   = Window,
                            Tree       = Tree,
                            ModuleName = ModuleName,
                        };

@@ -205,7 +205,7 @@ namespace RD.Client
 
             EntityRef<Entity> rootRef = EntityRefHelper.GetEntityRefSafety(root);
 
-            var coroutineLockCode = info.PanelLayer == EPanelLayer.Panel ? UIConstHelper.Const.UIProjectName.GetHashCode() : panelName.GetHashCode();
+            var coroutineLockCode = info.PanelLayer == EPanelLayer.Panel ? UIConstHelper.Const.ProjectName.GetHashCode() : panelName.GetHashCode();
 
             using var _ = await self.Root().GetComponent<CoroutineLockComponent>().Wait(CoroutineLockType.UIPanel, coroutineLockCode);
 
@@ -260,7 +260,7 @@ namespace RD.Client
 
             EntityRef<Entity> rootRef = EntityRefHelper.GetEntityRefSafety(root);
 
-            var coroutineLockCode = info.PanelLayer == EPanelLayer.Panel ? UIConstHelper.Const.UIProjectName.GetHashCode() : panelName.GetHashCode();
+            var coroutineLockCode = info.PanelLayer == EPanelLayer.Panel ? UIConstHelper.Const.ProjectName.GetHashCode() : panelName.GetHashCode();
 
             using var _ = await self.Root().GetComponent<CoroutineLockComponent>().Wait(CoroutineLockType.UIPanel, coroutineLockCode);
 
@@ -319,7 +319,7 @@ namespace RD.Client
 
             EntityRef<Entity> rootRef = EntityRefHelper.GetEntityRefSafety(root);
 
-            var coroutineLockCode = info.PanelLayer == EPanelLayer.Panel ? UIConstHelper.Const.UIProjectName.GetHashCode() : panelName.GetHashCode();
+            var coroutineLockCode = info.PanelLayer == EPanelLayer.Panel ? UIConstHelper.Const.ProjectName.GetHashCode() : panelName.GetHashCode();
 
             using var _ = await self.Root().GetComponent<CoroutineLockComponent>().Wait(CoroutineLockType.UIPanel, coroutineLockCode);
 
@@ -374,7 +374,7 @@ namespace RD.Client
 
             EntityRef<Entity> rootRef = EntityRefHelper.GetEntityRefSafety(root);
 
-            var coroutineLockCode = info.PanelLayer == EPanelLayer.Panel ? UIConstHelper.Const.UIProjectName.GetHashCode() : panelName.GetHashCode();
+            var coroutineLockCode = info.PanelLayer == EPanelLayer.Panel ? UIConstHelper.Const.ProjectName.GetHashCode() : panelName.GetHashCode();
 
             using var _ = await self.Root().GetComponent<CoroutineLockComponent>().Wait(CoroutineLockType.UIPanel, coroutineLockCode);
 
@@ -429,7 +429,7 @@ namespace RD.Client
 
             EntityRef<Entity> rootRef = EntityRefHelper.GetEntityRefSafety(root);
 
-            var coroutineLockCode = info.PanelLayer == EPanelLayer.Panel ? UIConstHelper.Const.UIProjectName.GetHashCode() : panelName.GetHashCode();
+            var coroutineLockCode = info.PanelLayer == EPanelLayer.Panel ? UIConstHelper.Const.ProjectName.GetHashCode() : panelName.GetHashCode();
 
             using var _ = await self.Root().GetComponent<CoroutineLockComponent>().Wait(CoroutineLockType.UIPanel, coroutineLockCode);
 
@@ -484,7 +484,7 @@ namespace RD.Client
 
             EntityRef<Entity> rootRef = EntityRefHelper.GetEntityRefSafety(root);
 
-            var coroutineLockCode = info.PanelLayer == EPanelLayer.Panel ? UIConstHelper.Const.UIProjectName.GetHashCode() : panelName.GetHashCode();
+            var coroutineLockCode = info.PanelLayer == EPanelLayer.Panel ? UIConstHelper.Const.ProjectName.GetHashCode() : panelName.GetHashCode();
 
             using var _ = await self.Root().GetComponent<CoroutineLockComponent>().Wait(CoroutineLockType.UIPanel, coroutineLockCode);
 
@@ -539,7 +539,7 @@ namespace RD.Client
 
             EntityRef<Entity> rootRef = EntityRefHelper.GetEntityRefSafety(root);
 
-            var coroutineLockCode = info.PanelLayer == EPanelLayer.Panel ? UIConstHelper.Const.UIProjectName.GetHashCode() : panelName.GetHashCode();
+            var coroutineLockCode = info.PanelLayer == EPanelLayer.Panel ? UIConstHelper.Const.ProjectName.GetHashCode() : panelName.GetHashCode();
 
             using var _ = await self.Root().GetComponent<CoroutineLockComponent>().Wait(CoroutineLockType.UIPanel, coroutineLockCode);
 

@@ -23,7 +23,7 @@ namespace RD.Client
         {
             foreach (var parent in listParent)
             {
-                var viewName = parent.name.Replace(UIConstHelper.Const.UIParentName, "");
+                var viewName = parent.name.Replace(UIConstHelper.Const.ParentName, "");
                 self.m_ViewParent.Add(viewName, parent);
             }
         }
@@ -32,7 +32,7 @@ namespace RD.Client
         {
             foreach (var commonParentView in self.m_PanelSplitData.AllCommonView)
             {
-                var viewName = commonParentView.name.Replace(UIConstHelper.Const.UIParentName, "");
+                var viewName = commonParentView.name.Replace(UIConstHelper.Const.ParentName, "");
 
                 //通用view的名称是不允许修改的 如果修改了 那么就创建一个新的
                 var viewTsf = commonParentView.FindChildByName(viewName);

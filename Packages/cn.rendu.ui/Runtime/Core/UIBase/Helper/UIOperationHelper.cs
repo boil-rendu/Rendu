@@ -197,7 +197,7 @@ namespace RD.Client
 
             var prefabPath = AssetDatabase.GetAssetPath(obj);
 
-            if (prefabPath.Contains(UIConstHelper.Const.UIPackages) && prefabPath.Contains(UIConstHelper.Const.UIETPackagesFormat))
+            if (prefabPath.Contains(UIConstHelper.Const.Packages) && prefabPath.Contains(UIConstHelper.Const.PackagesFormat))
             {
                 return true;
             }

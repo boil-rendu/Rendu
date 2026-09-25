@@ -142,20 +142,20 @@ namespace RD.Client
 
         private void OnValueChangedEUICodeType()
         {
-            if (name.EndsWith(UIConstHelper.Const.UIPanelName) || name.EndsWith(UIConstHelper.Const.UIPanelSourceName))
+            if (name.EndsWith(UIConstHelper.Const.PanelName) || name.EndsWith(UIConstHelper.Const.PanelSourceName))
             {
                 if (UICodeType != EUICodeType.Panel)
                 {
-                    Debug.LogWarning($"{name} 结尾{UIConstHelper.Const.UIPanelName} 必须设定为{UIConstHelper.Const.UIPanelName}类型");
+                    Debug.LogWarning($"{name} 结尾{UIConstHelper.Const.PanelName} 必须设定为{UIConstHelper.Const.PanelName}类型");
                 }
 
                 UICodeType = EUICodeType.Panel;
             }
-            else if (name.EndsWith(UIConstHelper.Const.UIViewName))
+            else if (name.EndsWith(UIConstHelper.Const.ViewName))
             {
                 if (UICodeType != EUICodeType.View)
                 {
-                    Debug.LogWarning($"{name} 结尾{UIConstHelper.Const.UIViewName} 必须设定为{UIConstHelper.Const.UIViewName}类型");
+                    Debug.LogWarning($"{name} 结尾{UIConstHelper.Const.ViewName} 必须设定为{UIConstHelper.Const.ViewName}类型");
                 }
 
                 UICodeType = EUICodeType.View;
@@ -526,11 +526,11 @@ namespace RD.Client
 
         private Type m_CreateModuleType;
 
-        private Type CreateModuleType => m_CreateModuleType ??= GetTargetType("RD.UI.Editor", "RD.UI.Editor.UICreateModule");
+        private Type CreateModuleType => m_CreateModuleType ??= GetTargetType("RD.UI.Editor", "RD.UI.Editor.CreateModule");
 
         private Type m_SourceSplitType;
 
-        private Type SourceSplitType => m_SourceSplitType ??= GetTargetType("RD.UI.Editor", "RD.UI.Editor.UIPanelSourceSplit");
+        private Type SourceSplitType => m_SourceSplitType ??= GetTargetType("RD.UI.Editor", "RD.UI.Editor.PanelSourceSplit");
 
         private Type GetTargetType(string assemblyName, string className)
         {

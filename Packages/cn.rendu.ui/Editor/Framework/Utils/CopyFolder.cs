@@ -33,7 +33,7 @@ namespace RD.UI.Editor
                 CopyAll(sourceDir, targetDir);
                 UnityTipsHelper.Show("创建完毕");
                 EditorApplication.ExecuteMenuItem("RD/Loader/ReGenerateProjectAssemblyReference");
-                UIAutoTool.CloseWindowRefresh();
+                AutoTool.CloseWindowRefresh();
             }
         }
 
