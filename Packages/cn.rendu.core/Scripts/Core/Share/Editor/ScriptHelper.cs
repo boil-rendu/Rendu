@@ -8,7 +8,7 @@ using RD.Core;
 
 namespace RD.Core
 {
-    public static class UIScriptHelper
+    public static class ScriptHelper
     {
         private const string SearchPath = "Packages";
 

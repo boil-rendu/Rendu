@@ -55,7 +55,7 @@ namespace RD.Client
         }
 
         /// <summary>
-        /// 通过反射调用 UIScriptHelper.OpenScript
+        /// 通过反射调用 ScriptHelper.OpenScript
         /// 解决 Runtime 程序集不能引用 Editor 程序集的问题
         /// </summary>
         private static MethodInfo s_OpenScriptMethod;
@@ -67,10 +67,10 @@ namespace RD.Client
             {
                 foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
                 {
-                    var s_UIScriptHelperType = assembly.GetType("RD.Core.UIScriptHelper");
-                    if (s_UIScriptHelperType != null)
+                    var s_ScriptHelperType = assembly.GetType("RD.Core.ScriptHelper");
+                    if (s_ScriptHelperType != null)
                     {
-                        s_OpenScriptMethod = s_UIScriptHelperType.GetMethod("OpenScript", new[] { typeof(string), typeof(string) });
+                        s_OpenScriptMethod = s_ScriptHelperType.GetMethod("OpenScript", new[] { typeof(string), typeof(string) });
                         break;
                     }
                 }
@@ -82,7 +82,7 @@ namespace RD.Client
             }
             else
             {
-                Debug.LogError("无法找到 UIScriptHelper.OpenScript 方法");
+                Debug.LogError("无法找到 ScriptHelper.OpenScript 方法");
             }
         }
 

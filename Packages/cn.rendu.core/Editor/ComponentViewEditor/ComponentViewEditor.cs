@@ -180,12 +180,12 @@ namespace RD.Core.Editor
             EditorGUILayout.Space(20, false);
             if (GUILayout.Button("查看Component代码"))
             {
-                UIScriptHelper.OpenScript(componentName);
+                ScriptHelper.OpenScript(componentName);
             }
 
             if (GUILayout.Button("查看System代码"))
             {
-                UIScriptHelper.OpenScript($"{componentName}System");
+                ScriptHelper.OpenScript($"{componentName}System");
             }
 
             EditorGUILayout.Space(20, false);

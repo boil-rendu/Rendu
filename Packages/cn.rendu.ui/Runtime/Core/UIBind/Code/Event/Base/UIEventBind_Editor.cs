@@ -59,7 +59,7 @@ namespace RD.Client
 
             try
             {
-                RD.Core.UIScriptHelper.OpenScript($"{resName}ComponentSystem", searchName);
+                RD.Core.ScriptHelper.OpenScript($"{resName}ComponentSystem", searchName);
             }
             catch (Exception e)
             {
