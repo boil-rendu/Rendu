@@ -36,7 +36,7 @@ namespace RD.UI.Editor
             RefreshAction     = refreshAction;
             RemoveMacro       = null;
             AddMacro          = null;
-            AllMacro          = MacroHelper.GetSymbols(UnityMacroModule.BuildTargetGroup);
+            AllMacro          = MacroHelper.GetSymbols(MacroModule.BuildTargetGroup);
             CurrentMacroCount = AllMacro.Count;
         }
 
@@ -53,7 +53,7 @@ namespace RD.UI.Editor
                 return;
             }
 
-            MacroHelper.AddMacro(AddMacro, UnityMacroModule.BuildTargetGroup);
+            MacroHelper.AddMacro(AddMacro, MacroModule.BuildTargetGroup);
             RefreshAction?.Invoke();
         }
 
@@ -65,7 +65,7 @@ namespace RD.UI.Editor
                 return;
             }
 
-            MacroHelper.RemoveMacro(RemoveMacro, UnityMacroModule.BuildTargetGroup);
+            MacroHelper.RemoveMacro(RemoveMacro, MacroModule.BuildTargetGroup);
             RefreshAction?.Invoke();
         }
     }

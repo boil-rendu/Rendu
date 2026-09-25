@@ -32,7 +32,7 @@ namespace RD.UI.Editor
 
         public override void Initialize()
         {
-            var value = MacroHelper.InitEnumValue<T>(UnityMacroModule.BuildTargetGroup);
+            var value = MacroHelper.InitEnumValue<T>(MacroModule.BuildTargetGroup);
             Enum.TryParse(value.ToString(), out this.MacroEnumType);
         }
 

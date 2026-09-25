@@ -13,10 +13,18 @@ namespace RD.UI.Editor
 {
     using Object = UnityEngine.Object;
     /// <summary>
-    ///  Unity宏
+    ///  宏
     /// </summary>
-    public class UnityMacroModule : BaseUIToolModule
+    [UIAutoMenu("宏设置", 200100)]
+    public class MacroModule : BaseToolModule
     {
+        [Button("文档", 30)]
+        [PropertyOrder(-99999)]
+        public void OpenDocument()
+        {
+            Application.OpenURL("https://lib9kmxvq7k.feishu.cn/wiki/F1cDwqKSliIiBIkWMwmcfsj6nUe");
+        }
+
         [GUIColor(0.4f, 0.8f, 1)]
         [BoxGroup("目标平台切换", centerLabel: true)]
         [OnValueChanged("OnBuildTargetGroupChange")]
@@ -55,7 +63,7 @@ namespace RD.UI.Editor
 
             MacroHelper.ChangeSymbols(allRemove, allSelect, BuildTargetGroup);
 
-            UIAutoTool.CloseWindowRefresh();
+            AutoTool.CloseWindowRefresh();
         }
 
         public override void Initialize()
@@ -72,7 +80,7 @@ namespace RD.UI.Editor
 
             var assembly = RD.Client.AssemblyHelper.GetAssembly("RD.UI.Editor");
 
-            var allMacroEnum = RD.Client.AssemblyHelper.GetClassesWithAttribute<UIEnumUnityMacroAttribute>(assembly);
+            var allMacroEnum = RD.Client.AssemblyHelper.GetClassesWithAttribute<EnumMacroAttribute>(assembly);
 
             Type macroDataBaseType = typeof(MacroDataBase<>);
 
