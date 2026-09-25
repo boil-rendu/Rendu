@@ -81,9 +81,7 @@ namespace RD.Core.Editor
                 }
             }
 
-            drawAction = Draw;
-
-            OverrideDraw();
+            drawAction = UIDraw;
         }
 
         public static void DrawAction(Entity entity)
@@ -164,7 +162,35 @@ namespace RD.Core.Editor
             EditorGUILayout.EndVertical();
         }
 
-        static partial void OverrideDraw();
+        /// <summary>
+        /// UI 增强绘制：在默认字段绘制前，追加「查看 Component/System 代码」按钮
+        /// </summary>
+        private static void UIDraw(Entity entity)
+        {
+            DrawScripButton(entity);
+            Draw(entity);
+        }
+
+        private static void DrawScripButton(Entity entity)
+        {
+            string componentName = entity.GetType().Name;
+
+            // 绘制两个并排的按钮，一个查看View代码，一个查看System代码
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.Space(20, false);
+            if (GUILayout.Button("查看Component代码"))
+            {
+                UIScriptHelper.OpenScript(componentName);
+            }
+
+            if (GUILayout.Button("查看System代码"))
+            {
+                UIScriptHelper.OpenScript($"{componentName}System");
+            }
+
+            EditorGUILayout.Space(20, false);
+            EditorGUILayout.EndHorizontal();
+        }
     }
 }
 #endif

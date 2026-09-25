@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using RD.Core;
 
-namespace RD.UI.Editor
+namespace RD.Core
 {
     public static class UIScriptHelper
     {
