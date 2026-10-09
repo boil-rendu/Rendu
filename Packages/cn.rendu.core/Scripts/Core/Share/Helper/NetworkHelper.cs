@@ -7,8 +7,10 @@ using System.Runtime.InteropServices;
 
 namespace RD.Core
 {
+	/// <summary>网络工具：枚举本机 IP、DNS 解析（优先 IPv4）、<c>host:port</c> 字符串转 <see cref="IPEndPoint"/>、Windows 平台关闭 UDP <c>WSAECONNRESET</c>（避免「对端关闭后下一发包抛异常」）。</summary>
 	public static class NetworkHelper
 	{
+		/// <summary>枚举本机所有以太网网卡的 IPv4/IPv6 地址（仅 <c>Ethernet</c>，过滤掉回环/虚拟网卡）。</summary>
 		public static string[] GetAddressIPs()
 		{
 			List<string> list = new List<string>();
@@ -25,8 +27,8 @@ namespace RD.Core
 			}
 			return list.ToArray();
 		}
-		
-		// 优先获取IPV4的地址
+
+		/// <summary>DNS 解析 <paramref name="hostName"/>：优先返回 IPv4 地址，无 IPv4 时退回解析结果的第一条。</summary>
 		public static IPAddress GetHostAddress(string hostName)
 		{
 			IPAddress[] ipAddresses = Dns.GetHostAddresses(hostName);
@@ -41,12 +43,14 @@ namespace RD.Core
 			}
 			return returnIpAddress;
 		}
-		
+
+		/// <summary>用 (host, port) 字符串构造 <see cref="IPEndPoint"/>：host 必须是 IP 字面量，不做 DNS 解析。</summary>
 		public static IPEndPoint ToIPEndPoint(string host, int port)
 		{
 			return new IPEndPoint(IPAddress.Parse(host), port);
 		}
 
+		/// <summary>从 <c>"host:port"</c> 字符串解析 <see cref="IPEndPoint"/>：用最后一个 <c>:</c> 分割 host/port。</summary>
 		public static IPEndPoint ToIPEndPoint(string address)
 		{
 			int index = address.LastIndexOf(':');
@@ -56,6 +60,7 @@ namespace RD.Core
 			return ToIPEndPoint(host, port);
 		}
 
+		/// <summary>Windows 平台调 <c>SIO_UDP_CONNRESET</c> 关掉「对端关闭后下一发包抛 <c>WSAECONNRESET</c>」行为（macOS/Linux 静默返回）。</summary>
 		public static void SetSioUdpConnReset(Socket socket)
 		{
 			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

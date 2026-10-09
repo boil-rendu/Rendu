@@ -10,6 +10,9 @@ namespace RD.Core
 
         private readonly List<long> cacheIds = new();
 
+        /// <summary>把 channel <paramref name="id"/> 安排在 <paramref name="time"/> 时刻被 <see cref="KChannel.Update"/> 调度一次。</summary>
+        /// <param name="time">目标时间戳（毫秒，相对 <see cref="TimeInfo.FrameTime"/>）。</param>
+        /// <param name="id">要调度的 channel Id。</param>
         public void AddToUpdate(long time, long id) => this.timeout.AddToUpdate(time, id);
 
         private void TimerOut(uint timeNow) => this.timeout.TimerOut(timeNow);
