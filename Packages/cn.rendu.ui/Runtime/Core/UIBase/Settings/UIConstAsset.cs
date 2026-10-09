@@ -50,11 +50,11 @@ namespace RD.Client
 
         [BoxGroup("项目配置", CenterLabel = true)]
         [LabelText("生成包名")]
-        public string CreatePackageName = "uiproject"; //对应指定代码生成到指定的包中
+        public string CreatePackageName = "sample"; //对应指定代码生成到指定的包中
 
         [BoxGroup("项目配置", CenterLabel = true)]
         [LabelText("生成默认包")]
-        public string CreatePackagePath = "Assets/../Packages/cn.rendu.uiproject";
+        public string CreatePackagePath = "Assets/../Packages/cn.rendu.ui.sample";
 
         [BoxGroup("项目配置", CenterLabel = true)]
         [LabelText("组件·生成目录（自动覆盖）")]

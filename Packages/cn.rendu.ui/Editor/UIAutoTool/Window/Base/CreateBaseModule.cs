@@ -88,8 +88,8 @@ namespace RD.UI.Editor
         private void CopyUIPackage()
         {
             var PackagesPath      = $"{Application.dataPath}/../Packages";
-            var sourceFolder      = $"{PackagesPath}/cn.rendu.ui/.Template/cn.rendu.uiproject";
-            var targetPackagePath = $"{PackagesPath}/cn.rendu.uiproject";
+            var sourceFolder      = $"{PackagesPath}/cn.rendu.ui/.Template/cn.rendu.ui.sample";
+            var targetPackagePath = $"{PackagesPath}/cn.rendu.ui.sample";
             CopyFolder.Copy(sourceFolder, targetPackagePath);
         }
     }

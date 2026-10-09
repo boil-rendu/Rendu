@@ -43,8 +43,8 @@
 | 4 | UI项目指定包编辑器资源 | `UIProjectPackageEditorPath` | `Assets/../Packages/cn.rendu.{0}/Assets/Editor/UI` | ❌ | **1** | **保留** |
 | 5 | UI项目资源 | `UIProjectResPath` | `Assets/GameRes/UI` | ❌ | 28 | 保留 |
 | 6 | UI项目指定包资源 | `UIProjectPackageResPath` | `Assets/../Packages/cn.rendu.{0}/Assets/GameRes/UI` | ❌ | 3 | 保留 |
-| 7 | UI项目生成包名 | `UIETCreatePackageName` | `uiproject` | ❌ | 2 | 与 #8 合并 |
-| 8 | UI项目生成默认包 | `UIETCreatePackagePath` | `Assets/../Packages/cn.rendu.uiproject` | ❌ | 2 | 与 #7 合并（可由 #7 推导） |
+| 7 | UI项目生成包名 | `UIETCreatePackageName` | `sample` | ❌ | 2 | 与 #8 合并 |
+| 8 | UI项目生成默认包 | `UIETCreatePackagePath` | `Assets/../Packages/cn.rendu.ui.sample` | ❌ | 2 | 与 #7 合并（可由 #7 推导） |
 | 9 | UI项目脚本 | `UIETComponentGenPath` | `.../Scripts/ModelView/Client/UIGen` | ❌ | 5 | 保留 |
 | 10 | UI项目ET组件 | `UIETComponentPath` | `.../Scripts/ModelView/Client/UIComponent` | ❌ | 2 | 保留 |
 | 11 | UI项目自定义脚本 | `UIETSystemGenPath` | `.../Scripts/HotfixView/Client/UIGen` | ❌ | 3 | 保留 |
@@ -101,8 +101,8 @@
 
 | # | 字段 | 当前值 | 推导关系 |
 | ---: | --- | --- | --- |
-| 7 | `UIETCreatePackageName` | `uiproject` | 真值（包名） |
-| 8 | `UIETCreatePackagePath` | `Assets/../Packages/cn.rendu.uiproject` | = `"Assets/../"` + `#16 UIPackages` + `#17 UIETPackagesFormat` + `#7`，完全吻合 |
+| 7 | `UIETCreatePackageName` | `sample` | 真值（包名） |
+| 8 | `UIETCreatePackagePath` | `Assets/../Packages/cn.rendu.ui.sample` | = `"Assets/../"` + `#16 UIPackages` + `#17 UIETPackagesFormat` + `#7`，完全吻合 |
 
 > 两个字段必须手工保持一致，改一个忘一个就炸。处置：只留 #7，#8 改为运行期拼接。
 
@@ -239,7 +239,7 @@ panelObject.name = UIConstHelper.Const.GetDefaultName(
 
 | 合并项 | | 处置 |
 | --- | :--: | --- |
-| `UIETCreatePackageName` + `UIETCreatePackagePath` | ⏸ 待合 | 只留 `UIETCreatePackageName`（`uiproject`），路径改为运行期拼 `Packages/cn.rendu.{包名}` |
+| `UIETCreatePackageName` + `UIETCreatePackagePath` | ⏸ 待合 | 只留 `UIETCreatePackageName`（`sample`），路径改为运行期拼 `Packages/cn.rendu.{包名}` |
 | `UIRootPkgName` + `UICommonName` | ⏸ 待合 | 合并为 `UICommonPkgName`（值 `Common`），同时干掉 `CreateUIBaseModule.cs:53` 的硬编码副本 |
 | `UIPackages` + `UIETPackagesFormat` | ⏸ 待合 | 下沉到 `PackageHelper`，面板不再展示 |
 | `UIUIPanelSourceName` + `UIPanelSourceName` | ✅ **已合**（`341c94e`）| **不是 rename，是 delete** — `UIUIPanelSourceName` = `UIProjectName + UIPanelSourceName`，无信息损失。详见 §2.4 |

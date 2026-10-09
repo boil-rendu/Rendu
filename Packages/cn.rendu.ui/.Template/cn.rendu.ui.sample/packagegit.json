@@ -1,0 +1,7 @@
+{
+    "Name":"UI.Sample",
+    "ScriptsReferences":
+    {
+        "Model":["RD.UI.Sample"]
+    }
+}
