@@ -1688,7 +1688,7 @@ public class AOTGenericReferences : UnityEngine.MonoBehaviour
 		// System.Void RD.Core.EntitySystemSingleton.Awake<long>(RD.Core.Entity,long)
 		// System.Void RD.Core.EntitySystemSingleton.Awake<object,object>(RD.Core.Entity,object,object)
 		// System.Void RD.Core.EntitySystemSingleton.Awake<object>(RD.Core.Entity,object)
-		// object RD.Core.Entity_Extend.GetComponent<object>(RD.Core.Entity,bool)
+		// object RD.Core.EntityHelper.GetComponent<object>(RD.Core.Entity,bool)
 		// System.Void RD.Core.EventSystem.Invoke<RD.NetComponentOnRead>(long,RD.NetComponentOnRead)
 		// System.Void RD.Core.EventSystem.Invoke<RD.TimerCallback>(long,RD.TimerCallback)
 		// System.Void RD.Core.EventSystem.InvokeEntity<RD.Client.UIInvokeEntity_DestroyPanel>(RD.Core.Entity,long,RD.Client.UIInvokeEntity_DestroyPanel)

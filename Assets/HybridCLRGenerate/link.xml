@@ -43,7 +43,6 @@
     <type fullname="RD.Core.EntitySceneFactory" preserve="all" />
     <type fullname="RD.Core.EntitySystemAttribute" preserve="all" />
     <type fullname="RD.Core.EntitySystemHelper" preserve="all" />
-    <type fullname="RD.Core.Entity_Extend" preserve="all" />
     <type fullname="RD.Core.EventAttribute" preserve="all" />
     <type fullname="RD.Core.EventSystem" preserve="all" />
     <type fullname="RD.Core.EventSystem_InvokeEntity_UIExtension" preserve="all" />
