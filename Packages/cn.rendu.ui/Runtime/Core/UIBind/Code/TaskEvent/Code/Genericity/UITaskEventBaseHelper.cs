@@ -5,10 +5,15 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>
+    /// UI 异步（Task）事件辅助/扩展
+    /// 按参数个数动态创建异步事件，以及 InvokeAsync / AddTaskEvent / RemoveTaskEvent 扩展
+    /// </summary>
     public static class UITaskEventBaseHelper
     {
         #region 创建
 
+        /// <summary>按参数类型列表动态创建对应泛型实参的 UIEventBase（异步事件）</summary>
         public static UIEventBase CreatorUITaskEventBase(string name, List<EUIEventParamType> paramList)
         {
             UIEventBase uiTaskEventBase = null;
@@ -48,17 +53,20 @@ namespace RD.Client
             return uiTaskEventBase;
         }
 
+        /// <summary>创建 0 参异步事件</summary>
         private static UIEventBase CreatorUITaskEventP0()
         {
             return (UIEventBase)(Activator.CreateInstance(typeof(UITaskEventP0)));
         }
 
+        /// <summary>创建 1 参异步事件</summary>
         private static UIEventBase CreatorUITaskEventP1(List<EUIEventParamType> paramList)
         {
             return (UIEventBase)(Activator.CreateInstance(typeof(UITaskEventP1<>)
                                                                  .MakeGenericType(paramList[0].GetParamType())));
         }
 
+        /// <summary>创建 2 参异步事件</summary>
         private static UIEventBase CreatorUITaskEventP2(List<EUIEventParamType> paramList)
         {
             return (UIEventBase)(Activator.CreateInstance(typeof(UITaskEventP2<,>)
@@ -66,6 +74,7 @@ namespace RD.Client
                                                                                   paramList[1].GetParamType())));
         }
 
+        /// <summary>创建 3 参异步事件</summary>
         private static UIEventBase CreatorUITaskEventP3(List<EUIEventParamType> paramList)
         {
             return (UIEventBase)(Activator.CreateInstance(typeof(UITaskEventP3<,,>)
@@ -74,6 +83,7 @@ namespace RD.Client
                                                                                   paramList[2].GetParamType())));
         }
 
+        /// <summary>创建 4 参异步事件</summary>
         private static UIEventBase CreatorUITaskEventP4(List<EUIEventParamType> paramList)
         {
             return (UIEventBase)(Activator.CreateInstance(typeof(UITaskEventP4<,,,>)
@@ -83,6 +93,7 @@ namespace RD.Client
                                                                                   paramList[3].GetParamType())));
         }
 
+        /// <summary>创建 5 参异步事件</summary>
         private static UIEventBase CreatorUITaskEventP5(List<EUIEventParamType> paramList)
         {
             return (UIEventBase)(Activator.CreateInstance(typeof(UITaskEventP5<,,,,>)
@@ -97,6 +108,7 @@ namespace RD.Client
 
         #region 调用
 
+        /// <summary>异步调用事件（0 参）；参数个数不匹配时报错</summary>
         public static async Promise InvokeAsync(this UIEventBase self)
         {
             if (self is IUITaskEventInvoke uiTaskEventInvoke)
@@ -109,6 +121,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>异步调用事件（1 参）；参数个数不匹配时报错</summary>
         public static async Promise InvokeAsync<P1>(this UIEventBase self, P1 p1)
         {
             if (self is IUITaskEventInvoke<P1> uiTaskEventInvoke)
@@ -121,6 +134,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>异步调用事件（2 参）；参数个数不匹配时报错</summary>
         public static async Promise InvokeAsync<P1, P2>(this UIEventBase self, P1 p1, P2 p2)
         {
             if (self is IUITaskEventInvoke<P1, P2> uiTaskEventInvoke)
@@ -133,6 +147,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>异步调用事件（3 参）；参数个数不匹配时报错</summary>
         public static async Promise InvokeAsync<P1, P2, P3>(this UIEventBase self, P1 p1, P2 p2, P3 p3)
         {
             if (self is IUITaskEventInvoke<P1, P2, P3> uiTaskEventInvoke)
@@ -145,6 +160,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>异步调用事件（4 参）；参数个数不匹配时报错</summary>
         public static async Promise InvokeAsync<P1, P2, P3, P4>(this UIEventBase self, P1 p1, P2 p2, P3 p3, P4 p4)
         {
             if (self is IUITaskEventInvoke<P1, P2, P3, P4> uiTaskEventInvoke)
@@ -157,6 +173,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>异步调用事件（5 参）；参数个数不匹配时报错</summary>
         public static async Promise InvokeAsync<P1, P2, P3, P4, P5>(this UIEventBase self, P1 p1, P2 p2, P3 p3, P4 p4,
                                                                    P5               p5)
         {
@@ -174,6 +191,7 @@ namespace RD.Client
 
         #region 添加事件
 
+        /// <summary>添加异步回调（0 参）</summary>
         public static UITaskEventHandleP0 AddTaskEvent(this UIEventBase self, UITaskEventDelegate callback)
         {
             if (self is UITaskEventP0 uiTaskEventParam)
@@ -188,6 +206,7 @@ namespace RD.Client
             return null;
         }
 
+        /// <summary>添加异步回调（1 参）</summary>
         public static UITaskEventHandleP1<P1> AddTaskEvent<P1>(this UIEventBase self, UITaskEventDelegate<P1> callback)
         {
             if (self is UITaskEventP1<P1> uiTaskEventParam)
@@ -202,6 +221,7 @@ namespace RD.Client
             return null;
         }
 
+        /// <summary>添加异步回调（2 参）</summary>
         public static UITaskEventHandleP2<P1, P2> AddTaskEvent<P1, P2>(this UIEventBase self, UITaskEventDelegate<P1, P2> callback)
         {
             if (self is UITaskEventP2<P1, P2> uiTaskEventParam)
@@ -216,6 +236,7 @@ namespace RD.Client
             return null;
         }
 
+        /// <summary>添加异步回调（3 参）</summary>
         public static UITaskEventHandleP3<P1, P2, P3> AddTaskEvent<P1, P2, P3>(this UIEventBase                self,
                                                                                UITaskEventDelegate<P1, P2, P3> callback)
         {
@@ -231,6 +252,7 @@ namespace RD.Client
             return null;
         }
 
+        /// <summary>添加异步回调（4 参）</summary>
         public static UITaskEventHandleP4<P1, P2, P3, P4> AddTaskEvent<P1, P2, P3, P4>(this UIEventBase                    self,
                                                                                        UITaskEventDelegate<P1, P2, P3, P4> callback)
         {
@@ -246,6 +268,7 @@ namespace RD.Client
             return null;
         }
 
+        /// <summary>添加异步回调（5 参）</summary>
         public static UITaskEventHandleP5<P1, P2, P3, P4, P5> AddTaskEvent<P1, P2, P3, P4, P5>(
         this UIEventBase self, UITaskEventDelegate<P1, P2, P3, P4, P5> callback)
         {
@@ -265,6 +288,7 @@ namespace RD.Client
 
         #region 移除事件
 
+        /// <summary>移除异步回调（0 参）</summary>
         public static bool RemoveTaskEvent(this UIEventBase self, UITaskEventHandleP0 handle)
         {
             if (self is UITaskEventP0 uiTaskEventParam)
@@ -279,6 +303,7 @@ namespace RD.Client
             return false;
         }
 
+        /// <summary>移除异步回调（1 参）</summary>
         public static bool RemoveTaskEvent<P1>(this UIEventBase self, UITaskEventHandleP1<P1> handle)
         {
             if (self is UITaskEventP1<P1> uiTaskEventParam)
@@ -293,6 +318,7 @@ namespace RD.Client
             return false;
         }
 
+        /// <summary>移除异步回调（2 参）</summary>
         public static bool RemoveTaskEvent<P1, P2>(this UIEventBase self, UITaskEventHandleP2<P1, P2> handle)
         {
             if (self is UITaskEventP2<P1, P2> uiTaskEventParam)
@@ -307,6 +333,7 @@ namespace RD.Client
             return false;
         }
 
+        /// <summary>移除异步回调（3 参）</summary>
         public static bool RemoveTaskEvent<P1, P2, P3>(this UIEventBase self, UITaskEventHandleP3<P1, P2, P3> handle)
         {
             if (self is UITaskEventP3<P1, P2, P3> uiTaskEventParam)
@@ -321,6 +348,7 @@ namespace RD.Client
             return false;
         }
 
+        /// <summary>移除异步回调（4 参）</summary>
         public static bool RemoveTaskEvent<P1, P2, P3, P4>(this UIEventBase self, UITaskEventHandleP4<P1, P2, P3, P4> handle)
         {
             if (self is UITaskEventP4<P1, P2, P3, P4> uiTaskEventParam)
@@ -335,6 +363,7 @@ namespace RD.Client
             return false;
         }
 
+        /// <summary>移除异步回调（5 参）</summary>
         public static bool RemoveTaskEvent<P1, P2, P3, P4, P5>(this UIEventBase                        self,
                                                                UITaskEventHandleP5<P1, P2, P3, P4, P5> handle)
         {

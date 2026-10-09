@@ -14,6 +14,11 @@ using RD.Client;
 using RD.Core;
 namespace RD.UI.Editor
 {
+    /// <summary>
+    /// 通过反射挂载到 Unity 内置 Toolbar 的底层容器，向外部暴露左右两侧的 IMGUI 回调
+    /// 各 Unity 版本内部结构不同（2021+ 用 m_Root + ToolbarZoneLeftAlign/RightAlign，
+    /// 2020 用 windowBackend.visualTree，更早版本直接取 visualTree），故用宏区分
+    /// </summary>
     public static class ToolbarCallback
     {
         static Type m_toolbarType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.Toolbar");
@@ -44,6 +49,10 @@ namespace RD.UI.Editor
             EditorApplication.update += OnUpdate;
         }
 
+        /// <summary>
+        /// 每帧尝试获取 Toolbar 实例（它可能晚于本类创建，故反复重试）
+        /// 拿到后按版本把回调注入到 Toolbar 的 IMGUI 容器上
+        /// </summary>
         static void OnUpdate()
         {
             if (m_currentToolbar == null)

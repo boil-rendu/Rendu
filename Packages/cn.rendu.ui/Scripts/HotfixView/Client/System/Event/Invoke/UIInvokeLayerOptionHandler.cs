@@ -3,6 +3,7 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>永久禁用层级选项：返回一个 code 供之后恢复</summary>
     [Invoke(EInvokeType.Sync)]
     public class UIInvokeBanLayerOptionForeverHandler : AInvokeEntityHandler<UIInvokeEntity_BanLayerOptionForever, long>
     {
@@ -12,6 +13,7 @@ namespace RD.Client
         }
     }
 
+    /// <summary>按 code 恢复被永久禁用的层级选项</summary>
     [Invoke(EInvokeType.Sync)]
     public class UIInvokeRecoverLayerOptionForeverHandler : AInvokeEntityHandler<UIInvokeEntity_RecoverLayerOptionForever>
     {

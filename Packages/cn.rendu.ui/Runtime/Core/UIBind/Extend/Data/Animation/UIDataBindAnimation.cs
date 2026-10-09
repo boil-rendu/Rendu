@@ -5,6 +5,10 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>
+    /// 动画数据绑定（Bool → 播放/停止默认动画片段）
+    /// 只在运行时生效；播放配置上默认的 Animation clip，播放不同动画需搭配 UIDataBindAnimationByName
+    /// </summary>
     [RequireComponent(typeof(Animation))]
     [DetailedInfoBox("注意动画组件的 自动播放不要勾选",
                      @"会根据配置播放当前配置上默认的Animation  如果要实现播放不同的动画还需要搭配另外一个传入名称的参数
@@ -23,6 +27,7 @@ namespace RD.Client
         [LabelText("动画")]
         private Animation m_Animation;
 
+        /// <summary>刷新时补齐 Animation 引用并关闭自动播放</summary>
         protected override void OnRefreshData()
         {
             base.OnRefreshData();
@@ -33,6 +38,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>数据变化：运行时按 Bool 值播放/停止默认片段</summary>
         protected override void OnValueChanged()
         {
             if (!UIOperationHelper.IsPlaying())

@@ -8,6 +8,10 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>
+    /// 视频播放器数据绑定（String 资源名 → VideoPlayer 播放）
+    /// 空串则隐藏；同一资源复用不重载；切资源前释放上一个 VideoClip
+    /// </summary>
     [RequireComponent(typeof(VideoPlayer))]
     [LabelText("VideoPlayer 视频播放器")]
     [AddComponentMenu("UIBind/Data/视频播放器 【VideoPlayer】 UIDataBindVideoPlayer")]
@@ -19,6 +23,7 @@ namespace RD.Client
         [LabelText("视频播放器")]
         private VideoPlayer m_VideoPlayer;
 
+        /// <summary>是否允许本组件修改 VideoPlayer.enabled</summary>
         [SerializeField]
         [LabelText("可修改Enabled")]
         private bool m_ChangeEnabled = true;
@@ -26,16 +31,19 @@ namespace RD.Client
         [NonSerialized]
         private string m_LastResName;
 
+        /// <summary>过滤出 String 类型的数据</summary>
         protected override int Mask()
         {
             return 1 << (int)EUIBindDataType.String;
         }
 
+        /// <summary>最多绑定 1 个数据</summary>
         protected override int SelectMax()
         {
             return 1;
         }
 
+        /// <summary>刷新时补齐 VideoPlayer 引用并检查 Enabled 配置冲突</summary>
         protected override void OnRefreshData()
         {
             base.OnRefreshData();
@@ -46,6 +54,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>按开关设置 VideoPlayer.enabled（受 m_ChangeEnabled 限制）</summary>
         private void SetEnabled(bool set)
         {
             if (!m_ChangeEnabled) return;
@@ -55,6 +64,7 @@ namespace RD.Client
             m_VideoPlayer.enabled = set;
         }
 
+        /// <summary>数据变化：空串隐藏，否则异步加载并播放</summary>
         protected override void OnValueChanged()
         {
             if (!UIOperationHelper.IsPlaying())
@@ -75,6 +85,7 @@ namespace RD.Client
             this.ChangeAudio(dataValue).NoContext();
         }
 
+        /// <summary>异步加载 VideoClip 并赋值（协程锁防并发，加载后校验对象存活）</summary>
         private async Promise ChangeAudio(string resName)
         {
             using var _ = await EventSystem.Instance?.UIInvokeEntityAsyncSafety<UIInvokeEntity_CoroutineLock, Promise<Entity>>(UISingletonHelper.UIMgr, new UIInvokeEntity_CoroutineLock { Lock = GetHashCode() });
@@ -129,6 +140,7 @@ namespace RD.Client
             m_LastResName = resName;
         }
 
+        /// <summary>解绑时释放已加载的视频资源</summary>
         protected override void UnBindData()
         {
             base.UnBindData();
@@ -142,6 +154,7 @@ namespace RD.Client
 
         private VideoClip m_LastVideoClip;
 
+        /// <summary>释放上一个 VideoClip</summary>
         private void ReleaseLastAudioClip()
         {
             if (this.m_LastVideoClip != null)

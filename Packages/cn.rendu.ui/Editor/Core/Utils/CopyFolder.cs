@@ -5,8 +5,13 @@ using RD.Client;
 using RD.Core;
 namespace RD.UI.Editor
 {
+    /// <summary>目录递归拷贝（目标已存在时需二次确认并全覆盖）</summary>
     public static class CopyFolder
     {
+        /// <summary>
+        /// 把 sourceFolder 完整拷贝到 targetFolder
+        /// 目标已存在会先弹确认；拷贝完成后刷新程序集引用并关闭 AutoTool 窗口
+        /// </summary>
         public static void Copy(string sourceFolder, string targetFolder)
         {
             DirectoryInfo sourceDir = new(sourceFolder);
@@ -37,6 +42,7 @@ namespace RD.UI.Editor
             }
         }
 
+        /// <summary>递归拷贝目录内容（先拷文件，再递归子目录）</summary>
         private static void CopyAll(DirectoryInfo source, DirectoryInfo target)
         {
             if (!target.Exists)

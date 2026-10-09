@@ -3,6 +3,7 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>同步释放资源引用（UILoad.Release）</summary>
     [Invoke(EInvokeType.Sync)]
     public class UIInvokeReleaseSyncHandler : AInvokeEntityHandler<UIInvokeEntity_Release>
     {
@@ -12,6 +13,7 @@ namespace RD.Client
         }
     }
 
+    /// <summary>同步释放实例化出来的对象（UILoad.ReleaseInstantiate）</summary>
     [Invoke(EInvokeType.Sync)]
     public class UIInvokeReleaseInstantiateSyncHandler : AInvokeEntityHandler<UIInvokeEntity_ReleaseInstantiate>
     {

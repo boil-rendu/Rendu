@@ -13,8 +13,14 @@ using RD.Client;
 using RD.Core;
 namespace RD.UI.Editor
 {
+    /// <summary>
+    /// AutoTool 的「预制体检查」面板
+    /// 用正则从全工程 Prefab 路径里筛出 UI 分包下的资源（UI/模块名/Prefabs），
+    /// 按筛选条件列出结果并支持一键删除
+    /// </summary>
     public class CheckPrefabModule: BaseToolModule
     {
+        /// <summary>全量检查：扫描所有 UI 分包下的 Prefab 并刷新表格</summary>
         [GUIColor(0.4f, 0.8f, 1)]
         [Button("检查", 50)]
         [PropertyOrder(-99)]
@@ -24,6 +30,7 @@ namespace RD.UI.Editor
             InitGetAll();
         }
 
+        /// <summary>检查结果的筛选方式（默认只显示可删除的 CDE）</summary>
         [BoxGroup("检查筛选", centerLabel: true)]
         [HideLabel]
         [EnumToggleButtons]
@@ -31,11 +38,13 @@ namespace RD.UI.Editor
         [PropertyOrder(-98)]
         public ECheckPrefabFiltrate Filtrate = ECheckPrefabFiltrate.CDE;
 
+        /// <summary>筛选方式变化时立即刷新表格</summary>
         private void OnValueChangedFiltrate()
         {
             UpdateFiltrate();
         }
 
+        /// <summary>删除当前筛选结果中所有「可删除」的预制体（带进度条与结果提示）</summary>
         [GUIColor(1, 0, 0)]
         [Button("删除所有", 50)]
         [PropertyOrder(-88)]
@@ -69,6 +78,7 @@ namespace RD.UI.Editor
             AutoTool.CloseWindowRefresh();
         }
 
+        /// <summary>「删除所有」按钮的显示条件：检查结果非空且其中存在可删除项</summary>
         private bool ShowIfDeleteAll()
         {
             if (m_CheckPrefabs is not { Count: > 0 }) return false;
@@ -85,6 +95,7 @@ namespace RD.UI.Editor
             return false;
         }
 
+        /// <summary>按当前筛选条件过滤后的检查结果（只读表格数据源）</summary>
         [TableList(DrawScrollView = true, IsReadOnly = true)]
         [BoxGroup("检查结果", centerLabel: true)]
         [HideLabel]
@@ -92,18 +103,26 @@ namespace RD.UI.Editor
         [HideReferenceObjectPicker]
         private List<CheckPrefabData> m_FiltrateDatas = new();
 
+        /// <summary>全量检查结果</summary>
         private List<CheckPrefabData> m_CheckPrefabs = new();
 
+        /// <summary>模块加载（无需初始化）</summary>
         public override void Initialize()
         {
         }
 
+        /// <summary>模块销毁（无需清理）</summary>
         public override void OnDestroy()
         {
         }
 
+        /// <summary>匹配「UI/模块名/Prefabs」路径的正则</summary>
         private readonly string m_Pattern = @"UI\\[^\\]*\\Prefabs";
 
+        /// <summary>
+        /// 扫描全工程 Prefab，路径命中 m_Pattern 的才纳入检查结果
+        /// （从匹配串里取出模块名，再配合文件名构造数据），最后刷新表格
+        /// </summary>
         private void InitGetAll()
         {
             m_CheckPrefabs.Clear();
@@ -132,6 +151,7 @@ namespace RD.UI.Editor
             EditorUtility.ClearProgressBar();
         }
 
+        /// <summary>按 Filtrate 把全量结果过滤进表格：全部 / 可删除 / 可删除的 CDE / 可删除的 Prefab / 忽略</summary>
         public void UpdateFiltrate()
         {
             m_FiltrateDatas.Clear();

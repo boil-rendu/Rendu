@@ -5,9 +5,14 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>
+    /// 异步 UI 事件（0 参）
+    /// 用 LinkedList 保存句柄；调用时收集所有 Promise 后用 PromiseHelper.WaitAll 并发等待
+    /// </summary>
     public class UITaskEventP0 : UIEventBase, IUITaskEventInvoke
     {
         private LinkedList<UITaskEventHandleP0> m_UITaskEventHandles;
+        /// <summary>当前所有句柄（可空）</summary>
         public  LinkedList<UITaskEventHandleP0> UITaskEventHandles => m_UITaskEventHandles;
 
         public UITaskEventP0()
@@ -18,6 +23,7 @@ namespace RD.Client
         {
         }
 
+        /// <summary>异步派发事件（0 参）：并发等待全部回调，异常只记录不抛出</summary>
         public async Promise Invoke()
         {
             if (m_UITaskEventHandles == null)
@@ -52,8 +58,10 @@ namespace RD.Client
             }
         }
 
+        /// <summary>异步事件</summary>
         public override bool IsTaskEvent => true;
 
+        /// <summary>清空：归还所有句柄到池并释放链表</summary>
         public override bool Clear()
         {
             if (m_UITaskEventHandles == null) return false;
@@ -70,6 +78,7 @@ namespace RD.Client
             return true;
         }
 
+        /// <summary>添加句柄：由 Entity + Invoke 类型名触发</summary>
         public UITaskEventHandleP0 Add(Entity trigger, string onEventInvokeType)
         {
             m_UITaskEventHandles ??= LinkedListPool<UITaskEventHandleP0>.Get();
@@ -78,6 +87,7 @@ namespace RD.Client
             return handler.Init(m_UITaskEventHandles, node, trigger, onEventInvokeType);
         }
 
+        /// <summary>添加句柄：由回调委托触发（空回调会报错）</summary>
         public UITaskEventHandleP0 Add(UITaskEventDelegate callback)
         {
             m_UITaskEventHandles ??= LinkedListPool<UITaskEventHandleP0>.Get();
@@ -92,6 +102,7 @@ namespace RD.Client
             return handler.Init(m_UITaskEventHandles, node, callback);
         }
 
+        /// <summary>移除句柄</summary>
         public bool Remove(UITaskEventHandleP0 handle)
         {
             m_UITaskEventHandles ??= LinkedListPool<UITaskEventHandleP0>.Get();
@@ -106,11 +117,13 @@ namespace RD.Client
         }
 
         #if UNITY_EDITOR
+        /// <summary>事件类型名（编辑器用）</summary>
         public override string GetEventType()
         {
             return "UITaskEventP0";
         }
 
+        /// <summary>句柄类型名（编辑器用）</summary>
         public override string GetEventHandleType()
         {
             return "UITaskEventHandleP0";

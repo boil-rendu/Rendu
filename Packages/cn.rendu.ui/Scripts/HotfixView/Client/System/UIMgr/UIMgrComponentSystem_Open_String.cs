@@ -5,8 +5,16 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>
+    /// UIMgrComponent 扩展（按名称打开面板）
+    /// 各重载结构一致：空名校验 → 查 PanelInfo → 协程锁（Panel 层用项目名哈希、其余用组件名哈希）
+    /// → OpenPanelStartAsync 创建 → OpenPanelBefore → info.UIPanel.Open(参数)（异常吞掉记日志，success=false）
+    /// → OpenPanelAfter，成功则返回面板实体、失败返回 null
+    /// 全程 EntityRef 保活并在每次 await 后重置 self
+    /// </summary>
     public static partial class UIMgrComponentSystem
     {
+        /// <summary>按名称打开面板（0 参）</summary>
         internal static async Promise<Entity> OpenPanelAsync(this UIMgrComponent self, string componentName, Entity root)
         {
             if (string.IsNullOrEmpty(componentName))
@@ -47,6 +55,7 @@ namespace RD.Client
             return success ? component : null;
         }
 
+        /// <summary>按名称打开面板（变长参数版，params object[] → ParamVo，用后归还）</summary>
         internal static async Promise<Entity> OpenPanelParamAsync(this UIMgrComponent self, string componentName, Entity root, params object[] paramMore)
         {
             if (string.IsNullOrEmpty(componentName))
@@ -90,6 +99,7 @@ namespace RD.Client
             return success ? component : null;
         }
 
+        /// <summary>按名称打开面板（1 参）</summary>
         internal static async Promise<Entity> OpenPanelAsync<P1>(this UIMgrComponent self, string componentName, Entity root, P1 p1)
         {
             if (string.IsNullOrEmpty(componentName))
@@ -131,6 +141,7 @@ namespace RD.Client
             return success ? component : null;
         }
 
+        /// <summary>按名称打开面板（2 参）</summary>
         internal static async Promise<Entity> OpenPanelAsync<P1, P2>(this UIMgrComponent self, string componentName, Entity root, P1 p1, P2 p2)
         {
             if (string.IsNullOrEmpty(componentName))
@@ -172,6 +183,7 @@ namespace RD.Client
             return success ? component : null;
         }
 
+        /// <summary>按名称打开面板（3 参）</summary>
         internal static async Promise<Entity> OpenPanelAsync<P1, P2, P3>(this UIMgrComponent self, string componentName, Entity root, P1 p1, P2 p2, P3 p3)
         {
             if (string.IsNullOrEmpty(componentName))
@@ -213,6 +225,7 @@ namespace RD.Client
             return success ? component : null;
         }
 
+        /// <summary>按名称打开面板（4 参）</summary>
         internal static async Promise<Entity> OpenPanelAsync<P1, P2, P3, P4>(this UIMgrComponent self, string componentName, Entity root, P1 p1, P2 p2, P3 p3, P4 p4)
         {
             if (string.IsNullOrEmpty(componentName))
@@ -254,6 +267,7 @@ namespace RD.Client
             return success ? component : null;
         }
 
+        /// <summary>按名称打开面板（5 参）</summary>
         internal static async Promise<Entity> OpenPanelAsync<P1, P2, P3, P4, P5>(this UIMgrComponent self, string componentName, Entity root, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
         {
             if (string.IsNullOrEmpty(componentName))

@@ -5,6 +5,7 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>异步实例化 UI（按加载类型）：走 UIFactory.InstantiateAsync</summary>
     [Invoke(EInvokeType.Async)]
     public class UIInvokeLoadInstantiateAsyncHandler : AInvokeEntityHandler<UIInvokeEntity_LoadInstantiate, Promise<Entity>>
     {
@@ -15,6 +16,7 @@ namespace RD.Client
     }
 
     #if !UIMACRO_SYNCLOAD_CLOSE
+    /// <summary>同步实例化 UI：走 UIFactory.Instantiate（宏关闭时不可用）</summary>
     [Invoke(EInvokeType.Sync)]
     public class UIInvokeLoadInstantiateSyncHandler : AInvokeEntityHandler<UIInvokeEntity_LoadInstantiate, Entity>
     {
@@ -25,6 +27,7 @@ namespace RD.Client
     }
     #endif
 
+    /// <summary>异步实例化 UI（按 Vo 配置）：走 UIFactory.InstantiateAsync</summary>
     [Invoke(EInvokeType.Async)]
     public class UIInvokeLoadInstantiateByVoAsyncHandler : AInvokeEntityHandler<UIInvokeEntity_LoadInstantiateByVo, Promise<Entity>>
     {
@@ -35,6 +38,7 @@ namespace RD.Client
     }
 
     #if !UIMACRO_SYNCLOAD_CLOSE
+    /// <summary>同步实例化 UI（按 Vo 配置）</summary>
     [Invoke(EInvokeType.Sync)]
     public class UIInvokeLoadInstantiateByVoSyncHandler : AInvokeEntityHandler<UIInvokeEntity_LoadInstantiateByVo, Entity>
     {
@@ -44,6 +48,7 @@ namespace RD.Client
         }
     }
 
+    /// <summary>同步实例化一个纯 GameObject（不进 Entity 体系）</summary>
     [Invoke(EInvokeType.Sync)]
     public class UIInvokeInstantiateGameObjectSyncHandler : AInvokeEntityHandler<UIInvokeEntity_InstantiateGameObject, UnityGameObject>
     {
@@ -54,6 +59,7 @@ namespace RD.Client
     }
     #endif
 
+    /// <summary>异步实例化一个纯 GameObject（不进 Entity 体系）</summary>
     [Invoke(EInvokeType.Async)]
     public class UIInvokeInstantiateGameObjectAsyncHandler : AInvokeEntityHandler<UIInvokeEntity_InstantiateGameObject, Promise<UnityGameObject>>
     {

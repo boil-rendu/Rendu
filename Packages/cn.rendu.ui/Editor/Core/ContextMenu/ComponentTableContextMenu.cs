@@ -5,6 +5,7 @@ using RD.Client;
 using RD.Core;
 namespace RD.UI.Editor
 {
+    /// <summary>Component 右键菜单：把当前组件添加到所属 UI 的组件表</summary>
     public class ComponentTableContextMenu
     {
         [MenuItem("CONTEXT/Component/添加到UI组件表", false, -int.MaxValue)]
@@ -18,6 +19,7 @@ namespace RD.UI.Editor
             cdeTable.ComponentTable.EditorAddComponent(menuComponent);
         }
 
+        /// <summary>菜单可用性：选中对象必须处于某个 UIBindCDETable 之下</summary>
         [MenuItem("CONTEXT/Component/添加到UI组件表", true)]
         private static bool AddUIComponentTableValidate(MenuCommand command)
         {

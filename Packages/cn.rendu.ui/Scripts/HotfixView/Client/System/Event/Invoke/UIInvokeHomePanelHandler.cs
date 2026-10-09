@@ -1,6 +1,7 @@
 ﻿using RD.Core;
 namespace RD.Client
 {
+    /// <summary>同步回主页：发起 HomePanel 后立即返回（NoContext 不等待）</summary>
     [Invoke(EInvokeType.Sync)]
     public class UIInvokeHomePanelHandler : AInvokeEntityHandler<UIInvokeEntity_HomePanel>
     {
@@ -10,6 +11,7 @@ namespace RD.Client
         }
     }
 
+    /// <summary>异步回主页：等待 HomePanel 完成，返回是否成功</summary>
     [Invoke(EInvokeType.Async)]
     public class UIInvokeHomePanelWaitHandler : AInvokeEntityHandler<UIInvokeEntity_HomePanel, Promise<bool>>
     {

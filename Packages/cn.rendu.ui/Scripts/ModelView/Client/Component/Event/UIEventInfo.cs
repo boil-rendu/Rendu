@@ -3,6 +3,7 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>单条 UI 消息的分发信息（消息类型 + 目标组件名 + 反射创建的处理实例）</summary>
     //消息分发信息
     [EnableClass]
     public class UIEventInfo

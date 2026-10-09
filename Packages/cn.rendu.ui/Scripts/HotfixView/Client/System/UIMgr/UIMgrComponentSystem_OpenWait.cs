@@ -5,8 +5,13 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>UIMgrComponent 扩展（打开面板并等待其自行通知结束等待）</summary>
     public static partial class UIMgrComponentSystem
     {
+        /// <summary>
+        /// 等待面板结束等待（loading 遮罩之类）
+        /// 生成一个 guid 同时注册到 Root 的 HashWait 和窗口的 UIWaitComponent，由面板调用 NotifyWait 兑现
+        /// </summary>
         private static async Promise<EHashWaitError> PanelWait(this UIMgrComponent self, Entity panel)
         {
             if (panel == null) return EHashWaitError.Error;
@@ -26,6 +31,7 @@ namespace RD.Client
             return await hashWait;
         }
 
+        /// <summary>按泛型类型打开面板并等待（0 参）</summary>
         internal static async Promise<EHashWaitError> OpenPanelWaitAsync<T>(this UIMgrComponent self, Entity root)
                 where T : Entity, IAwake, IUIOpen
         {
@@ -35,6 +41,7 @@ namespace RD.Client
             return await self.PanelWait(panel);
         }
 
+        /// <summary>按泛型类型打开面板并等待（变长参数版，params object[] → ParamVo）</summary>
         internal static async Promise<EHashWaitError> OpenPanelWaitParamAsync<T>(this UIMgrComponent self, Entity root, params object[] paramMore)
                 where T : Entity, IUIOpen<ParamVo>
         {
@@ -44,6 +51,7 @@ namespace RD.Client
             return await self.PanelWait(panel);
         }
 
+        /// <summary>按泛型类型打开面板并等待（1 参）</summary>
         internal static async Promise<EHashWaitError> OpenPanelWaitAsync<T, P1>(this UIMgrComponent self, Entity root, P1 p1)
                 where T : Entity, IUIOpen<P1>
         {
@@ -53,6 +61,7 @@ namespace RD.Client
             return await self.PanelWait(panel);
         }
 
+        /// <summary>按泛型类型打开面板并等待（2 参）</summary>
         internal static async Promise<EHashWaitError> OpenPanelWaitAsync<T, P1, P2>(this UIMgrComponent self, Entity root, P1 p1, P2 p2)
                 where T : Entity, IUIOpen<P1, P2>
         {
@@ -62,6 +71,7 @@ namespace RD.Client
             return await self.PanelWait(panel);
         }
 
+        /// <summary>按泛型类型打开面板并等待（3 参）</summary>
         internal static async Promise<EHashWaitError> OpenPanelWaitAsync<T, P1, P2, P3>(this UIMgrComponent self, Entity root, P1 p1, P2 p2, P3 p3)
                 where T : Entity, IUIOpen<P1, P2, P3>
         {
@@ -71,6 +81,7 @@ namespace RD.Client
             return await self.PanelWait(panel);
         }
 
+        /// <summary>按泛型类型打开面板并等待（4 参）</summary>
         internal static async Promise<EHashWaitError> OpenPanelWaitAsync<T, P1, P2, P3, P4>(this UIMgrComponent self, Entity root, P1 p1, P2 p2, P3 p3, P4 p4)
                 where T : Entity, IUIOpen<P1, P2, P3, P4>
         {
@@ -80,6 +91,7 @@ namespace RD.Client
             return await self.PanelWait(panel);
         }
 
+        /// <summary>按泛型类型打开面板并等待（5 参）</summary>
         internal static async Promise<EHashWaitError> OpenPanelWaitAsync<T, P1, P2, P3, P4, P5>(this UIMgrComponent self, Entity root, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
                 where T : Entity, IUIOpen<P1, P2, P3, P4, P5>
         {

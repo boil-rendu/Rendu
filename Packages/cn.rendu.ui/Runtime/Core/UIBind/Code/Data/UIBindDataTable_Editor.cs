@@ -8,8 +8,15 @@ using RD.Core;
 namespace RD.Client
 {
     //Editor
+    /// <summary>
+    /// UIBindDataTable 的编辑器扩展（UNITY_EDITOR）
+    /// 提供 Inspector 上的「自动检查 / 添加新数据 / 重置」按钮，以及数据的增删校验与回调挂接
+    /// </summary>
     public sealed partial class UIBindDataTable
     {
+        /// <summary>
+        /// 自动检查：规整所有数据的命名（补前缀、首字母大写），移除空数据，最后刷新数据表
+        /// </summary>
         [GUIColor(1, 1, 0)]
         [Button("自动检查", 30)]
         [PropertyOrder(-100)]
@@ -53,6 +60,7 @@ namespace RD.Client
             OnValidate();
         }
 
+        /// <summary>待添加的新数据（名称 + 数据类型）</summary>
         [DetailedInfoBox("添加新数据 说明",
             @"如果出现点击添加一个新的数据界面闪一下
 然后什么都没加上的情况
@@ -68,6 +76,7 @@ namespace RD.Client
         [ShowIf("@UIOperationHelper.CommonShowIf()")]
         private UINewData m_AddUINewData = new UINewData();
 
+        /// <summary>添加新数据（校验名称非空/不重名/已选类型后加入字典并自动检查）</summary>
         [GUIColor(0, 1, 0)]
         [BoxGroup("添加新数据")]
         [Button("添加",40)]
@@ -102,6 +111,7 @@ namespace RD.Client
             AutoCheck();
         }
 
+        /// <summary>重置待添加数据（保留上次输入的名称）</summary>
         [BoxGroup("添加新数据")]
         [Button("重置",20)]
         [PropertyOrder(-97)]
@@ -113,11 +123,13 @@ namespace RD.Client
             m_AddUINewData.Name = lastName;
         }
 
+        /// <summary>仅当在编辑态且已选类型时才显示「重置」</summary>
         private bool ShowIfResetNewData()
         {
             return UIOperationHelper.CommonShowIf() && m_AddUINewData?.Data != null;
         }
 
+        /// <summary>移除回调：先解绑，再从字典移除（字典无该键时按 GUID 兜底移除）</summary>
         private void RemoveCallBack(UIData data)
         {
             data.OnDataRemoveCallBack();
@@ -131,6 +143,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>按 GUID 兜底移除不符合规范的数据</summary>
         private bool OnRemoveDataByGuid(UIData uiData)
         {
             foreach (var cData in m_DataDic)
@@ -146,6 +159,7 @@ namespace RD.Client
             return false;
         }
 
+        /// <summary>移除数据入口：已有绑定时弹确认框，否则直接移除</summary>
         private void OnRemoveData(UIData uiData)
         {
             if (string.IsNullOrEmpty(uiData.Name))
@@ -173,6 +187,7 @@ namespace RD.Client
             RemoveCallBack(data);
         }
 
+        /// <summary>序列化校验：重新挂接数据的变更/移除回调并刷新数据表</summary>
         private void OnValidate()
         {
             if (UIOperationHelper.IsPlaying())

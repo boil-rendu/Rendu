@@ -4,6 +4,7 @@ using RD.Core;
 
 namespace RD
 {
+    /// <summary>时长 / 时间戳的显示格式化工具</summary>
     public static partial class TimeDisplayHelper
     {
         [StaticField]
@@ -42,6 +43,10 @@ namespace RD
         #endif
 
         // 时间格式化（支持多语言和灵活单位）
+        /// <summary>
+        /// 把秒数格式化为可读时长（负数一律返回「0 秒」）
+        /// Compact：最多显示两级单位（如 1D2H、3M4S）；Full：显示全部非零单位并以空格分隔
+        /// </summary>
         public static string FormatDuration(long seconds, EDurationFormat format = EDurationFormat.Compact)
         {
             if (seconds < 0)
@@ -109,12 +114,14 @@ namespace RD
             return sb.ToString().Trim();
         }
 
+        /// <summary>把毫秒格式化为 mm:ss</summary>
         public static string FormatMinutesSeconds(long milliseconds)
         {
             var timeSpan = TimeSpan.FromMilliseconds(milliseconds);
             return $"{timeSpan.Minutes:00}:{timeSpan.Seconds:00}";
         }
 
+        /// <summary>把 Unix 秒级时间戳按指定格式串格式化（toLocal 控制是否转本地时间）</summary>
         public static string FormatTimestamp(long timestamp, string format = "yyyy-MM-dd HH:mm:ss", bool toLocal = false)
         {
             var dateTime = DateTimeOffset.FromUnixTimeSeconds(timestamp);
@@ -122,6 +129,7 @@ namespace RD
         }
     }
 
+    /// <summary>时长格式模式</summary>
     public enum EDurationFormat
     {
         Compact, // 紧凑模式（最多显示两个单位）

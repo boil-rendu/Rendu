@@ -6,8 +6,13 @@ using RD.Client;
 using RD.Core;
 namespace RD.UI.Editor
 {
+    /// <summary>
+    /// Unity 内置图标浏览窗口（1280x720 固定尺寸）
+    /// 用 USS 网格铺出全部 Texture2D 图标，点击任一图标即把其 IconContent 代码片段复制到剪贴板
+    /// </summary>
     public class UnityIconsWindow : EditorWindow
     {
+        /// <summary>打开窗口并设置固定尺寸与标题图标</summary>
         public static void ShowWindow()
         {
             var window                           = GetWindow<UnityIconsWindow>();
@@ -15,6 +20,10 @@ namespace RD.UI.Editor
             window.titleContent = new GUIContent("UI Unity内置图标", EditorGUIUtility.IconContent("d_UnityLogo").image);
         }
 
+        /// <summary>
+        /// 构建 UI：加载 USS 后遍历所有 Texture2D，为每张能取到图标的贴图生成一个可点击格子
+        /// 遍历期间临时关闭日志，避免 IconContent 查找失败刷屏
+        /// </summary>
         public void CreateGUI()
         {
             var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/cn.rendu.ui/Editor/Resources/USS/UnityIconsWindow.uss");
@@ -49,6 +58,7 @@ namespace RD.UI.Editor
             rootVisualElement.Add(scrollView);
         }
 
+        /// <summary>把「EditorGUIUtility.IconContent(图标名).image」写入系统剪贴板</summary>
         private void CopyToClipboard(string str)
         {
             var copyStr = $"EditorGUIUtility.IconContent({str}).image";

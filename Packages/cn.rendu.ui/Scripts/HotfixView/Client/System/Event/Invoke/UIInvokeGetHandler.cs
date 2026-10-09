@@ -4,6 +4,7 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>获取 UIRoot 节点</summary>
     [Invoke(EInvokeType.Sync)]
     public class UIInvokeGetUIRootHandler : AInvokeEntityHandler<UIInvokeEntity_GetUIRoot, GameObject>
     {
@@ -13,6 +14,7 @@ namespace RD.Client
         }
     }
 
+    /// <summary>获取 UICanvasRoot 节点</summary>
     [Invoke(EInvokeType.Sync)]
     public class UIInvokeGetUICanvasRootHandler : AInvokeEntityHandler<UIInvokeEntity_GetUICanvasRoot, GameObject>
     {
@@ -22,6 +24,7 @@ namespace RD.Client
         }
     }
 
+    /// <summary>获取 UI 层级根节点（RectTransform）</summary>
     [Invoke(EInvokeType.Sync)]
     public class UIInvokeGetUILayerRootHandler : AInvokeEntityHandler<UIInvokeEntity_GetUILayerRoot, RectTransform>
     {
@@ -31,6 +34,7 @@ namespace RD.Client
         }
     }
 
+    /// <summary>获取 UI 相机</summary>
     [Invoke(EInvokeType.Sync)]
     public class UIInvokeGetUICameraHandler : AInvokeEntityHandler<UIInvokeEntity_GetUICamera, Camera>
     {
@@ -40,6 +44,7 @@ namespace RD.Client
         }
     }
 
+    /// <summary>获取 UI Canvas</summary>
     [Invoke(EInvokeType.Sync)]
     public class UIInvokeGetUICanvasHandler : AInvokeEntityHandler<UIInvokeEntity_GetUICanvas, Canvas>
     {

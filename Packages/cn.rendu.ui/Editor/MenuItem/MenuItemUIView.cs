@@ -6,8 +6,10 @@ using RD.Core;
 namespace RD.UI.Editor
 {
     using Object = UnityEngine.Object;
+    /// <summary>创建 UIView 预制体</summary>
     public static class MenuItemUIView
     {
+        /// <summary>在资源目录右键创建</summary>
         [MenuItem("Assets/UI/Create UIView", false, 2)]
         static void CreateUIViewByFolder()
         {
@@ -41,6 +43,10 @@ namespace RD.UI.Editor
             MenuItemHelper.SelectAssetAtPath(savePath);
         }
 
+        /// <summary>
+        /// 在层级里右键创建：只能在 AllViewParent / AllPopupViewParent 下使用
+        /// 会自动新建一层 ViewParent 承载 View，并按父节点分别登记到 AllCreateView（View）或 AllPopupView（Popup）
+        /// </summary>
         [MenuItem("GameObject/UI/Create UIView", false, 2)]
         static void CreateUIViewByGameObject()
         {
@@ -98,6 +104,7 @@ namespace RD.UI.Editor
             Selection.activeObject = viewParentObject;
         }
 
+        /// <summary>创建 View 根节点（View 类型、满屏、UI 层）</summary>
         public static GameObject CreateUIView(GameObject activeObject = null)
         {
             var viewObject = new GameObject();

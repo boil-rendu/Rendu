@@ -6,8 +6,13 @@ using RD.Core;
 namespace RD.UI.Editor
 {
     using Object = UnityEngine.Object;
+    /// <summary>
+    /// 创建 UIPanelSource 预制体（拆分式面板：IsSplitData = true）
+    /// 相比普通面板额外预置 AllView / AllPopupView 两个容器节点
+    /// </summary>
     public static class MenuItemUIPanelSource
     {
+        /// <summary>在 Source 目录右键创建（目录名必须正好是 Source）</summary>
         [MenuItem("Assets/UI/Create UIPanelSource", false, 0)]
         static void CreateUIPanelByFolder()
         {
@@ -30,6 +35,7 @@ namespace RD.UI.Editor
             CreateUIPanelByPath(path);
         }
 
+        /// <summary>按路径创建并保存为预制体；name 为空时用默认名，否则拼上 PanelSourceName 后缀</summary>
         internal static void CreateUIPanelByPath(string path, string name = null)
         {
             if (!path.Contains(UIConstHelper.Const.ProjectResPath))
@@ -55,6 +61,10 @@ namespace RD.UI.Editor
             MenuItemHelper.SelectAssetAtPath(savePath);
         }
 
+        /// <summary>
+        /// 创建拆分式面板根节点（Panel 类型、IsSplitData = true、默认 TimeCache）
+        /// 依次搭建：面板本体 → 满屏阻挡图（UIBlock）→ AllView 节点 → AllPopupView 节点，并登记到 PanelSplitData
+        /// </summary>
         public static GameObject CreateUIPanel(GameObject activeObject = null)
         {
             //panel

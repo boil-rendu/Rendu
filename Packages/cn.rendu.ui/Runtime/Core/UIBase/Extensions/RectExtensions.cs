@@ -5,10 +5,12 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>Rect 的字符串解析扩展</summary>
     public static class RectExtensions
     {
         private static Regex parseRegex;
 
+        /// <summary>解析失败直接抛 FormatException</summary>
         public static Rect Parse(string text)
         {
             Rect value;
@@ -21,6 +23,10 @@ namespace RD.Client
             return value;
         }
 
+        /// <summary>
+        /// 按 "$(x:…, y:…, width:…, height:…)" 格式解析 Rect
+        /// 正则只构建一次；任一字段解析失败则 rect = Rect.zero 并返回 false
+        /// </summary>
         public static bool TryParse(string text, out Rect rect)
         {
             if (parseRegex == null)

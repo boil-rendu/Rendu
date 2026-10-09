@@ -1,6 +1,7 @@
 ﻿using RD.Core;
 namespace RD.Client
 {
+    /// <summary>同步关闭面板：直接调用 UIMgr.ClosePanel</summary>
     [Invoke(EInvokeType.Sync)]
     public class UIInvokeClosePanelSyncHandler : AInvokeEntityHandler<UIInvokeEntity_ClosePanel>
     {
@@ -10,6 +11,7 @@ namespace RD.Client
         }
     }
 
+    /// <summary>异步关闭面板：等待 ClosePanelAsync，返回是否关闭成功</summary>
     [Invoke(EInvokeType.Async)]
     public class UIInvokeClosePanelAsyncHandler : AInvokeEntityHandler<UIInvokeEntity_ClosePanel, Promise<bool>>
     {
@@ -21,6 +23,7 @@ namespace RD.Client
         }
     }
 
+    /// <summary>同步关闭「当前 View 所属的 Panel」：由 View 实体向上 3 层找 UIPanelComponent</summary>
     [Invoke(EInvokeType.Sync)]
     public class UIInvokeViewClosePanelSyncHandler : AInvokeEntityHandler<UIInvokeEntity_ViewClosePanel>
     {
@@ -37,6 +40,7 @@ namespace RD.Client
         }
     }
 
+    /// <summary>异步关闭「当前 View 所属的 Panel」：同上，返回是否关闭成功</summary>
     [Invoke(EInvokeType.Async)]
     public class UIInvokeViewClosePanelAsyncHandler : AInvokeEntityHandler<UIInvokeEntity_ViewClosePanel, Promise<bool>>
     {

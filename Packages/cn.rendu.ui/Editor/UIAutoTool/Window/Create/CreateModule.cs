@@ -10,10 +10,16 @@ using RD.Client;
 using RD.Core;
 namespace RD.UI.Editor
 {
+    /// <summary>
+    /// 代码创建入口：校验预制体合法性 → 采集绑定信息 → 按 UI 类型派发对应的模板生成器
+    /// 同时提供模块名解析、公共组件收集等辅助能力
+    /// </summary>
     public static class CreateModule
     {
+        /// <summary>当前创建所使用的包名（供各模板生成器拼接输出路径）</summary>
         public static string CreatePackageName;
 
+        /// <summary>设置包名后创建（包名会转小写）</summary>
         private static void CreateTargetPackages(UIBindCDETable cdeTable, bool refresh, bool tips, string createPackageName)
         {
             if (string.IsNullOrEmpty(createPackageName))
@@ -26,6 +32,7 @@ namespace RD.UI.Editor
             Create(cdeTable, refresh, tips);
         }
 
+        /// <summary>创建分包代码：未指定包名时从预制体路径推断，推断不到则报错返回</summary>
         public static void CreatePackages(UIBindCDETable cdeTable, bool refresh, bool tips, string createPackageName = "")
         {
             if (string.IsNullOrEmpty(createPackageName))
@@ -41,12 +48,20 @@ namespace RD.UI.Editor
             CreateTargetPackages(cdeTable, refresh, tips, createPackageName);
         }
 
+        /// <summary>创建公共（Common）代码：固定使用 CreatePackageName 常量作为包名</summary>
         public static void CreateCommon(UIBindCDETable cdeTable, bool refresh, bool tips)
         {
             CreatePackageName = UIConstHelper.Const.CreatePackageName.ToLower();
             Create(cdeTable, refresh, tips);
         }
 
+        /// <summary>
+        /// 核心创建流程：
+        /// 1. 必须操作的是 Project 面板下的预制体原件（预制体实例、非预制体一律拒绝）
+        /// 2. 先做 AutoCheck 自检，再采集 CreateBaseData / CreateSystemData
+        /// 3. 依次生成：手写 Component、ComponentGen、按类型生成 System（Panel/View/Common），
+        ///    任一 System 生成失败即中断
+        /// </summary>
         private static void Create(UIBindCDETable cdeTable, bool refresh, bool tips)
         {
             if (!UIOperationHelper.CheckUIOperation()) return;
@@ -164,6 +179,7 @@ namespace RD.UI.Editor
                 AssetDatabase.Refresh();
         }
 
+        /// <summary>生成 UIEvent 的 region 骨架；事件表为空时返回空串</summary>
         public static string GetRegionEvent(UIBindCDETable cdeTable)
         {
             if (cdeTable.EventTable == null || cdeTable.EventTable.EventDic == null)
@@ -173,6 +189,10 @@ namespace RD.UI.Editor
                     : "        #region UIEvent开始\r\n\r\n        #endregion UIEvent结束";
         }
 
+        /// <summary>
+        /// 由预制体路径解析出模块名与资源名并回填到 cdeTable
+        /// 资源名非法时会重命名资源文件，解析不到预制体或模块名则返回 false
+        /// </summary>
         public static bool InitVoName(UIBindCDETable cdeTable)
         {
             //var path = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(cdeTable);
@@ -204,6 +224,10 @@ namespace RD.UI.Editor
 
         //这个是模块名
         //不是ET的包名
+        /// <summary>
+        /// 从资源路径里取模块名：路径必须位于 ProjectResPath 下且要有下一级目录
+        /// （注意取的是模块名，不是 ET 的包名）
+        /// </summary>
         public static string GrdPkgName(string path)
         {
             var resPath = $"{UIConstHelper.Const.ProjectResPath}/";
@@ -225,6 +249,7 @@ namespace RD.UI.Editor
         }
 
         //收集所有公共组件
+        /// <summary>重新收集该 CDE 下的全部公共组件：先递归收集子节点，再剔除自身 View</summary>
         public static void RefreshChildCdeTable(UIBindCDETable cdeTable)
         {
             cdeTable.AllChildCdeTable.Clear();
@@ -233,6 +258,10 @@ namespace RD.UI.Editor
         }
 
         //如果自己是panel 则还需要额外检查 是不是把自己的view给收集进去了
+        /// <summary>
+        /// 倒序剔除误收集进来的自身 View（仅拆分式 Panel 需要）
+        /// 判定依据：父节点名同时包含 ParentName 与子节点名
+        /// </summary>
         public static void CheckAddCdeTable(ref List<UIBindCDETable> addCdeTable, UIBindCDETable cdeTable)
         {
             if (cdeTable.UICodeType != EUICodeType.Panel && !cdeTable.IsSplitData)
@@ -252,6 +281,10 @@ namespace RD.UI.Editor
             }
         }
 
+        /// <summary>
+        /// 倒序递归收集子节点上带 UIBindCDETable 的组件：
+        /// 模块名/资源名为空或嵌套了 Panel 的会被跳过并报错
+        /// </summary>
         public static void AddCdeTable(ref List<UIBindCDETable> cdeTable, Transform transform)
         {
             var childCount = transform.childCount;

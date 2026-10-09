@@ -9,19 +9,26 @@ using RD.Core;
 namespace RD.Client
 {
     using Object = UnityEngine.Object;
+    /// <summary>
+    /// UIPanelSplitData 的编辑器扩展（partial，UNITY_EDITOR）
+    /// 面板拆分工具：检查 Panel 下的 View 父节点、生成/关联 View 预制体、命名与重复校验
+    /// </summary>
     public sealed partial class UIPanelSplitData
     {
+        /// <summary>是否生成「通用界面枚举」（仅当存在 View 时可选）</summary>
         [SerializeField]
         [LabelText("生成通用界面枚举")]
         [ShowIf("ShowCreatePanelViewEnum")]
         internal bool CreatePanelViewEnum = true;
 
+        /// <summary>当可自动检查且至少存在一个 View 时显示该选项</summary>
         internal bool ShowCreatePanelViewEnum()
         {
             if (!ShowAutoCheckBtn()) return false;
             return (AllCommonView.Count + AllCreateView.Count + AllPopupView.Count) >= 1;
         }
 
+        /// <summary>是否显示「检查拆分数据」按钮：Panel 非空、名字以 PanelName 结尾、且非运行态</summary>
         private bool ShowAutoCheckBtn()
         {
             if (Panel == null)
@@ -38,6 +45,7 @@ namespace RD.Client
             return true;
         }
 
+        /// <summary>是否显示「检查拆分数据」按钮（源文件态）：Panel 名字以 Source 结尾</summary>
         private bool ShowCheckBtn()
         {
             if (Panel == null)
@@ -53,6 +61,7 @@ namespace RD.Client
             return true;
         }
 
+        /// <summary>「检查拆分数据」按钮（源文件态）：仅检查</summary>
         [GUIColor(0, 1, 1)]
         [Button("检查拆分数据", 30)]
         [ShowIf("ShowCheckBtn")]
@@ -61,6 +70,7 @@ namespace RD.Client
             AutoCheck();
         }
 
+        /// <summary>「检查拆分数据」按钮（Panel 态）：检查通过后额外执行 ResetChild</summary>
         [GUIColor(0f, 0.4f, 0.8f)]
         [Button("检查拆分数据", 30)]
         [ShowIf("ShowAutoCheckBtn")]
@@ -72,6 +82,10 @@ namespace RD.Client
             }
         }
 
+        /// <summary>
+        /// 核心检查流程：
+        /// 重新定位 View 父节点 → 校验 Panel 命名 → 收集子 View 父节点 → 校验命名/父子关系/重复
+        /// </summary>
         internal bool AutoCheck()
         {
             if (Panel == null)
@@ -125,6 +139,7 @@ namespace RD.Client
             return true;
         }
 
+        /// <summary>重新定位 AllViewParent / AllPopupViewParent，并校验其确实是 Panel 的子物体</summary>
         private void ReCheckViewParent()
         {
             if (Panel == null) return;
@@ -158,6 +173,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>递归判断 parent 是否为 Panel 的后代（向上找到 Panel.transform 即为真）</summary>
         private bool CheckViewParentIsPanel(Transform parent)
         {
             if (parent == null || parent.parent == null) return false;
@@ -165,6 +181,7 @@ namespace RD.Client
             return CheckViewParentIsPanel(parent.parent);
         }
 
+        /// <summary>遍历两个 View 父节点下的子物体，把以 ViewParentName 结尾的收集进对应列表</summary>
         private void FindChildParent()
         {
             if (AllViewParent != null)
@@ -198,6 +215,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>重置各 View 父节点下的子物体（Common 需保留 View，Create/Popup 不保留）</summary>
         private void ResetChild()
         {
             if (AllViewParent != null)
@@ -212,6 +230,9 @@ namespace RD.Client
             }
         }
 
+        /// <summary>
+        /// 校验 Panel 命名：首字母大写；禁止使用默认名；必须以 PanelName 或 PanelSourceName 结尾
+        /// </summary>
         private bool CheckPanelName()
         {
             var qualifiedName = NameUtility.ToFirstUpper(Panel.name);
@@ -240,6 +261,10 @@ namespace RD.Client
             return false;
         }
 
+        /// <summary>
+        /// 检查 View 父节点列表：
+        /// 找到对应 View 预制（不存在则自动生成）、按需清理/重建子物体、必要时强制删除重新关联
+        /// </summary>
         private void CheckChild(List<RectTransform> list, bool needView)
         {
             for (var i = list.Count - 1; i >= 0; i--)
@@ -320,6 +345,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>按 ViewParent 名字生成对应的 View 预制并原地保存，返回保存路径（失败返回空串）</summary>
         private string ViewSaveAsPrefabAsset(RectTransform current)
         {
             var viewName = current.name.Replace(UIConstHelper.Const.ParentName, "");
@@ -355,6 +381,7 @@ namespace RD.Client
             return newPath.Replace("Assets/../", "");
         }
 
+        /// <summary>创建一个空白 View 物体（挂 RectTransform/CanvasRenderer/CDE，重置铺满、设为 UI 层）</summary>
         private GameObject CreateUIView(string name)
         {
             var viewObject = new GameObject();
@@ -369,6 +396,7 @@ namespace RD.Client
         }
 
         //命名检查
+        /// <summary>检查 View 父节点命名：首字母大写、非默认名、以 ViewParentName 结尾、子物体≤1，并同步子 CDE 命名</summary>
         private void CheckViewName(List<RectTransform> list)
         {
             for (var i = list.Count - 1; i >= 0; i--)
@@ -420,6 +448,7 @@ namespace RD.Client
         }
 
         //检查null / 父级
+        /// <summary>检查 View 父节点列表：剔除 null / 无父级项；父级不匹配时按名字自动移动到对应的 View 列表</summary>
         private void CheckViewParent(List<RectTransform> list, RectTransform parent)
         {
             for (var i = list.Count - 1; i >= 0; i--)
@@ -459,6 +488,7 @@ namespace RD.Client
         }
 
         //检查重复
+        /// <summary>检查列表内重复项（用 hashList 跨列表去重），发现重复则移除并报错</summary>
         private void CheckRepetition(ref HashSet<RectTransform> hashList, List<RectTransform> list)
         {
             for (var i = list.Count - 1; i >= 0; i--)
@@ -473,6 +503,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>刷新资源并选中指定路径的预制体（可选），同时触发其 CDE 的 AutoCheck</summary>
         internal static GameObject SelectAssetAtPath(string assetPath, bool select = true)
         {
             AssetDatabase.SaveAssets();
@@ -497,6 +528,7 @@ namespace RD.Client
             return assetObj;
         }
 
+        /// <summary>按名字查找唯一预制体路径；找到多个或 0 个时报错（tips 控制是否打印）</summary>
         internal static string GetOnlyPrefabAssetsPath(string assetName, bool tips = true)
         {
             var allResult = AssetDatabase.FindAssets($"{assetName} t:Prefab", null);

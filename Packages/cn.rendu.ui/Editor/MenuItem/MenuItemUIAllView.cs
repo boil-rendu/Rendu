@@ -5,6 +5,7 @@ using RD.Client;
 using RD.Core;
 namespace RD.UI.Editor
 {
+    /// <summary>为面板创建 AllView 容器节点（挂满屏，作为普通 View 的统一父节点）</summary>
     public static class MenuItemUIAllView
     {
         [MenuItem("GameObject/UI/Create UIAllView", false, 4)]
@@ -39,6 +40,10 @@ namespace RD.UI.Editor
             Selection.activeObject = CreateUIAllView(uiBindCDETable);
         }
 
+        /// <summary>
+        /// 在面板下新建 AllView 父节点（RectTransform + CanvasRenderer、满屏、UI 层），
+        /// 写入 PanelSplitData.AllViewParent 并清空 AllCommonView / AllCreateView
+        /// </summary>
         public static GameObject CreateUIAllView(UIBindCDETable panelCdeTable )
         {
             var allViewObject = new GameObject();

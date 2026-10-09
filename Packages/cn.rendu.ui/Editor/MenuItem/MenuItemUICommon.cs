@@ -6,8 +6,10 @@ using RD.Core;
 namespace RD.UI.Editor
 {
     using Object = UnityEngine.Object;
+    /// <summary>创建 UICommon 预制体（Common 类型的 UIBindCDETable）</summary>
     public static class MenuItemUICommon
     {
+        /// <summary>在资源目录右键创建：保存为预制体并选中（重名会报错）</summary>
         [MenuItem("Assets/UI/Create UICommon", false, 3)]
         static void CreateUICommonByFolder()
         {
@@ -41,6 +43,7 @@ namespace RD.UI.Editor
             MenuItemHelper.SelectAssetAtPath(savePath);
         }
 
+        /// <summary>在层级里右键创建：直接挂在选中对象之下</summary>
         [MenuItem("GameObject/UI/Create UICommon", false, 3)]
         static void CreateUICommonByGameObject()
         {
@@ -54,6 +57,7 @@ namespace RD.UI.Editor
             Selection.activeObject = CreateUICommon(activeObject);
         }
 
+        /// <summary>创建 Common 根节点（RectTransform + CanvasRenderer + UIBindCDETable，UI 层）</summary>
         public static GameObject CreateUICommon(GameObject activeObject = null)
         {
             var commonObject = new GameObject();

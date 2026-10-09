@@ -6,6 +6,7 @@ using RD.Core;
 namespace RD.Client
 {
     #if !UIMACRO_SYNCLOAD_CLOSE
+    /// <summary>同步加载资源（按 LoadType）：通过 UILoadComponent 加载，失败打日志并返回 null</summary>
     [Invoke(EInvokeType.Sync)]
     public class UIInvokeLoadSyncHandler : AInvokeEntityHandler<UIInvokeEntity_Load, UnityObject>
     {
@@ -30,6 +31,7 @@ namespace RD.Client
     }
     #endif
 
+    /// <summary>异步加载资源（按 LoadType）：逻辑同上，走 LoadAssetAsync</summary>
     [Invoke(EInvokeType.Async)]
     public class UIInvokeLoadAsyncHandler : AInvokeEntityHandler<UIInvokeEntity_Load, Promise<UnityObject>>
     {
@@ -54,6 +56,7 @@ namespace RD.Client
     }
 
     #if !UIMACRO_SYNCLOAD_CLOSE
+    /// <summary>同步加载 Texture2D：编辑器下先做资产有效性校验，再 LoadAsset</summary>
     [Invoke(EInvokeType.Sync)]
     public class UIInvokeLoadTexture2DSyncHandler : AInvokeEntityHandler<UIInvokeEntity_LoadTexture2D, Texture2D>
     {
@@ -86,6 +89,7 @@ namespace RD.Client
     }
     #endif
 
+    /// <summary>异步加载 Texture2D：逻辑同上，走 LoadAssetAsync</summary>
     [Invoke(EInvokeType.Async)]
     public class UIInvokeLoadTexture2DAsyncHandler : AInvokeEntityHandler<UIInvokeEntity_LoadTexture2D, Promise<Texture2D>>
     {

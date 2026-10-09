@@ -5,6 +5,7 @@ using RD.Client;
 using RD.Core;
 namespace RD.UI.Editor
 {
+    /// <summary>为面板创建 AllPopupView 容器节点（挂满屏，作为弹窗类 View 的统一父节点）</summary>
     public static class MenuItemUIAllPopupView
     {
         [MenuItem("GameObject/UI/Create UIAllPopupView", false, 5)]
@@ -39,6 +40,10 @@ namespace RD.UI.Editor
             Selection.activeObject = CreateUIAllPopupView(uiBindCDETable);
         }
 
+        /// <summary>
+        /// 在面板下新建 AllPopupView 父节点（RectTransform + CanvasRenderer、满屏、UI 层），
+        /// 写入 PanelSplitData.AllPopupViewParent 并清空旧列表
+        /// </summary>
         public static GameObject CreateUIAllPopupView(UIBindCDETable panelCdeTable )
         {
             var allViewObject = new GameObject();

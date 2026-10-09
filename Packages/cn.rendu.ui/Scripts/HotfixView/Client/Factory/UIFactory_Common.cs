@@ -10,11 +10,16 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>UIFactory 工厂（Common 部分）：实例化「普通 UI 预制体」（非 Entity 体系）</summary>
     public static partial class UIFactory
     {
         #if !UIMACRO_SYNCLOAD_CLOSE
         //普通的UI预制体 创建与摧毁 一定要成对
         //为了防止忘记 所以默认自动回收
+        /// <summary>
+        /// 同步实例化一个普通 UI 预制体
+        /// 会强制挂上 UIReleaseInstantiate，被摧毁时自动回收资源，无需再调用 UIFactory.Destroy
+        /// </summary>
         public static GameObject InstantiateGameObject(Scene scene, string pkgName, string resName)
         {
             var obj = scene.UILoad()?.LoadAssetInstantiate(pkgName, resName);
@@ -32,6 +37,7 @@ namespace RD.Client
         }
         #endif
 
+        /// <summary>异步实例化一个普通 UI 预制体（同样自动挂 UIReleaseInstantiate 自动回收）</summary>
         public static async Promise<GameObject> InstantiateGameObjectAsync(Scene scene, string pkgName, string resName)
         {
             EntityRef<Scene> sceneRef = scene;

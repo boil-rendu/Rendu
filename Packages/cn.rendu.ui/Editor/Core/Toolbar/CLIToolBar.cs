@@ -7,6 +7,10 @@ using RD.Client;
 using RD.Core;
 namespace RD.UI.Editor
 {
+    /// <summary>
+    /// 在编辑器工具栏右侧添加 AI CLI 入口按钮
+    /// 点击后在项目根目录用 Windows Terminal 打开一个 powershell 会话并执行配置的 CLI 命令
+    /// </summary>
     [InitializeOnLoad]
     public static class CLIToolBar
     {
@@ -39,6 +43,7 @@ namespace RD.UI.Editor
             GUILayout.Space(5);
         }
 
+        /// <summary>启动 wt.exe 打开 powershell 并执行命令；失败时弹窗提示常见排查方向</summary>
         private static void StartPowerShellProcess(string command, string workingDir)
         {
             try

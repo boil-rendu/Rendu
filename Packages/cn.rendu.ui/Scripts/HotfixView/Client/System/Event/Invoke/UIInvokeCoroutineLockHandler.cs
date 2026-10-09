@@ -4,6 +4,10 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>
+    /// 协程锁：按 Lock 值在 CoroutineLockComponent 上排队，用于串行化同一资源的加载/切换
+    /// LockType &lt;= 0 时使用默认的 CoroutineLockType.UIInvokeCoroutineLock
+    /// </summary>
     [Invoke(EInvokeType.Async)]
     public class UIInvokeCoroutineLockHandler : AInvokeEntityHandler<UIInvokeEntity_CoroutineLock, Promise<Entity>>
     {

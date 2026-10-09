@@ -8,6 +8,10 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>
+    /// 原图数据绑定（String 资源名 → RawImage.texture 异步加载）
+    /// 空串隐藏；同一资源复用不重载；切资源前释放上一个 Texture2D
+    /// </summary>
     [RequireComponent(typeof(RawImage))]
     [LabelText("RawImage 图片Raw")]
     [AddComponentMenu("UIBind/Data/图片Raw 【RawImage】 UIDataBindRawImage")]
@@ -19,10 +23,12 @@ namespace RD.Client
         [LabelText("图片")]
         private RawImage m_RawImage;
 
+        /// <summary>设置后按原始尺寸调整大小</summary>
         [SerializeField]
         [LabelText("自动调整图像大小")]
         private bool m_SetNativeSize = false;
 
+        /// <summary>是否允许本组件修改 RawImage.enabled</summary>
         [SerializeField]
         [LabelText("可修改Enabled")]
         private bool m_ChangeEnabled = true;
@@ -30,16 +36,19 @@ namespace RD.Client
         [NonSerialized]
         private string m_LastResName;
 
+        /// <summary>过滤出 String 类型的数据</summary>
         protected override int Mask()
         {
             return 1 << (int)EUIBindDataType.String;
         }
 
+        /// <summary>最多绑定 1 个数据</summary>
         protected override int SelectMax()
         {
             return 1;
         }
 
+        /// <summary>刷新时补齐 RawImage 引用并检查 Enabled 配置冲突</summary>
         protected override void OnRefreshData()
         {
             base.OnRefreshData();
@@ -50,6 +59,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>按开关设置 RawImage.enabled（受 m_ChangeEnabled 限制）</summary>
         private void SetEnabled(bool set)
         {
             if (!m_ChangeEnabled) return;
@@ -59,6 +69,7 @@ namespace RD.Client
             m_RawImage.enabled = set;
         }
 
+        /// <summary>数据变化：空串隐藏，否则异步加载并设置 Texture</summary>
         protected override void OnValueChanged()
         {
             if (!UIOperationHelper.IsPlaying())
@@ -79,6 +90,7 @@ namespace RD.Client
             ChangeTexture2D(dataValue).NoContext();
         }
 
+        /// <summary>异步加载 Texture2D 并赋值（协程锁防并发，加载后校验对象存活）</summary>
         private async Promise ChangeTexture2D(string resName)
         {
             using var _ = await EventSystem.Instance?.UIInvokeEntityAsyncSafety<UIInvokeEntity_CoroutineLock, Promise<Entity>>(UISingletonHelper.UIMgr, new UIInvokeEntity_CoroutineLock { Lock = GetHashCode() });
@@ -132,6 +144,7 @@ namespace RD.Client
             m_LastResName = resName;
         }
 
+        /// <summary>解绑时释放已加载的 Texture2D</summary>
         protected override void UnBindData()
         {
             base.UnBindData();
@@ -145,6 +158,7 @@ namespace RD.Client
 
         private Texture2D m_LastTexture2D;
 
+        /// <summary>释放上一张 Texture2D</summary>
         private void ReleaseLastTexture2D()
         {
             if (m_LastTexture2D != null)

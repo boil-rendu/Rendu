@@ -4,10 +4,15 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>
+    /// UIEventBase 的辅助/扩展：
+    /// 按参数个数动态创建同步事件、以及统一的 Invoke / AddEvent / RemoveEvent / 参数比较等扩展方法
+    /// </summary>
     public static class UIEventBaseHelper
     {
         #region 创建
 
+        /// <summary>按参数类型列表动态创建对应泛型实参的 UIEventBase（同步事件）</summary>
         public static UIEventBase CreatorUIEventBase(string name, List<EUIEventParamType> paramList)
         {
             UIEventBase uiEventBase = null;
@@ -81,6 +86,7 @@ namespace RD.Client
 
         #region 调用
 
+        /// <summary>调用事件（0 参）；参数个数不匹配时报错</summary>
         public static void Invoke(this UIEventBase self)
         {
             if (self is IUIEventInvoke uiEventInvoke)
@@ -93,6 +99,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>调用事件（1 参）；参数个数不匹配时报错</summary>
         public static void Invoke<P1>(this UIEventBase self, P1 p1)
         {
             if (self is IUIEventInvoke<P1> uiEventInvoke)
@@ -105,6 +112,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>调用事件（2 参）；参数个数不匹配时报错</summary>
         public static void Invoke<P1, P2>(this UIEventBase self, P1 p1, P2 p2)
         {
             if (self is IUIEventInvoke<P1, P2> uiEventInvoke)
@@ -117,6 +125,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>调用事件（3 参）；参数个数不匹配时报错</summary>
         public static void Invoke<P1, P2, P3>(this UIEventBase self, P1 p1, P2 p2, P3 p3)
         {
             if (self is IUIEventInvoke<P1, P2, P3> uiEventInvoke)
@@ -129,6 +138,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>调用事件（4 参）；参数个数不匹配时报错</summary>
         public static void Invoke<P1, P2, P3, P4>(this UIEventBase self, P1 p1, P2 p2, P3 p3, P4 p4)
         {
             if (self is IUIEventInvoke<P1, P2, P3, P4> uiEventInvoke)
@@ -141,6 +151,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>调用事件（5 参）；参数个数不匹配时报错</summary>
         public static void Invoke<P1, P2, P3, P4, P5>(this UIEventBase self, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
         {
             if (self is IUIEventInvoke<P1, P2, P3, P4, P5> uiEventInvoke)
@@ -157,6 +168,7 @@ namespace RD.Client
 
         #region 添加事件
 
+        /// <summary>添加回调（0 参）</summary>
         public static UIEventHandleP0 AddEvent(this UIEventBase self, UIEventDelegate callback)
         {
             if (self is UIEventP0 uiEventParam)
@@ -171,6 +183,7 @@ namespace RD.Client
             return null;
         }
 
+        /// <summary>添加回调（1 参）</summary>
         public static UIEventHandleP1<P1> AddEvent<P1>(this UIEventBase self, UIEventDelegate<P1> callback)
         {
             if (self is UIEventP1<P1> uiEventParam)
@@ -185,6 +198,7 @@ namespace RD.Client
             return null;
         }
 
+        /// <summary>添加回调（2 参）</summary>
         public static UIEventHandleP2<P1, P2> AddEvent<P1, P2>(this UIEventBase self, UIEventDelegate<P1, P2> callback)
         {
             if (self is UIEventP2<P1, P2> uiEventParam)
@@ -199,6 +213,7 @@ namespace RD.Client
             return null;
         }
 
+        /// <summary>添加回调（3 参）</summary>
         public static UIEventHandleP3<P1, P2, P3> AddEvent<P1, P2, P3>(this UIEventBase self, UIEventDelegate<P1, P2, P3> callback)
         {
             if (self is UIEventP3<P1, P2, P3> uiEventParam)
@@ -213,6 +228,7 @@ namespace RD.Client
             return null;
         }
 
+        /// <summary>添加回调（4 参）</summary>
         public static UIEventHandleP4<P1, P2, P3, P4> AddEvent<P1, P2, P3, P4>(this UIEventBase self, UIEventDelegate<P1, P2, P3, P4> callback)
         {
             if (self is UIEventP4<P1, P2, P3, P4> uiEventParam)
@@ -227,6 +243,7 @@ namespace RD.Client
             return null;
         }
 
+        /// <summary>添加回调（5 参）</summary>
         public static UIEventHandleP5<P1, P2, P3, P4, P5> AddEvent<P1, P2, P3, P4, P5>(this UIEventBase self, UIEventDelegate<P1, P2, P3, P4, P5> callback)
         {
             if (self is UIEventP5<P1, P2, P3, P4, P5> uiEventParam)
@@ -245,6 +262,7 @@ namespace RD.Client
 
         #region 移除事件
 
+        /// <summary>移除回调（0 参）</summary>
         public static bool RemoveEvent(this UIEventBase self, UIEventHandleP0 handle)
         {
             if (self is UIEventP0 uiEventParam)
@@ -259,6 +277,7 @@ namespace RD.Client
             return false;
         }
 
+        /// <summary>移除回调（1 参）</summary>
         public static bool RemoveEvent<P1>(this UIEventBase self, UIEventHandleP1<P1> handle)
         {
             if (self is UIEventP1<P1> uiEventParam)
@@ -273,6 +292,7 @@ namespace RD.Client
             return false;
         }
 
+        /// <summary>移除回调（2 参）</summary>
         public static bool RemoveEvent<P1, P2>(this UIEventBase self, UIEventHandleP2<P1, P2> handle)
         {
             if (self is UIEventP2<P1, P2> uiEventParam)
@@ -287,6 +307,7 @@ namespace RD.Client
             return false;
         }
 
+        /// <summary>移除回调（3 参）</summary>
         public static bool RemoveEvent<P1, P2, P3>(this UIEventBase self, UIEventHandleP3<P1, P2, P3> handle)
         {
             if (self is UIEventP3<P1, P2, P3> uiEventParam)
@@ -301,6 +322,7 @@ namespace RD.Client
             return false;
         }
 
+        /// <summary>移除回调（4 参）</summary>
         public static bool RemoveEvent<P1, P2, P3, P4>(this UIEventBase self, UIEventHandleP4<P1, P2, P3, P4> handle)
         {
             if (self is UIEventP4<P1, P2, P3, P4> uiEventParam)
@@ -315,6 +337,7 @@ namespace RD.Client
             return false;
         }
 
+        /// <summary>移除回调（5 参）</summary>
         public static bool RemoveEvent<P1, P2, P3, P4, P5>(this UIEventBase self, UIEventHandleP5<P1, P2, P3, P4, P5> handle)
         {
             if (self is UIEventP5<P1, P2, P3, P4, P5> uiEventParam)
@@ -333,11 +356,13 @@ namespace RD.Client
 
         #region 判断
 
+        /// <summary>比较事件自身参数列表与目标参数列表是否一致</summary>
         public static bool ParamEquals(this UIEventBase self, List<EUIEventParamType> targetParamList)
         {
             return self.AllEventParamType.ParamEquals(targetParamList);
         }
 
+        /// <summary>逐项比较两个参数类型列表是否一致（长度 + 每项相等）</summary>
         public static bool ParamEquals(this List<EUIEventParamType> self, List<EUIEventParamType> target)
         {
             if (self == null || target == null)
@@ -372,6 +397,7 @@ namespace RD.Client
 
         #region 其他
 
+        /// <summary>参数列表转字符串 List</summary>
         public static List<string> GetAllParamTypeToListString(this List<EUIEventParamType> self)
         {
             var list = new List<string>();
@@ -383,6 +409,7 @@ namespace RD.Client
             return list;
         }
 
+        /// <summary>参数列表拼接为字符串（空格分隔）</summary>
         public static string GetAllParamTypeToString(this List<EUIEventParamType> self)
         {
             var value = "";
@@ -395,6 +422,7 @@ namespace RD.Client
             return value;
         }
 
+        /// <summary>参数提示串（含个数），用于参数不匹配时打印「应该用什么参数」</summary>
         public static string GetAllParamTypeTips(this List<EUIEventParamType> self)
         {
             if (self == null)

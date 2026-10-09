@@ -8,8 +8,13 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>
+    /// UIBindEventTable 的编辑器扩展（UNITY_EDITOR）
+    /// 事件表的自动检查、添加新事件（同步/异步）、移除回调与查询接口
+    /// </summary>
     public sealed partial class UIBindEventTable
     {
+        /// <summary>自动检查：规整所有事件命名（补前缀、首字母大写），最后刷新事件表</summary>
         [GUIColor(1, 1, 0)]
         [Button("自动检查", 30)]
         [PropertyOrder(-999)]
@@ -46,12 +51,15 @@ namespace RD.Client
             OnValidate();
         }
 
+        /// <summary>事件类型（同步/异步）</summary>
         [HideLabel]
         public enum EUITaskEventType
         {
+            /// <summary>同步事件</summary>
             [LabelText("同步事件")]
             Sync,
 
+            /// <summary>异步事件</summary>
             [LabelText("异步事件")]
             Async,
         }
@@ -62,6 +70,7 @@ namespace RD.Client
         [NonSerialized]
         private EUITaskEventType m_UITaskEventTypeTemp;
 
+        /// <summary>待添加事件类型（首次读取时从偏好设置恢复）</summary>
         [ShowInInspector]
         [BoxGroup("添加新事件")]
         [EnumToggleButtons]
@@ -87,6 +96,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>待添加的事件名</summary>
         [ShowInInspector]
         [BoxGroup("添加新事件")]
         [HideReferenceObjectPicker]
@@ -95,6 +105,7 @@ namespace RD.Client
         [ShowIf("@UIOperationHelper.CommonShowIf()")]
         private string m_AddUIEventName = "";
 
+        /// <summary>待添加事件的参数类型列表</summary>
         [BoxGroup("添加新事件")]
         [PropertyOrder(-98)]
         [SerializeField]
@@ -103,6 +114,7 @@ namespace RD.Client
         [ShowIf("@UIOperationHelper.CommonShowIf()")]
         public List<EUIEventParamType> AllEventParamType = new List<EUIEventParamType>();
 
+        /// <summary>「添加」按钮：添加新事件后清空输入</summary>
         [GUIColor(0, 1, 0)]
         [BoxGroup("添加新事件")]
         [Button("添加")]
@@ -120,6 +132,9 @@ namespace RD.Client
             AllEventParamType = new List<EUIEventParamType>();
         }
 
+        /// <summary>
+        /// 编辑器添加事件：校验名称非空/不重名，按 同步/异步 走对应 Helper 动态创建并加入字典
+        /// </summary>
         public UIEventBase EditorAddEvent(EUITaskEventType eventType, string eventMame, List<EUIEventParamType> eventParamType = null)
         {
             if (string.IsNullOrEmpty(eventMame))
@@ -168,12 +183,14 @@ namespace RD.Client
             return uiEventBase;
         }
 
+        /// <summary>移除回调：先解绑再从字典移除</summary>
         private void RemoveCallBack(UIEventBase uiEvent)
         {
             uiEvent.OnRemoveVariableCallBack();
             m_EventDic.Remove(uiEvent.EventName);
         }
 
+        /// <summary>移除事件入口：不存在则报错；已有绑定时弹确认框，否则直接移除</summary>
         private void OnRemoveUIEvent(UIEventBase uiEvent)
         {
             if (!m_EventDic.ContainsValue(uiEvent))
@@ -193,6 +210,7 @@ namespace RD.Client
             RemoveCallBack(uiEvent);
         }
 
+        /// <summary>获取所有事件名</summary>
         public List<string> GetAllEventName()
         {
             var allName = new List<string>();
@@ -204,6 +222,7 @@ namespace RD.Client
             return allName;
         }
 
+        /// <summary>按（同步/异步 + 参数列表一致）过滤出事件名</summary>
         public List<string> GetFilterParamTypeEventName(List<EUIEventParamType> list, bool taskEvent)
         {
             var allName = new List<string>();
@@ -218,6 +237,7 @@ namespace RD.Client
             return allName;
         }
 
+        /// <summary>序列化校验：重新挂接事件的改名/移除回调并刷新事件表</summary>
         private void OnValidate()
         {
             if (m_EventDic == null)

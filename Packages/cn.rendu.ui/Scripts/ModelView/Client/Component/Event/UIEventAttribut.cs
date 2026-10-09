@@ -4,6 +4,7 @@ using RD.Core;
 namespace RD.Client
 {
     //UI上的消息
+    /// <summary>UI 消息监听标记：声明「监听哪个 UI 消息」+「关注哪个 UI 组件」</summary>
     public class UIEventAttribute : BaseAttribute
     {
         public Type EventType     { get; } //消息类型

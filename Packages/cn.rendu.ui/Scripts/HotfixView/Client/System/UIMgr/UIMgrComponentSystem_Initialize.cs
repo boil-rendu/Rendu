@@ -3,11 +3,16 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>UIMgrComponent 扩展（UI 框架初始化）</summary>
     public static partial class UIMgrComponentSystem
     {
         //UI 初始化
         //不要在这个类中增加逻辑,应该用其他消息来实现
         //如果觉得消息不够顺序不对可扩展
+        /// <summary>
+        /// UI 框架初始化（固定顺序，任一步失败即整体返回 false）：
+        /// UILoad → UI 常量 → UIBind → UIEventInitializeBefore 事件 → UI 单例 → UIRoot → 安全区 → UIEventInitializeAfter 事件
+        /// </summary>
         public static async Promise<bool> Initialize(this UIMgrComponent self)
         {
             EntityRef<UIMgrComponent> selfRef = self;

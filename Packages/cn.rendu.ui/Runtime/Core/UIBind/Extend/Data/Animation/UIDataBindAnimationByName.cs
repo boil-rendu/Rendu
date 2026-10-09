@@ -9,6 +9,10 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>
+    /// 动画数据绑定（String → 按名称播放动画片段）
+    /// 名称不存在会报错；编辑器下会维护「当前所有可用动画」列表
+    /// </summary>
     [RequireComponent(typeof(Animation))]
     [DetailedInfoBox("注意动画组件的 自动播放不要勾选",
                      @"根据名称播放动画 不存在则会提示
@@ -27,21 +31,25 @@ namespace RD.Client
         [LabelText("动画")]
         private Animation m_Animation;
 
+        /// <summary>当前所有可用动画片段名（编辑器下刷新）</summary>
         [SerializeField]
         [ReadOnly]
         [LabelText("当前所有可用动画")]
         private List<string> m_AllClipName = new List<string>();
 
+        /// <summary>过滤出 String 类型的数据</summary>
         protected override int Mask()
         {
             return 1 << (int)EUIBindDataType.String;
         }
 
+        /// <summary>最多绑定 1 个数据</summary>
         protected override int SelectMax()
         {
             return 1;
         }
 
+        /// <summary>刷新时补齐 Animation 引用并采集所有片段名（仅编辑器）</summary>
         protected override void OnRefreshData()
         {
             base.OnRefreshData();
@@ -68,6 +76,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>数据变化：名称合法则播放对应片段</summary>
         protected override void OnValueChanged()
         {
             if (!UIOperationHelper.IsPlaying())

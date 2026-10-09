@@ -5,12 +5,17 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>
+    /// UIWindowComponent 的接口探测部分：判断 OwnerUIEntity 是否实现了各补间/关闭相关接口
+    /// 四个属性都带「已探测」标记，接口判定结果只算一次并缓存
+    /// </summary>
     public partial class UIWindowComponent
     {
         private bool m_CloseTweenEnd;
 
         private bool m_CheckCloseTweenEnd;
 
+        /// <summary>OwnerUIEntity 是否实现 IUICloseTweenEnd（关闭补间结束回调）</summary>
         public bool CloseTweenEnd
         {
             get
@@ -30,6 +35,7 @@ namespace RD.Client
 
         private bool m_CheckOpenTweenEnd;
 
+        /// <summary>OwnerUIEntity 是否实现 IUIOpenTweenEnd（打开补间结束回调）</summary>
         public bool OpenTweenEnd
         {
             get
@@ -49,6 +55,7 @@ namespace RD.Client
 
         private bool m_CheckOpenTween;
 
+        /// <summary>OwnerUIEntity 是否实现 IUIOpenTween（需要自定义打开补间）</summary>
         public bool OpenTween
         {
             get
@@ -68,6 +75,7 @@ namespace RD.Client
 
         private bool m_CheckCloseTween;
 
+        /// <summary>OwnerUIEntity 是否实现 IUICloseTween（需要自定义关闭补间）</summary>
         public bool CloseTween
         {
             get

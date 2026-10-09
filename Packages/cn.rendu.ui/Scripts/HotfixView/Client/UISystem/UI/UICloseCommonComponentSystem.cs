@@ -6,6 +6,7 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>通用关闭按钮组件系统（挂在关闭按钮上，点击后关闭最近的 Panel 或 View）</summary>
     [FriendOf(typeof(UICloseCommonComponent))]
     public static partial class UICloseCommonComponentSystem
     {
@@ -19,6 +20,10 @@ namespace RD.Client
         {
         }
 
+        /// <summary>
+        /// 从当前节点向上找第一个算是「可关闭 UI」的层级：
+        /// 命中 UIPanelComponent 就关面板，命中 UIViewComponent 就关视图，都没有则继续向上递归
+        /// </summary>
         private static async Promise<bool> CloseUI(this UICloseCommonComponent self, EntityRef<Entity> parent)
         {
             if (parent.Entity.Parent == null)
@@ -49,6 +54,7 @@ namespace RD.Client
 
         #region UIEvent开始
 
+        /// <summary>关闭事件回调：从自身父级开始执行 CloseUI</summary>
         [Invoke(UICloseCommonComponent.OnEventCloseInvoke)]
         private static async Promise OnEventCloseInvoke(this UICloseCommonComponent self)
         {

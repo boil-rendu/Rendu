@@ -5,6 +5,7 @@ using RD.Core;
 namespace RD.Client
 {
     //UI消息  有UI被打开之前 (有人调用了打开XXpanel 但是还未加载UI之前)
+    /// <summary>有 UI 被打开之前（调用打开面板、UI 尚未加载时派发）</summary>
     public struct UIEventPanelOpenBefore
     {
         public string UIPkgName; //所在包名
@@ -15,6 +16,7 @@ namespace RD.Client
     }
 
     //UI消息  有UI被打开之后 (已经完成了所有加载包括动画后)
+    /// <summary>有 UI 被打开之后（加载与打开动画都已完成时派发，带最终成功与否）</summary>
     public struct UIEventPanelOpenAfter
     {
         public bool Success; //最终是打开成功还是打开失败
@@ -26,6 +28,7 @@ namespace RD.Client
     }
 
     //UI消息  有View被打开之前 (有人调用了打开XXView 但是还未加载UI之前)
+    /// <summary>有 View 被打开之前（调用打开 View、UI 尚未加载时派发）</summary>
     public struct UIEventViewOpenBefore
     {
         public string UIPkgName; //所在包名

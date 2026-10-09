@@ -5,14 +5,20 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>
+    /// GameObject 显隐数据绑定（Bool → SetActive）
+    /// 支持瞬时 / 淡入淡出等过渡模式（过渡依赖 CanvasGroup，仅运行时生效）
+    /// </summary>
     [LabelText("GameObject的显隐")]
     [AddComponentMenu("UIBind/Data/显隐 【Active】 UIDataBindActive")]
     public sealed class UIDataBindActive : UIDataBindBool
     {
+        /// <summary>过渡类型</summary>
         [SerializeField]
         [LabelText("过度类型")]
         private UITransitionModeEnum m_TransitionMode = UITransitionModeEnum.Instant;
 
+        /// <summary>过渡时长（非 Instant 时有效）</summary>
         [SerializeField]
         [LabelText("过度时间")]
         [HideIf("m_TransitionMode", UITransitionModeEnum.Instant)]
@@ -20,6 +26,7 @@ namespace RD.Client
 
         private CanvasGroup m_CanvasGroup;
 
+        /// <summary>数据变化：按过渡模式显示/隐藏自身 GameObject</summary>
         protected override void OnValueChanged()
         {
             if (gameObject == null)
@@ -102,6 +109,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>淡入淡出协程：按 m_TransitionTime 插值 alpha，结束时设置激活状态</summary>
         private IEnumerator TransitionFade(CanvasGroup group, float alphaTarget, bool activeTarget)
         {
             var leftTime   = m_TransitionTime;

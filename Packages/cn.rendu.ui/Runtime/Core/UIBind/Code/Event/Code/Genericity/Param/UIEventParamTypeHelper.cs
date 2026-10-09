@@ -5,8 +5,12 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>
+    /// EUIEventParamType 的扩展：映射到 CLR 类型 / 短名 / 全名
+    /// </summary>
     public static class UIEventParamTypeHelper
     {
+        /// <summary>映射到 CLR 类型（未实现的新类型报错并回退 int）</summary>
         public static Type GetParamType(this EUIEventParamType paramType)
         {
             switch (paramType)
@@ -49,6 +53,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>映射到类型短名（如 "int" / "List&lt;int&gt;"）</summary>
         public static string GetParamTypeString(this EUIEventParamType paramType)
         {
             switch (paramType)
@@ -91,6 +96,7 @@ namespace RD.Client
             }
         }
 
+        /// <summary>映射到类型全名（用于代码生成，如 "System.Collections.Generic.List&lt;int&gt;"）</summary>
         public static string GetParamTypeFullString(this EUIEventParamType paramType)
         {
             switch (paramType)

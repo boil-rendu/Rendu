@@ -7,6 +7,7 @@ using RD.Core;
 namespace RD.UI.Editor
 {
     using Object = UnityEngine.Object;
+    /// <summary>Scene 视图快捷按钮的共享样式</summary>
     internal static class UIQuickCameraFocusStyles
     {
         public static readonly GUIStyle SceneViewButtonStyle;
@@ -23,6 +24,7 @@ namespace RD.UI.Editor
         }
     }
 
+    /// <summary>在 Scene 视图左下角提供「对齐到 Main 相机 / 对齐到 UI 相机」两个快捷按钮</summary>
     [InitializeOnLoad]
     public static class QuickCameraFocus
     {
@@ -52,6 +54,7 @@ namespace RD.UI.Editor
             Handles.EndGUI();
         }
 
+        /// <summary>优先找名为 MainCamera 的对象，退回 Camera.main</summary>
         private static void AlignToSceneCamera()
         {
             if (TryAlignToGameObject("MainCamera", 3f, false) || TryAlignToMainCamera(3f))
@@ -59,6 +62,10 @@ namespace RD.UI.Editor
             }
         }
 
+        /// <summary>
+        /// Prefab 编辑模式直接选中并聚焦 Prefab 根；
+        /// 否则依次尝试 UICamera → 第一个 Canvas → Prefab 根节点
+        /// </summary>
         private static void AlignToUICamera()
         {
             var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
@@ -120,6 +127,7 @@ namespace RD.UI.Editor
             return false;
         }
 
+        /// <summary>把 Scene 视图对齐到目标 Transform（可带偏移）</summary>
         private static void AlignSceneView(Transform target, float size, bool in2DMode, Vector3? offset = null)
         {
             if (target == null) return;
@@ -129,6 +137,7 @@ namespace RD.UI.Editor
             sceneView.LookAt(target.position + (offset ?? Vector3.zero), target.rotation, size);
         }
 
+        /// <summary>把 Scene 视图对齐到目标相机（沿其正前方偏移，并同步正交/透视与大小）</summary>
         private static void AlignSceneView(Camera target, bool in2DMode, float offset = 0)
         {
             if (target == null) return;

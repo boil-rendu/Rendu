@@ -3,6 +3,7 @@ using RD.Core;
 
 namespace RD.Client
 {
+    /// <summary>异步等待一帧（TimerComponent.WaitFrameAsync）</summary>
     [Invoke(EInvokeType.Async)]
     public class UIInvokeTimerComponentWaitFrameAsyncHandler : AInvokeEntityHandler<UIInvokeEntity_WaitFrameAsync, Promise>
     {
@@ -12,6 +13,7 @@ namespace RD.Client
         }
     }
 
+    /// <summary>异步等待指定毫秒；带 CancellationToken 时挂到该上下文上以便取消</summary>
     [Invoke(EInvokeType.Async)]
     public class UIInvokeTimerComponentWaitAsyncHandler : AInvokeEntityHandler<UIInvokeEntity_WaitAsync, Promise>
     {
@@ -28,6 +30,7 @@ namespace RD.Client
         }
     }
 
+    /// <summary>异步等待指定秒数（内部 ×1000 转毫秒）；带 CancellationToken 时支持取消</summary>
     [Invoke(EInvokeType.Async)]
     public class UIInvokeTimerComponentWaitSecondAsyncHandler : AInvokeEntityHandler<UIInvokeEntity_WaitSecondAsync, Promise>
     {

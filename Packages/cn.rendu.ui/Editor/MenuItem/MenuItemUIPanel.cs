@@ -6,8 +6,10 @@ using RD.Core;
 namespace RD.UI.Editor
 {
     using Object = UnityEngine.Object;
+    /// <summary>创建 UIPanel 预制体（非拆分式：IsSplitData = false）</summary>
     public static class MenuItemUIPanel
     {
+        /// <summary>在资源目录右键创建</summary>
         [MenuItem("Assets/UI/Create UIPanel", false, 1)]
         static void CreateUIPanelByFolder()
         {
@@ -29,6 +31,7 @@ namespace RD.UI.Editor
             CreateUIPanelByPath(path);
         }
 
+        /// <summary>按路径创建并保存为预制体（重名报错），完成后选中资产</summary>
         internal static void CreateUIPanelByPath(string path)
         {
             if (!path.Contains(UIConstHelper.Const.ProjectResPath))
@@ -52,6 +55,9 @@ namespace RD.UI.Editor
             MenuItemHelper.SelectAssetAtPath(savePath);
         }
 
+        /// <summary>
+        /// 创建面板根节点（Panel 类型、非拆分、默认 TimeCache）+ 满屏阻挡图（带 UIBlock），整体设为 UI 层
+        /// </summary>
         private static GameObject CreateUIPanel(GameObject activeObject = null)
         {
             //panel

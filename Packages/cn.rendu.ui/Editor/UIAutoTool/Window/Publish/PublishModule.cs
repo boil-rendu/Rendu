@@ -13,8 +13,13 @@ using RD.Client;
 using RD.Core;
 namespace RD.UI.Editor
 {
+    /// <summary>
+    /// AutoTool 的「发布」模块：扫描工程内所有 UI 模块，按「通用 / 模块包」两棵子树挂出发布菜单
+    /// 支持整体发布、整体发布图集，并内嵌「创建模块」子面板
+    /// </summary>
     public class PublishModule : BaseToolModule
     {
+        /// <summary>打开 UI 发布说明文档</summary>
         [ButtonGroup("文档")]
         [Button("UI文档", 50)]
         [PropertyOrder(-99999)]
@@ -23,10 +28,14 @@ namespace RD.UI.Editor
             Application.OpenURL("https://lib9kmxvq7k.feishu.cn/wiki/ES7Gwz4EAiVGKSkotY5cRbTznuh");
         }
 
+        /// <summary>发布菜单根节点名</summary>
         internal const string m_PublishName = "发布";
+        /// <summary>「通用」发布子节点名（非分包 UI）</summary>
         internal const string m_PublishCommonName = "通用";
+        /// <summary>「模块包」发布子节点名（分包 UI）</summary>
         internal const string m_PublishPackageName = "模块包";
 
+        /// <summary>所有模块资源路径（只读展示）</summary>
         [FolderPath]
         [LabelText("所有模块资源路径")]
         [ReadOnly]
@@ -34,16 +43,25 @@ namespace RD.UI.Editor
         private string m_AllPkgPath = UIConstHelper.Const.ProjectResPath;
 
         //所有分包资源根路径
+        /// <summary>所有分包资源根路径（Packages/）</summary>
         private const string m_AllPackageRootPath = "Packages/";
 
+        /// <summary>内嵌的「创建模块」子面板</summary>
         [BoxGroup("创建模块", centerLabel: true)]
         [ShowInInspector]
         internal CreateResModule CreateResModule = new CreateResModule();
 
+        /// <summary>扫描结果：资源根路径 → 该路径下的全部模块目录</summary>
         private readonly Dictionary<string, List<string>> m_AllInfo = new();
 
+        /// <summary>分包内模块总数</summary>
         private int m_AllCount;
 
+        /// <summary>
+        /// 扫描两处来源：Assets 下的模块目录，以及每个分包内的同名目录（跳过取不到包名的分包）
+        /// 随后在工具树上挂出「通用 / 模块包」两棵子树，为每个模块创建 PublishPackageModule 菜单项
+        /// 目录名必须首字母大写，否则视为非法模块
+        /// </summary>
         private void RefreshAllPkg()
         {
             EditorHelper.CreateExistsDirectory(m_AllPkgPath);
@@ -132,6 +150,10 @@ namespace RD.UI.Editor
             }
         }
 
+        /// <summary>
+        /// 二次确认后发布全部模块：逐个调用 PublishCurrent(false)
+        /// （false 表示不重置图集设置，避免覆盖图集的独立配置），全程带进度条，结束弹提示并刷新窗口
+        /// </summary>
         [GUIColor(0.4f, 0.8f, 1)]
         [Button("全部发布", 50)]
         [PropertyOrder(-99)]
@@ -177,6 +199,7 @@ namespace RD.UI.Editor
             });
         }
 
+        /// <summary>刷新图集数据（图集模块未迁入时为空实现，由 RD_UI_ATLAS_MODULE 宏控制），完成后关闭窗口</summary>
         [ButtonGroup("Atlas")]
         [GUIColor(0f, 1f, 0.8f)]
         [Button("更新图集数据", 40)]
@@ -202,6 +225,10 @@ namespace RD.UI.Editor
             }
         }
 
+        /// <summary>
+        /// 二次确认后发布全部模块的图集：逐个调用 CreateOrResetAtlas(true)
+        /// （与「全部发布」的差别在于这里会重置图集设置），全程带进度条
+        /// </summary>
         [ButtonGroup("Atlas")]
         [GUIColor(1f, 1f, 0.5f)]
         [Button("全部发布图集", 40)]
@@ -248,12 +275,14 @@ namespace RD.UI.Editor
             });
         }
 
+        /// <summary>模块加载：扫描全部模块并初始化内嵌的创建模块面板</summary>
         public override void Initialize()
         {
             this.RefreshAllPkg();
             CreateResModule?.Initialize();
         }
 
+        /// <summary>模块销毁：同步销毁内嵌的创建模块面板</summary>
         public override void OnDestroy()
         {
             CreateResModule?.OnDestroy();
