@@ -16,7 +16,7 @@ namespace RD.Client
         [SerializeField]
         [ReadOnly]
         [Required("必须有此组件")]
-        [LabelText("下拉菜单")]
+        [LabelText("开关")]
         private Toggle m_Toggle;
 
         protected override bool IsTaskEvent => false;
