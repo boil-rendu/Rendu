@@ -1,4 +1,4 @@
-# RD.EditorKit 使用教程
+﻿# RD.EditorKit 使用教程
 
 这份文档**教怎么用**；`README.md` 是**特性手册**（全部特性、参数、每个参数的生效情况）。两者分工：
 
@@ -70,7 +70,7 @@
 | Runtime 代码（只用特性） | `RD.EditorKit` |
 | Editor 代码（检视器 / 窗口 / 引擎） | `RD.EditorKit.Editor`（它已依赖 `RD.EditorKit`） |
 
-如果工程用 asmdef 组织，Editor 程序集的 `references` 里要加这两项。本仓库里的真实写法是 `Packages/cn.etetet.packagemanager/Editor/RD.PackageManager.Editor.asmdef`（只摘录关键字段）：
+如果工程用 asmdef 组织，Editor 程序集的 `references` 里要加这两项。本仓库里的真实写法是 `Packages/com.rendu.packagemanager/Editor/RD.PackageManager.Editor.asmdef`（只摘录关键字段）：
 
 ```json
 {
@@ -353,7 +353,7 @@ public int Tint;
 
 ### 3.5 什么时候用 `HorizontalGroup` 而不是表格
 
-`HorizontalGroup` 适合"两三个相关字段排一行"（例如 `宽 / 高`、`最小 / 最大`）。**要"多行 × 多列 + 增删"，用 `[TableList]`（第 6 章）**，别用嵌套的 `VerticalGroup` 硬凑——那是真实项目里 `PackageHubData` 的写法，适合每行都是复杂面板的场景，不适合纯数据表。
+`HorizontalGroup` 适合"两三个相关字段排一行"（例如 `宽 / 高`、`最小 / 最大`）。**要"多行 × 多列 + 增删"，用 `[TableList]`（第 6 章）**，别用嵌套的 `VerticalGroup` 硬凑——不适合纯数据表。
 
 ### 3.6 分组常见坑
 
@@ -385,7 +385,7 @@ public int Tint;
 `memberName` 可以是：
 
 - **字段 / 属性**（有无 setter 都行，只读值）；
-- **无参方法**（例如 `private bool ShowIfAuthorURL() => !string.IsNullOrEmpty(PackageAuthorURL);`，这是本仓库 `PackageHubData` 里的真实写法）；
+- **无参方法**（例如 `private bool ShowIfAuthorURL() => !string.IsNullOrEmpty(PackageAuthorURL);`，这是表格行的典型写法）；
 - **`@` 开头的表达式**（见 4.3）。
 
 值比较走统一的 `InspectorValue.Equal`：数值用**随量级放大的相对容差**（1e-6，所以 `float` 字段 `0.1f` 和字面量 `0.1` 能相等）、枚举可以与字符串名比较、bool 按 bool 比。
@@ -591,7 +591,7 @@ public List<WaveData> Waves = new();
 它的真实能力边界（都来自 `DrawPlainList`，逐条核对过）：
 
 - **增删**：只有标题栏的 `+`（追加）与每个元素的 `-`（删除该元素）。**没有拖拽排序、没有中间插入、没有复制元素**——整个引擎里没有任何拖拽代码，`ListDrawerSettings.DraggableItems` 也未读取；
-- `+` 的默认行为是 `Activator.CreateInstance(T)`（所以 `T` 得有无参构造）；想自定义就配 `[ListDrawerSettings(CustomAddFunction = "...")]`（见 6.4）。实例化失败只记一条警告，不会崩；
+- `+` 的默认行为是 `Activator.CreateInstance(T)`（所以 `T` 得有无参构造）；想自定义就配 `[ListDrawerSettings(CustomAddFunction = "...")]`（见 6.3）。实例化失败只记一条警告，不会崩；
 - **元素是标量**（`int`/`float`/`bool`/`string`/枚举…）时，每个元素是一个**文本输入框**（标签 `#0`、`#1`…），输入内容由 `ParseSimple` 解析回该类型：**解析失败就静默不写**（`List<int>` 里敲字母不生效，也没有红色提示）；
 - ⚠️ `Vector2` / `Vector3` / `Color` 被算作"标量"，但 `ParseSimple` 对它们返回 `null` —— 于是 **`List<Vector2>`、`List<Color>` 的元素是"只能看、敲了不生效"的文本框**；
 - **元素是 `UnityEngine.Object`**（材质、Prefab、其它资产…）时走一个特殊分支：**只读展示**——用 `ObjectField` 列出来，但**没有 `+`/`-`、没有折叠标题，而且控件返回值被丢弃（拖进去的引用不会写回）**。⚠️ 判据是**"第 0 个元素是不是 `UnityEngine.Object`"**，所以一个**空**的 `List<Material>` 一开始是普通列表（有 `+`），一旦有了元素就退化成只读展示，**此后再也删不掉里面的元素**；
@@ -637,39 +637,8 @@ public class WaveData
 - **单元格里的条件显隐是"保留列位、单元格留空"**：`DrawTableCell` 会调 `CheckVisibility(列成员, 行元素)`，条件不满足时该格为空，但**列本身仍在**（列集合由行类型决定，是全局的）。所以"某行勾了 `IsBoss` 就出现 BOSS 名称输入框"是可以做的，"这一列按行出现/消失"做不到——那需要按条件分两张表；
 - 单元格里条件的**作用域是那一行的元素**（见 4.7）：`[ShowIf("IsBoss")]` 里的 `IsBoss` 必须在行类型上有定义。
 
-### 6.3 表格行的两种流派（真实案例拆解）
 
-本仓库里 `PackageHubData`（`Packages/cn.etetet.packagemanager/Editor/Window/HubModule/Assets/PackageHubData.cs`）是"每行都是一个复杂面板"的极端写法，非常值得抄：
-
-```csharp
-[Serializable]
-[HideReferenceObjectPicker]
-public class PackageHubData
-{
-    [TableColumnWidth(250)]
-    [VerticalGroup("信息")]        // 行内按 VerticalGroup 排成"列"
-    [ReadOnly, LabelWidth(70), LabelText("包名")]
-    public string PackageName;
-
-    [HideLabel]                    // 按钮不画标签，占满列宽
-    [TableColumnWidth(30)]
-    [Button(30, Icon = SdfIconType.Github)]
-    [ShowIf("ShowIfRepositoryURL")] // 条件决定按钮在不在
-    public void OpenPackageRepositoryURL() { /* ... */ }
-
-    private bool ShowIfRepositoryURL() => !string.IsNullOrEmpty(PackageRepositoryURL);
-}
-```
-
-要点：
-
-- **`VerticalGroup` 在表格里当"列"用**：路径同名 → 同一列，`Order` 决定列序；
-- `[HideLabel]` + `[TableColumnWidth(小)]` 让按钮列窄而整齐；
-- `[ShowIf]` 可以挂在**按钮方法**上（方法也是成员），实现"数据不满足就不显示这个操作"；
-- 每行的数据成员是 `[NonSerialized] + [InspectorSerialize]`：由本包的 JSON 通路序列化（第 8 章）；
-- ⚠️ 这段代码是从真实工程抄的，其中 `Icon = SdfIconType.Github` **当前没有图标映射**，实际渲染出来是纯文字按钮（见 5.2 的映射清单）。
-
-### 6.4 自定义"添加"按钮
+### 6.3 自定义"添加"按钮
 
 ```csharp
 [ListDrawerSettings(CustomAddFunction = "AddWave")]
@@ -680,7 +649,7 @@ private void AddWave() => Waves.Add(new WaveData { Name = "New" });
 
 `ListDrawerSettings` 里**只有 `CustomAddFunction` 与 `IsReadOnly` 被读取**，其余参数（`ShowPaging`/`ShowItemCount`/`ShowFoldout`/`DefaultExpandedState`/`HideAddButton`/`DraggableItems`/`CustomRemoveIndexFunction`/`CustomRemoveElementFunction`/`OnBeginListElementGUI`/`OnEndListElementGUI`/`OnTitleBarGUI`…）当前**全部未读取**——**注意：`[TableList]` 的 `ShowPaging` 同样未读取**（见 6.2），所以"列表分页"当前没有开箱支持，需要分页只能自己用 `[OnInspectorGUI]` 手写，或把数据拆成多个字段/多级结构。
 
-### 6.5 字典
+### 6.4 字典
 
 ```csharp
 public Dictionary<string, int> Weights = new();
@@ -701,7 +670,7 @@ public Dictionary<string, int> LockedWeights = new();
 
 结论：**字典适合"看 + 改标量值 + 删条目"，不适合当可增删的配置表**。要做真正的配置表，请用 `List<你自己的 Entry 类型>` + `[TableList]`（第 6.2 节）——那样才有 `+`/`-`、可编辑的列和条件显隐。
 
-### 6.6 下拉：`[ValueDropdown]`
+### 6.5 下拉：`[ValueDropdown]`
 
 ```csharp
 [ValueDropdown("GetTeamSelectList")]
@@ -730,7 +699,7 @@ private ValueDropdownList<int> GetTeamSelectList()
 - ⚠️ **只对标量成员生效**：`[ValueDropdown]` 是在标量控件入口里读的，所以挂在 `List<T>` / 字典 / 自定义类成员上**不会画下拉**（那些成员走容器 / 嵌套对象分支，和 `[InlineButton]` 的坑一样）；
 - `AppendNextDrawer` / `IsUniqueList` / `ExcludeDuplicates` / `DoubleClickToConfirm` / `HideValuesInChildTree` 当前**未读取**。
 
-### 6.7 枚举
+### 6.6 枚举
 
 ```csharp
 public ViewMode Mode;                              // 默认：下拉（Popup）
@@ -751,7 +720,7 @@ public enum ViewMode
 - ⚠️ `[Flags]` 枚举当前**只能选一个值**（Popup / Toolbar 都是单选），需要多选位请自己拆成多个 bool 字段或用 `[InspectorSerialize]` + 自己的控件；
 - 当前值匹配不上任何选项时（例如运行期被赋了非法值），下拉会**显示第 0 项，但不会改数据**（只影响显示）。
 
-### 6.8 实战：掉落表（完整代码）
+### 6.7 实战：掉落表（完整代码）
 
 ```csharp
 using System;
@@ -1218,9 +1187,9 @@ protected void RebuildMenuTree();   // 清掉缓存并立刻重建
 
 适合"构建条件变化"的场景（例如切换了过滤选项、扫描到新资源后要重列菜单）。注意 `BuildMenuTree` 抛异常时引擎会记日志并把树置为 `null`，窗口退化成普通窗口（不崩），修好代码后重建即可。
 
-### 10.7 真实案例：`ETPackageAutoTool` 骨架拆解
+### 10.7 真实案例：`AutoTool` 骨架拆解
 
-`Packages/cn.etetet.packagemanager/Editor/Window/ETPackageAutoTool.cs` 是一个成熟用法，值得对照阅读：
+`Packages/cn.rendu.ui/Editor/UIAutoTool/Window/AutoTool.cs` 是一个成熟用法，值得对照阅读：
 
 - `BuildMenuTree` 里扫描程序集、找带自定义特性的类型，按 `Order` 排序后逐个 `Add`；
 - `OnSelectionChanged` 里：非 `ItemAdded` 直接返回 → 首次进入时读 `StringPrefs` 恢复上次选中 → 之后每次选中写回 prefs；
@@ -1485,12 +1454,12 @@ public class LevelConfigEditor : InspectorEditor { }
 | 列表里的 `null` 元素删不掉 | `null` 元素只画只读文本，没有 `-` 按钮 | 在代码里清掉 `null`（或在 setter/校验里统一处理） |
 | 列表里的材质 / Prefab 引用拖进去不生效 | 同上：只读展示分支里 `ObjectField` 的返回值被丢弃 | 改用单个字段引用，或自定义包装类 |
 | `[TableList]` 没变成表格 | 元素类型的成员一个都不可见（没有可表格化成员），静默退回普通列表 | 检查行类型的成员可见性 |
-| 字典加不了新键、键改不了 | 字典抽屉**没有 `+`**，键只是标签；只有标量值可编辑 | 需要增删/编辑复杂值就用 `List<Entry>` + `[TableList]`（见 6.5） |
+| 字典加不了新键、键改不了 | 字典抽屉**没有 `+`**，键只是标签；只有标量值可编辑 | 需要增删/编辑复杂值就用 `List<Entry>` + `[TableList]`（见 6.4） |
 | 字典里自定义类的值只能看 | 非标量值退化成只读 `LabelField`（`ToString()`） | 同上，或把值展平成标量字段 |
 | `[Flags]` 枚举只能选一个 | Popup / Toolbar 都是单选，引擎没有按位多选界面 | 拆成多个 bool，或自己写 `[OnInspectorGUI]` |
 | `[TableList]` 某成员没成列 | 该成员不可见；或用了 `[HideInTables]`（未实现）/`[HideInInspector]` | 让它按可见性规则可见 |
 | 表格列宽调不动 | `TableColumnWidth.Resizable` 未读取 | 目前只能改 `Width` 重编译 |
-| `[ListDrawerSettings]` 大部分参数无效 | 只实现 `CustomAddFunction` / `IsReadOnly` | 见 6.4；`[TableList]` 的 `ShowPaging` 也未读取（没有内置分页） |
+| `[ListDrawerSettings]` 大部分参数无效 | 只实现 `CustomAddFunction` / `IsReadOnly` | 见 6.3；`[TableList]` 的 `ShowPaging` 也未读取（没有内置分页） |
 | 下拉是空的 | getter 返回 `null` 或空集合（退化为输入框）；或当前值匹配不上（选择框空白） | 检查 getter 返回值；确保候选里有当前值 |
 | 按钮点了没反应 | 方法有参数；或方法名拼错（`[InlineButton]`/`[OnValueChanged]` 都是按名字找） | 无参 + 名字精确 |
 | 改了值但重启编辑器就没了 | 宿主没实现 `onChanged`（自己写宿主时） | 见 11.2 |
@@ -1576,7 +1545,7 @@ public class LevelConfigEditor : InspectorEditor { }
 ### 15.4 引擎层面的固有限制
 
 - **不内窥 `UnityEngine.Object` 成员**（只画对象引用控件，`[InlineEditor]` 才展开）；用户自定义类则**默认内联展开**；
-- **容器能力有限**：列表没有拖拽排序/中间插入，标量元素走文本框（`Vector2`/`Vector3`/`Color` 不可编辑），`UnityEngine.Object` 列表只读；字典不能新增条目、键不可改、非标量值只读（详见 6.1 / 6.5 与 README §4.6）；
+- **容器能力有限**：列表没有拖拽排序/中间插入，标量元素走文本框（`Vector2`/`Vector3`/`Color` 不可编辑），`UnityEngine.Object` 列表只读；字典不能新增条目、键不可改、非标量值只读（详见 6.1 / 6.4 与 README §4.6）；
 - 曲线/渐变用专用控件（可编辑，key 与 color/gradient 都能改）；
 - 嵌套深度上限 + 环引用剪断（**绘制侧 `InspectorEngine.MaxDepth = 24`，序列化侧 `InspectorSerialization.MaxDepth = 32`**，两个数字不一样）；
 - 多选只画第一个对象（并给 HelpBox 警告）；
