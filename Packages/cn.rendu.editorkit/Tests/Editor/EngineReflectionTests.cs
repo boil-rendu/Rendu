@@ -127,6 +127,14 @@ namespace RD.EditorKit.Tests.Editor
         {
         }
 
+        /// <summary>部分值带 [LabelText] 的枚举 —— 验证枚举标签数组"声明序 + 值级标签"。</summary>
+        private enum OptionLabeledEnum
+        {
+            [LabelText("甲")] A,
+            B,
+            [LabelText("丙")] C,
+        }
+
         private class LabelSample
         {
             [LabelText("显式标签")]
@@ -502,6 +510,23 @@ namespace RD.EditorKit.Tests.Editor
             Assert.AreEqual(TextAnchor.MiddleRight, Engine.TitleAnchor(TitleAlignments.Right));
             Assert.AreEqual(TextAnchor.MiddleLeft, Engine.TitleAnchor(TitleAlignments.Split),
                 "Split 的主标题仍靠左 —— 被劈到右侧的是副标题, 没有副标题时 Split 退化为 Left");
+        }
+
+        //-------------------------------------- 枚举标签缓存 --------------------------------------
+
+        [Test]
+        public void EnumLabels_DeclarationOrderAndValueLabels()
+        {
+            Assert.AreEqual(new[] { "甲", "B", "丙" }, Engine.GetEnumLabels(typeof(OptionLabeledEnum)),
+                "带 [LabelText] 的值用标签, 没带的用枚举名, 顺序与 Enum.GetValues 一致");
+        }
+
+        [Test]
+        public void EnumLabels_CachedPerType()
+        {
+            var first = Engine.GetEnumLabels(typeof(OptionLabeledEnum));
+            var second = Engine.GetEnumLabels(typeof(OptionLabeledEnum));
+            Assert.AreSame(first, second, "同一枚举类型应命中缓存复用同一数组, 否则枚举下拉每帧都在分配");
         }
 
         //-------------------------------------- 表格滚动区高度 --------------------------------------

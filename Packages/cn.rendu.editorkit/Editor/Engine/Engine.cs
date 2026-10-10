@@ -907,11 +907,8 @@ namespace RD.EditorKit.Editor
 
         private static GUIStyle CreateLabelStyle(bool center)
         {
-            var style = new GUIStyle(EditorStyles.boldLabel)
-            {
-                alignment = center ? TextAnchor.MiddleCenter : TextAnchor.MiddleLeft,
-            };
-            return style;
+            // 走标题样式缓存: 分组头/表格分组带每帧都调这里, 不该每帧 new GUIStyle
+            return TitleStyle(center ? TextAnchor.MiddleCenter : TextAnchor.MiddleLeft, true);
         }
 
         /// <summary>标题样式缓存: (锚点, 是否加粗) → GUIStyle。标题绘制在热路径上, 不该每帧 new。</summary>
@@ -939,6 +936,33 @@ namespace RD.EditorKit.Editor
             s_SubtitleLabelStyles[anchor] = style;
             return style;
         }
+
+        /// <summary>DisplayAsString 样式缓存: 锚点 → GUIStyle(wordWrap + richText)。</summary>
+        private static readonly Dictionary<TextAnchor, GUIStyle> s_DisplayStringStyles = new();
+
+        /// <summary>带缓存的 [DisplayAsString] 只读文本样式(自动换行 + 富文本, 按对齐分 3 份)。</summary>
+        private static GUIStyle DisplayStringStyle(TextAlign alignment)
+        {
+            TextAnchor anchor;
+            switch (alignment)
+            {
+                case TextAlign.Center: anchor = TextAnchor.MiddleCenter; break;
+                case TextAlign.Right:  anchor = TextAnchor.MiddleRight; break;
+                default:               anchor = TextAnchor.MiddleLeft; break;
+            }
+
+            if (s_DisplayStringStyles.TryGetValue(anchor, out var cached)) return cached;
+
+            var style = new GUIStyle(EditorStyles.label) { wordWrap = true, richText = true, alignment = anchor };
+            s_DisplayStringStyles[anchor] = style;
+            return style;
+        }
+
+        /// <summary>
+        /// 立即模式下复用的 GUIContent: 编辑器 UI 单线程, 一次绘制调用内覆写 text/image/tooltip 即可,
+        /// 稳态零分配(按钮 / 下拉标签)。
+        /// </summary>
+        private static readonly GUIContent s_ReusableContent = new();
 
         /// <summary>
         /// [Title]/[TitleGroup] 的对齐枚举 → 文本锚点。Split 的主标题仍靠左(副标题才是被"劈"到
@@ -1049,17 +1073,10 @@ namespace RD.EditorKit.Editor
 
             var height = attr != null && attr.ButtonHeight > 0 ? attr.ButtonHeight : 24;
 
-            var content = new GUIContent(label);
-            var texture = attr?.Icon != SdfIconType.None ? Icons.FromSdf(attr.Icon) : null;
-            if (texture != null)
-            {
-                content.image = texture;
-            }
-
-            if (string.IsNullOrEmpty(attr?.Tooltip) == false)
-            {
-                content.tooltip = attr.Tooltip;
-            }
+            var content = s_ReusableContent;
+            content.text = label;
+            content.image = attr?.Icon != SdfIconType.None ? Icons.FromSdf(attr.Icon) : null;
+            content.tooltip = string.IsNullOrEmpty(attr?.Tooltip) ? null : attr.Tooltip;
 
             // 只覆盖本次按钮的背景色并在结束后还原：直接写回 Color.white 会把外层作用域设的颜色一起吃掉,
             // 而按钮回调里若抛异常, 没有 finally 就会把错误颜色留在整帧的后续绘制上。
@@ -1249,15 +1266,7 @@ namespace RD.EditorKit.Editor
                 text = text.Substring(0, attr.MaxCharCount) + "...";
             }
 
-            var style = new GUIStyle(EditorStyles.label);
-            style.wordWrap = true;
-            style.richText = true;
-            switch (attr.Alignment)
-            {
-                case TextAlign.Center: style.alignment = TextAnchor.MiddleCenter; break;
-                case TextAlign.Right: style.alignment = TextAnchor.MiddleRight; break;
-                default: style.alignment = TextAnchor.MiddleLeft; break;
-            }
+            var style = DisplayStringStyle(attr.Alignment);
 
             var prevColor = GUI.color;
             var color = ResolveGUIColor(m);
@@ -1579,29 +1588,59 @@ namespace RD.EditorKit.Editor
 
             if (toggle)
             {
-                var contents = new List<GUIContent>();
-                foreach (var v in values)
-                {
-                    contents.Add(new GUIContent(GetEnumLabel(type, v)));
-                }
+                var contents = EnumToggleContents(type);
 
                 var cur = Convert.ToInt32(value);
-                var newIdx = GUILayout.Toolbar(cur, contents.ToArray());
+                var newIdx = GUILayout.Toolbar(cur, contents);
                 if (newIdx == cur) return value;
                 if (newIdx < 0 || newIdx >= values.Length) return value;
                 return values.GetValue(newIdx);
             }
 
-            var options = new List<string>();
-            foreach (var v in values)
-            {
-                options.Add(GetEnumLabel(type, v));
-            }
+            var options = GetEnumLabels(type);
 
             var currentIdx = Array.IndexOf(values, value);
             if (currentIdx < 0) currentIdx = 0;
-            var selected = EditorGUILayout.Popup(label, currentIdx, options.ToArray());
+            var selected = EditorGUILayout.Popup(label, currentIdx, options);
             return values.GetValue(selected);
+        }
+
+        /// <summary>枚举值显示文本缓存: 枚举类型 → 与 Enum.GetValues 同序的标签数组。标签来自静态特性, 按类型缓存安全。</summary>
+        private static readonly Dictionary<Type, string[]> s_EnumLabelCache = new();
+
+        /// <summary>枚举 toggle 按钮组的内容缓存: 枚举类型 → 与标签数组同序的 GUIContent[]。</summary>
+        private static readonly Dictionary<Type, GUIContent[]> s_EnumToggleContentCache = new();
+
+        /// <summary>枚举全部值的显示文本(与 <see cref="Enum.GetValues"/> 同序), 按类型缓存一次。</summary>
+        internal static string[] GetEnumLabels(Type enumType)
+        {
+            if (s_EnumLabelCache.TryGetValue(enumType, out var cached)) return cached;
+
+            var values = Enum.GetValues(enumType);
+            var labels = new string[values.Length];
+            for (var i = 0; i < values.Length; i++)
+            {
+                labels[i] = GetEnumLabel(enumType, values.GetValue(i));
+            }
+
+            s_EnumLabelCache[enumType] = labels;
+            return labels;
+        }
+
+        /// <summary>枚举全部值的 toggle 按钮内容, 按类型缓存一次。</summary>
+        private static GUIContent[] EnumToggleContents(Type enumType)
+        {
+            if (s_EnumToggleContentCache.TryGetValue(enumType, out var cached)) return cached;
+
+            var labels = GetEnumLabels(enumType);
+            var contents = new GUIContent[labels.Length];
+            for (var i = 0; i < labels.Length; i++)
+            {
+                contents[i] = new GUIContent(labels[i]);
+            }
+
+            s_EnumToggleContentCache[enumType] = contents;
+            return contents;
         }
 
         private static string GetEnumLabel(Type enumType, object value)
@@ -1650,7 +1689,19 @@ namespace RD.EditorKit.Editor
                 }
             }
 
-            var content = string.IsNullOrEmpty(label) ? GUIContent.none : new GUIContent(label);
+            GUIContent content;
+            if (string.IsNullOrEmpty(label))
+            {
+                content = GUIContent.none;
+            }
+            else
+            {
+                content = s_ReusableContent;
+                content.text = label;
+                content.image = null;
+                content.tooltip = null;
+            }
+
             var idx = EditorGUILayout.Popup(content, selected, texts.ToArray());
             if (idx >= 0 && idx < items.Count && selected != idx)
             {

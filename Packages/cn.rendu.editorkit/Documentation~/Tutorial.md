@@ -1591,7 +1591,7 @@ cd "Packages/cn.rendu.editorkit/Tools~/Verify" && dotnet run -- InspectorExpress
 |---|---|
 | `README.md` | 特性手册：全部特性、参数、逐项生效情况、§12 符号索引、§13 测试说明 |
 | 本文件 | 教程：从接入到自建工具窗口的完整路径 |
-| `Tests/Editor/*.cs` | 六块纯逻辑的行为契约（表达式 44、成员收集 32、条件显隐 20、序列化 19、菜单树 14、折叠状态 12，共 141 例） |
+| `Tests/Editor/*.cs` | 六块纯逻辑的行为契约（表达式 44、成员收集 35、条件显隐 20、序列化 19、菜单树 14、折叠状态 12，共 144 例） |
 | `Tools~/Verify/` | 离线校验工程（纯 .NET 跑同一批用例；脱机 128 通过、2 例需 Test Runner；需 .NET 8 + `UnityEngine.dll`/`UnityEditor.dll`） |
 
 ---

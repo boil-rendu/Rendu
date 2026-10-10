@@ -653,7 +653,7 @@ public class SerializedScriptableObjectEditor : InspectorEditor { }
 - **方法必须无参**才会被 `[Button]`/`[OnInspectorGUI]` 识别；`[Button]` / `[OnValueChanged]` / `CustomAddFunction` / 表达式的方法名解析同样只认无参版本（按形参个数挑）—— **同名重载不会再抛 `AmbiguousMatchException`**（`Type.GetMethod(name, flags)` 在重载时必抛，实测），带参方法直接判为"没有"（用 null 参数调用本来就执行不了）；被 `new` 隐藏的成员按"取最派生"这条确定规则解析（`Type.GetMember` 一次查返回的是成员数组、顺序未定义）；
 - 条件里的成员名解析不到（写错名字）时的语义是**视为可见**（宁可不隐藏，也不因一个拼错的名字把成员整片吞掉），并在首次遇到时记一条 `WarnOnce` 点出"哪个类型、哪个名字没解析到" —— 这条路径以前是完全静默的：成员一直显示，谁也想不到是名字写错了；
 - 引擎按类型缓存成员与分组树，**新增成员后需要等域重载**（改动代码本来就会触发编译）；
-- 绘制热路径上的重复工作都有缓存，**稳态零分配**：成员清单、分组树、表格列之外，还包括"每个成员按特性类型筛选出的特性数组"（`CachedMember.GetAttrs<T>`）、"`(类型, 名字, 形参个数) → 无参方法 / 字段 / 属性`"的反射查找结果（引擎与表达式求值器共用同一份解析规则与缓存），以及表达式的 AST 与索引器元数据（见 §5.5）。缓存同样活到域重载，所以上面那条"靠域重载生效"对它们一并适用；
+- 绘制热路径上的重复工作都有缓存，**稳态零分配**：成员清单、分组树、表格列之外，还包括"每个成员按特性类型筛选出的特性数组"（`CachedMember.GetAttrs<T>`）、标题 / 分组头 / `DisplayAsString` 的 `GUIStyle`（按锚点×加粗分档缓存）、按钮与下拉的 `GUIContent`（立即模式单线程复用）、枚举下拉的标签数组与 toggle 按钮内容（按枚举类型缓存）、"`(类型, 名字, 形参个数) → 无参方法 / 字段 / 属性`"的反射查找结果（引擎与表达式求值器共用同一份解析规则与缓存），以及表达式的 AST 与索引器元数据（见 §5.5）。缓存同样活到域重载，所以上面那条"靠域重载生效"对它们一并适用；
 - 折叠状态、滚动位置是会话内缓存（不写盘；窗口的菜单宽度、上次选中项要持久化请自己用 `*Prefs`，例如 `new EditorPrefsValue<float>("MyTool_MenuWidth").Value`）；
 - 表达式**已支持索引器**（`@Items[0]`、`@Map['key']`、`@Child.Items[1]`，调用结果后也能接，如 `@GetScaled(2)[1]`）：覆盖数组 / 字符串 / `List<T>` / `Dictionary<K,V>` 与自定义 `this[...]` 索引器；**越界或键缺失返回 `null`**，不会中断整段绘制。仍不支持位运算与自增自减；
 - 表达式解析会校验收尾：写了一半的表达式（如 `@Items[0`）整体返回 `null`，而不是被静默截断成一个错值；
@@ -808,7 +808,7 @@ public enum Mode { Simple, Advanced }
 |---|---|
 | `ExpressionEvaluatorTests.cs` | `@` 表达式的词法/优先级/求值/真值语义、`$property` 读写、失败路径、解析缓存（重复求值仍读当前值/仍写回）、按形参个数挑重载、被 `new` 隐藏的成员取最派生、自定义索引器 |
 | `SerializationTests.cs` | 标量/字符/枚举/数组/List/Dictionary/HashSet/嵌套 POCO/Unity 值类型（`Vector2`、`Vector4`、`Quaternion`、`Rect`、`LayerMask`）的 JSON 往返、Unity 属性包类型（曲线/渐变）的成员规则与 null 语义、渐变的完整往返（需 Unity）、转义、null 语义、类型强转、`null` 根、环引用的深度剪断、截断 `\uXXXX` 的容错 |
-| `EngineReflectionTests.cs` | 引擎骨架：成员可见性规则、`PropertyOrder` → 收集序排序、`GroupID` 路径 → 分组树（嵌套/类型/同级顺序）、类型级缓存、无参方法解析（重载/仅有带参/被 `new` 隐藏）、标签三级回退（成员 `[LabelText]` → 枚举类型 `[LabelText]` → `FriendlyName`）、容器头部文案与 `[HideLabel]`（名字+计数 / 只剩计数 / 整行不画）、表格可见行数与滚动区高度（含"旧公式比内容短几像素"的回归） |
+| `EngineReflectionTests.cs` | 引擎骨架：成员可见性规则、`PropertyOrder` → 收集序排序、`GroupID` 路径 → 分组树（嵌套/类型/同级顺序）、类型级缓存、无参方法解析（重载/仅有带参/被 `new` 隐藏）、标签三级回退（成员 `[LabelText]` → 枚举类型 `[LabelText]` → `FriendlyName`）、容器头部文案与 `[HideLabel]`（名字+计数 / 只剩计数 / 整行不画）、表格可见行数与滚动区高度（含"旧公式比内容短几像素"的回归）、标题对齐映射与枚举标签缓存（声明序 + 值级标签 + 同类型命中缓存） |
 | `EngineStateTests.cs` | 折叠状态：默认展开、实例/成员/会话间隔离、宿主对象回收后状态随之释放、`OnStateUpdate` 表达式写回与按名调用 |
 | `EngineConditionTests.cs` | 条件显隐与禁用：`[ShowIf]`/`[HideIf]` 的真值与相等语义（含数值相对容差，`float` 字段 vs `double` 字面量）、`@` 条件表达式、成员名解析（被 `new` 隐藏的成员取最派生）、多条件"与"、`[EnableIf]`/`[DisableIf]`、两种运行模式下的 `[HideInPlayMode]`/`[HideInEditorMode]` |
 | `MenuTreeTests.cs` | 菜单树：路径建树与自动补文件夹、同名就地替换、深度优先遍历、选中与事件 |
@@ -833,7 +833,7 @@ public enum Mode { Simple, Advanced }
 cd "Packages/cn.rendu.editorkit/Tools~/Verify" && dotnet run
 ```
 
-几秒内即可跑完全部纯逻辑断言（表达式、序列化、成员收集、折叠状态、条件显隐、菜单树），无需启动编辑器；依赖 Unity 运行时的用例会被自动跳过（当前 2 个：`Serialize_UnityObjectReferenceIsNotPersisted`、`RoundTrip_Gradient`）。当前规模：**6 个夹具 141 例，脱机 139 通过 / 2 跳过**（`ExpressionEvaluatorTests` 44、`EngineReflectionTests` 32、`EngineConditionTests` 20、`SerializationTests` 19、`MenuTreeTests` 14、`EngineStateTests` 12）。
+几秒内即可跑完全部纯逻辑断言（表达式、序列化、成员收集、折叠状态、条件显隐、菜单树），无需启动编辑器；依赖 Unity 运行时的用例会被自动跳过（当前 2 个：`Serialize_UnityObjectReferenceIsNotPersisted`、`RoundTrip_Gradient`）。当前规模：**6 个夹具 144 例，脱机 142 通过 / 2 跳过**（`ExpressionEvaluatorTests` 44、`EngineReflectionTests` 35、`EngineConditionTests` 20、`SerializationTests` 19、`MenuTreeTests` 14、`EngineStateTests` 12）。
 
 运行器接受一个**夹具名子串**作为可选参数（`Program.Main` 的 `args[0]`，大小写不敏感的 `IndexOf` 匹配），只想跑一块时：
 
