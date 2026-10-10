@@ -7,7 +7,7 @@
         "RD.SourceGeneratorAttribute",
         "RD.YooAsset",
         "Unity.Mathematics",
-        "RD.Inspector"
+        "RD.EditorKit"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

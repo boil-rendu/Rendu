@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using RD.Inspector;
-using RD.Inspector.Editor;
+using RD.EditorKit;
+using RD.EditorKit.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -45,7 +45,7 @@ namespace RD.UI.Editor
 
         /// <summary>检查类型的选择记忆（EditorPrefs 持久化）</summary>
         [HideLabel]
-        private RD.Inspector.Editor.EnumPrefs<ECheckViewType> UICheckViewPrefs = new("UIAutoTool_EUICheckViewType");
+        private RD.EditorKit.Editor.EnumPrefs<ECheckViewType> UICheckViewPrefs = new("UIAutoTool_EUICheckViewType");
 
         /// <summary>模块加载时恢复上次选择的检查类型</summary>
         public override void Initialize()

@@ -1,5 +1,5 @@
 ﻿#if TextMeshPro
-using RD.Inspector;
+using RD.EditorKit;
 using TMPro;
 using UnityEngine;
 using RD.Core;

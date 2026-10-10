@@ -1,4 +1,4 @@
-﻿using RD.Inspector.Editor;
+﻿using RD.EditorKit.Editor;
 using UnityEditor;
 using RD.Core;
 
@@ -11,9 +11,9 @@ namespace RD.Client
     /// 它们的 Runtime 代码通过 UIAssemblyReference.asmref 统一归属 RD.UI(或 RD.Loader),
     /// Editor 代码则归属 RD.UI.Editor —— 本文件正位于其中。
     ///
-    /// 放在业务侧(而不是通用包 cn.rendu.inspector 里)的原因: 检视器登记属于业务知识,
-    /// 通用包不应反向依赖业务类型; RD.UI.Editor 已引用 RD.Inspector.Editor,
-    /// 依赖链 RD.UI.Editor -> RD.Inspector.Editor -> RD.UI 单向, 不会形成循环。
+    /// 放在业务侧(而不是通用包 cn.rendu.editorkit 里)的原因: 检视器登记属于业务知识,
+    /// 通用包不应反向依赖业务类型; RD.UI.Editor 已引用 RD.EditorKit.Editor,
+    /// 依赖链 RD.UI.Editor -> RD.EditorKit.Editor -> RD.UI 单向, 不会形成循环。
     ///
     /// 带 true 的注册会一次覆盖整个继承族, 例如 UIDataBind 的所有绑定子类、
     /// UIEventBind 的所有事件子类、UIDisposerMonoSingleton 的所有单例子类都无需再单独登记。

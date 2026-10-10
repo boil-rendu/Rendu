@@ -60,8 +60,8 @@
       "source": "embedded",
       "dependencies": {}
     },
-    "cn.rendu.inspector": {
-      "version": "file:cn.rendu.inspector",
+    "cn.rendu.editorkit": {
+      "version": "file:cn.rendu.editorkit",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}

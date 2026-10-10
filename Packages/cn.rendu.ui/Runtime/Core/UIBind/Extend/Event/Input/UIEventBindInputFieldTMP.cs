@@ -1,7 +1,7 @@
 ﻿#if TextMeshPro
 using System;
 using System.Collections.Generic;
-using RD.Inspector;
+using RD.EditorKit;
 using TMPro;
 using UnityEngine;
 using RD.Core;

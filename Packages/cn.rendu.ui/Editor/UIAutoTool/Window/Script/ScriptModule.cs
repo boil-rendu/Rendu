@@ -1,7 +1,7 @@
 ﻿#if UNITY_EDITOR
 
 using System;
-using RD.Inspector;
+using RD.EditorKit;
 using UnityEditor;
 using UnityEngine;
 

@@ -1,0 +1,10 @@
+﻿{
+"Id": 1600,
+"Name": "EditorKit",
+"ScriptsReferences":
+{
+    "Model": ["RD.EditorKit"],
+    "ModelView": ["RD.EditorKit"],
+    "HotfixView": ["RD.EditorKit"]
+}
+}

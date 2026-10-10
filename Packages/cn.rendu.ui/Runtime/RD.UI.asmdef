@@ -5,7 +5,7 @@
         "RD.Core",
         "Unity.TextMeshPro",
         "RD.SourceGeneratorAttribute",
-        "RD.Inspector"
+        "RD.EditorKit"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

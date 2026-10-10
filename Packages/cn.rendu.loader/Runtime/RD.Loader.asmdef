@@ -6,7 +6,7 @@
         "RD.SourceGeneratorAttribute",
         "RD.HybridCLR",
         "RD.YooAsset",
-        "RD.Inspector"
+        "RD.EditorKit"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

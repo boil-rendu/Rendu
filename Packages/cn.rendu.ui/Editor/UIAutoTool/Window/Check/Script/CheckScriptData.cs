@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using RD.Inspector;
+using RD.EditorKit;
 using UnityEditor;
 using UnityEngine;
 
@@ -64,7 +64,7 @@ namespace RD.UI.Editor
         [LabelText("C")]
         [LabelWidth(50)]
         [ReadOnly]
-        [RD.Inspector.FilePath]
+        [RD.EditorKit.FilePath]
         public string Component;
 
         [TableColumnWidth(400)]
@@ -73,7 +73,7 @@ namespace RD.UI.Editor
         [LabelText("CGen")]
         [LabelWidth(50)]
         [ReadOnly]
-        [RD.Inspector.FilePath]
+        [RD.EditorKit.FilePath]
         public string ComponentGen;
 
         [TableColumnWidth(400)]
@@ -82,7 +82,7 @@ namespace RD.UI.Editor
         [LabelText("S")]
         [LabelWidth(50)]
         [ReadOnly]
-        [RD.Inspector.FilePath]
+        [RD.EditorKit.FilePath]
         public string System;
 
         [TableColumnWidth(400)]
@@ -91,7 +91,7 @@ namespace RD.UI.Editor
         [LabelText("SGen")]
         [LabelWidth(50)]
         [ReadOnly]
-        [RD.Inspector.FilePath]
+        [RD.EditorKit.FilePath]
         public string SystemGen;
 
         [TableColumnWidth(400)]
@@ -100,7 +100,7 @@ namespace RD.UI.Editor
         [LabelText("预制")]
         [LabelWidth(50)]
         [ReadOnly]
-        [RD.Inspector.FilePath]
+        [RD.EditorKit.FilePath]
         public string PrefabPath;
 
         #endregion

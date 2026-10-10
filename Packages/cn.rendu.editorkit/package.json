@@ -1,0 +1,19 @@
+﻿{
+  "name": "cn.rendu.editorkit",
+  "displayName": "RD.EditorKit",
+  "version": "3.0.0",
+  "unity": "2022.3",
+  "description": "声明式编辑器 GUI 框架: 属性特性 / 绘制引擎 / 面板与窗口宿主 / 控件, 供 RD 全仓使用",
+  "author": {
+    "name": "tanghai",
+    "url": "https://github.com/egametang/RD"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/egametang/RD"
+  },
+  "relatedPackages": {},
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/@RD-Packages"
+  }
+}

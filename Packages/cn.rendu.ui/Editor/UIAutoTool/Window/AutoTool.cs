@@ -8,8 +8,8 @@
 
 using System;
 using System.Collections.Generic;
-using RD.Inspector;
-using RD.Inspector.Editor;
+using RD.EditorKit;
+using RD.EditorKit.Editor;
 using UnityEditor;
 using UnityEngine;
 using Type = System.Type;
@@ -50,7 +50,7 @@ namespace RD.UI.Editor
             EditorApplication.ExecuteMenuItem("Assets/Refresh");
         }
 
-        private RD.Inspector.Editor.FloatPrefs m_MenuWidthPrefs = new("UIAutoTool_MenuWidth", null, 300f);
+        private RD.EditorKit.Editor.FloatPrefs m_MenuWidthPrefs = new("UIAutoTool_MenuWidth", null, 300f);
 
         public override float MenuWidth
         {
@@ -128,8 +128,8 @@ namespace RD.UI.Editor
         }
 
         private bool m_FirstInit = true;
-        private RD.Inspector.Editor.StringPrefs m_LastSelectMenuPrefs = new RD.Inspector.Editor.StringPrefs("UIAutoTool_LastSelectMenu", null, "全局设置");
-        private RD.Inspector.Editor.StringPrefs m_LastSelectToolModulePathPrefs = new RD.Inspector.Editor.StringPrefs("UIAutoTool_LastSelectToolModulePath", null, "");
+        private RD.EditorKit.Editor.StringPrefs m_LastSelectMenuPrefs = new RD.EditorKit.Editor.StringPrefs("UIAutoTool_LastSelectMenu", null, "全局设置");
+        private RD.EditorKit.Editor.StringPrefs m_LastSelectToolModulePathPrefs = new RD.EditorKit.Editor.StringPrefs("UIAutoTool_LastSelectToolModulePath", null, "");
         private readonly HashSet<InspectorMenuItem> m_FirstSelect = new();
         private bool m_RestoringSelection;
 
@@ -355,7 +355,7 @@ namespace RD.UI.Editor
             }
         }
 
-        public static RD.Inspector.Editor.StringPrefs UserNamePrefs = new RD.Inspector.Editor.StringPrefs("UIAutoTool_UserName", null, "UI");
+        public static RD.EditorKit.Editor.StringPrefs UserNamePrefs = new RD.EditorKit.Editor.StringPrefs("UIAutoTool_UserName", null, "UI");
 
         [LabelText("用户名")]
         [Required("请填写用户名")]

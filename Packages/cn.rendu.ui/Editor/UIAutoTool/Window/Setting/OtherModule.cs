@@ -1,5 +1,5 @@
 ﻿#if UNITY_EDITOR
-using RD.Inspector;
+using RD.EditorKit;
 
 using RD.Client;
 using RD.Core;

@@ -1,7 +1,7 @@
 ﻿#if UNITY_EDITOR
 using System;
 using System.Reflection;
-using RD.Inspector;
+using RD.EditorKit;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;

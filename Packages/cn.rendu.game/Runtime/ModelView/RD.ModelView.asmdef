@@ -3,7 +3,7 @@
     "rootNamespace": "RD.Client",
     "references": [
         "RD.UI",
-        "RD.Inspector",
+        "RD.EditorKit",
         "RD.Core",
         "RD.Init",
         "RD.Loader",
