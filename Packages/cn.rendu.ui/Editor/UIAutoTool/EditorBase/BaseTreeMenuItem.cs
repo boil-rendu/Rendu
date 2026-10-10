@@ -22,7 +22,7 @@ namespace RD.UI.Editor
         }
 
         /// <summary>构造：绑定宿主窗口与菜单树</summary>
-        protected BaseTreeMenuItem(InspectorMenuEditorWindow autoTool, InspectorMenuTree tree)
+        protected BaseTreeMenuItem(MenuEditorWindow autoTool, MenuTree tree)
         {
             Window = autoTool;
             Tree     = tree;
@@ -66,23 +66,23 @@ namespace RD.UI.Editor
         }
 
         /// <summary>以 Texture 图标注册菜单项</summary>
-        public TreeMenuItem(InspectorMenuEditorWindow autoTool, InspectorMenuTree tree, string menuName, Texture icon) :
+        public TreeMenuItem(MenuEditorWindow autoTool, MenuTree tree, string menuName, Texture icon) :
                 base(autoTool, tree)
         {
             Tree.Add(menuName, this, icon);
             ModuleName = menuName;
         }
 
-        /// <summary>以 InspectorIcon 图标注册菜单项</summary>
-        public TreeMenuItem(InspectorMenuEditorWindow autoTool, InspectorMenuTree tree, string menuName,
-                            InspectorIcon icon) : base(autoTool, tree)
+        /// <summary>以 EditorIcon 图标注册菜单项</summary>
+        public TreeMenuItem(MenuEditorWindow autoTool, MenuTree tree, string menuName,
+                            EditorIcon icon) : base(autoTool, tree)
         {
             Tree.Add(menuName, this, icon);
             ModuleName = menuName;
         }
 
         /// <summary>无图标注册菜单项</summary>
-        public TreeMenuItem(InspectorMenuEditorWindow autoTool, InspectorMenuTree tree, string menuName) : base(autoTool,
+        public TreeMenuItem(MenuEditorWindow autoTool, MenuTree tree, string menuName) : base(autoTool,
                 tree)
         {
             Tree.Add(menuName, this);

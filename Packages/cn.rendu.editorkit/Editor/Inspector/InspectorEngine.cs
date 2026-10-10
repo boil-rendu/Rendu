@@ -978,7 +978,7 @@ namespace RD.EditorKit.Editor
             var height = attr != null && attr.ButtonHeight > 0 ? attr.ButtonHeight : 24;
 
             var content = new GUIContent(label);
-            var texture = attr?.Icon != SdfIconType.None ? InspectorIcons.FromSdf(attr.Icon) : null;
+            var texture = attr?.Icon != SdfIconType.None ? Icons.FromSdf(attr.Icon) : null;
             if (texture != null)
             {
                 content.image = texture;

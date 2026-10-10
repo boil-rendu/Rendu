@@ -21,7 +21,7 @@ namespace RD.UI.Editor
     /// <summary>
     /// UI 自动化工具
     /// </summary>
-    public class AutoTool : InspectorMenuEditorWindow
+    public class AutoTool : MenuEditorWindow
     {
         [MenuItem("Rendu/UI 自动化工具")]
         public static void OpenWindow()
@@ -58,17 +58,17 @@ namespace RD.UI.Editor
             set { m_MenuWidth = value; }
         }
 
-        private InspectorMenuTree m_MenuTree;
+        private MenuTree m_MenuTree;
         private List<BaseTreeMenuItem> m_AllMenuItem = new List<BaseTreeMenuItem>();
 
-        protected override InspectorMenuTree BuildMenuTree()
+        protected override MenuTree BuildMenuTree()
         {
-            m_MenuTree = new InspectorMenuTree();
+            m_MenuTree = new MenuTree();
             m_MenuTree.Selection.SelectionChanged += OnSelectionChanged;
 
             m_AllMenuItem.Clear();
 
-            m_AllMenuItem.Add(new TreeMenuItem<PublishModule>(this, m_MenuTree, PublishModule.m_PublishName, InspectorIcons.UnityFolderIcon));
+            m_AllMenuItem.Add(new TreeMenuItem<PublishModule>(this, m_MenuTree, PublishModule.m_PublishName, Icons.UnityFolderIcon));
 
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             var allAutoMenus = new List<UIAutoMenuData>();
@@ -99,7 +99,7 @@ namespace RD.UI.Editor
                 m_AllMenuItem.Add(NewTreeMenuItem(attribute.Type, attribute.MenuName));
             }
 
-            m_MenuTree.Add("全局设置", this, InspectorIcons.SettingsCog);
+            m_MenuTree.Add("全局设置", this, Icons.SettingsCog);
 
             return m_MenuTree;
         }
@@ -112,8 +112,8 @@ namespace RD.UI.Editor
 
             var constructor = specificTreeMenuItemType.GetConstructor(new Type[]
             {
-                typeof(InspectorMenuEditorWindow),
-                typeof(InspectorMenuTree),
+                typeof(MenuEditorWindow),
+                typeof(MenuTree),
                 typeof(string)
             });
 
@@ -130,7 +130,7 @@ namespace RD.UI.Editor
         private bool m_FirstInit = true;
         private RD.EditorKit.Editor.StringPrefs m_LastSelectMenuPrefs = new RD.EditorKit.Editor.StringPrefs("UIAutoTool_LastSelectMenu", null, "全局设置");
         private RD.EditorKit.Editor.StringPrefs m_LastSelectToolModulePathPrefs = new RD.EditorKit.Editor.StringPrefs("UIAutoTool_LastSelectToolModulePath", null, "");
-        private readonly HashSet<InspectorMenuItem> m_FirstSelect = new();
+        private readonly HashSet<MenuTreeItem> m_FirstSelect = new();
         private bool m_RestoringSelection;
 
         private void OnSelectionChanged(SelectionChangedType obj)
@@ -215,7 +215,7 @@ namespace RD.UI.Editor
             m_LastSelectMenuPrefs.Value = root.Name;
         }
 
-        private InspectorMenuItem FindMenuItemByModulePath(string modulePath)
+        private MenuTreeItem FindMenuItemByModulePath(string modulePath)
         {
             foreach (var root in m_MenuTree.MenuItems)
             {
@@ -229,7 +229,7 @@ namespace RD.UI.Editor
             return null;
         }
 
-        private InspectorMenuItem FindRecursive(InspectorMenuItem item, string modulePath)
+        private MenuTreeItem FindRecursive(MenuTreeItem item, string modulePath)
         {
             if (item.Value is BaseTreeMenuItem bt && bt.ModuleName == modulePath) return item;
             if (item.Value is BaseToolModule bm && bm.ModuleName == modulePath) return item;
@@ -242,7 +242,7 @@ namespace RD.UI.Editor
             return null;
         }
 
-        private void ExpandParents(InspectorMenuItem item)
+        private void ExpandParents(MenuTreeItem item)
         {
             var cur = item.Parent;
             while (cur != null)
@@ -254,7 +254,7 @@ namespace RD.UI.Editor
             item.Toggled = true;
         }
 
-        private InspectorMenuItem SelectChainByPath(string modulePath)
+        private MenuTreeItem SelectChainByPath(string modulePath)
         {
             if (string.IsNullOrEmpty(modulePath))
             {
@@ -268,7 +268,7 @@ namespace RD.UI.Editor
                 return null;
             }
 
-            InspectorMenuItem current = null;
+            MenuTreeItem current = null;
 
             foreach (var root in m_MenuTree.MenuItems)
             {
@@ -290,7 +290,7 @@ namespace RD.UI.Editor
             for (int i = 1; i < segments.Length; i++)
             {
                 var nextName = segments[i];
-                InspectorMenuItem next = null;
+                MenuTreeItem next = null;
                 foreach (var child in current.ChildMenuItems)
                 {
                     if (child.Name == nextName)
@@ -341,7 +341,7 @@ namespace RD.UI.Editor
             }
         }
 
-        private void SelectAndInit(InspectorMenuItem item)
+        private void SelectAndInit(MenuTreeItem item)
         {
             item.Select();
             item.Toggled = true;

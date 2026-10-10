@@ -114,9 +114,9 @@ namespace RD.UI.Editor
             }
 
             var commonPublish = $"{m_PublishName}/{m_PublishCommonName}";
-            Tree.AddMenuItemAtPath(m_PublishName, new InspectorMenuItem(Tree, m_PublishCommonName, null)).AddIcon(InspectorIcons.Folder);
+            Tree.AddMenuItemAtPath(m_PublishName, new MenuTreeItem(Tree, m_PublishCommonName, null)).AddIcon(Icons.Folder);
             var packagePublish = $"{m_PublishName}/{m_PublishPackageName}";
-            Tree.AddMenuItemAtPath(m_PublishName, new InspectorMenuItem(Tree, m_PublishPackageName, null)).AddIcon(InspectorIcons.Folder);
+            Tree.AddMenuItemAtPath(m_PublishName, new MenuTreeItem(Tree, m_PublishPackageName, null)).AddIcon(Icons.Folder);
 
             foreach ((var resPath, var listInfo) in m_AllInfo)
             {
@@ -138,7 +138,7 @@ namespace RD.UI.Editor
 
                     var PublishPath = $"{publishName}/{showPkgName}";
                     var pkgMenu = new TreeMenuItem<PublishPackageModule>(this.Window, this.Tree, PublishPath,
-                        InspectorIcons.Folder);
+                        Icons.Folder);
                     pkgMenu.UserData = new UIPublishPackageModuleData
                     {
                         PublishModule = this,

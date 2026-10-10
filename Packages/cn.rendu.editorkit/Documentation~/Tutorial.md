@@ -24,7 +24,7 @@
 - [第 6 章 列表、表格、字典、下拉](#第-6-章-列表表格字典下拉)
 - [第 7 章 表达式系统（`@`）](#第-7-章-表达式系统)
 - [第 8 章 编辑器数据资产：InspectorSerializedScriptableObject](#第-8-章-编辑器数据资产inspectorserializedscriptableobject)
-- [第 9 章 工具窗口：InspectorEditorWindow](#第-9-章-工具窗口inspectoreditorwindow)
+- [第 9 章 工具窗口：EditorWindowBase](#第-9-章-工具窗口inspectoreditorwindow)
 - [第 10 章 菜单树窗口：做一个真正的工具](#第-10-章-菜单树窗口做一个真正的工具)
 - [第 11 章 自己写宿主：直接用 InspectorEngine.DrawObject](#第-11-章-自己写宿主直接用-inspectorenginedrawobject)
 - [第 12 章 综合实战：从零做一个关卡配置面板](#第-12-章-综合实战从零做一个关卡配置面板)
@@ -45,8 +45,8 @@
 |---|---|---|
 | `MonoBehaviour` / `ScriptableObject` | 继承 `InspectorEditor` + `[CustomEditor]` | 替换某个组件原生检视器 |
 | 编辑器数据资产 | 继承 `InspectorSerializedScriptableObject` | 带 JSON 落盘的编辑器配置资产 |
-| `EditorWindow` 自身 | 继承 `InspectorEditorWindow` | 纯工具窗口（不必是 Unity 对象） |
-| **任意普通 C# 对象** | 继承 `InspectorMenuEditorWindow`，或直接调 `InspectorEngine.DrawObject(obj, window)` | 工具窗口右半边的"模块面板" |
+| `EditorWindow` 自身 | 继承 `EditorWindowBase` | 纯工具窗口（不必是 Unity 对象） |
+| **任意普通 C# 对象** | 继承 `MenuEditorWindow`，或直接调 `InspectorEngine.DrawObject(obj, window)` | 工具窗口右半边的"模块面板" |
 
 最后一行是关键差异：**被画的对象不必是 `UnityEngine.Object`**。一个普通 `class LevelModule { [Button("执行")] void Run() {} }` 就能当面板内容，`[Button]` 照常出按钮。这是做编辑器工具时最省事的地方。
 
@@ -88,7 +88,7 @@
 | 命名空间（= 程序集） | 里面有什么 |
 |---|---|
 | `RD.EditorKit`（`RD.EditorKit.asmdef`） | **全部特性**（`Runtime/Attributes/*`）+ `CollectionExtensions` —— 只有这些，没有任何逻辑代码 |
-| `RD.EditorKit.Editor`（`Editor/` 程序集） | `InspectorEngine`、`InspectorExpressionEvaluator`、`InspectorSession`、`InspectorLog`、`InspectorIcons`、`InspectorPrefs`（`*Prefs`）、`InspectorMenuTree`、`InspectorEditor`、`InspectorEditorWindow`、`InspectorMenuEditorWindow`、`InspectorSerialization` 与 `InspectorSerializedScriptableObject`（含它的 Editor） |
+| `RD.EditorKit.Editor`（`Editor/` 程序集） | `InspectorEngine`、`InspectorExpressionEvaluator`、`InspectorSession`、`InspectorLog`、`Icons`、`InspectorPrefs`（`*Prefs`）、`MenuTree`、`InspectorEditor`、`EditorWindowBase`、`MenuEditorWindow`、`InspectorSerialization` 与 `InspectorSerializedScriptableObject`（含它的 Editor） |
 
 > 坑：`InspectorEditor` 继承 `UnityEditor.Editor`。因为文件位于 `RD.EditorKit.Editor` 命名空间内，**简单名 `Editor` 会被解析成命名空间 `RD.EditorKit` 下的 `Editor`**，写 `: Editor` 报 CS0118。基类一定写全：`: InspectorEditor`（本包已提供），自己写别的基类时写 `: UnityEditor.Editor`。
 
@@ -483,7 +483,7 @@ private void OpenDocument() { Application.OpenURL("https://example.com"); }
 
 - 第 1 个参数是按钮文字，第 2 个是**高度**（默认 24）；
 - `Icon` 取 `SdfIconType`（`Runtime/Attributes/SdfIconType.cs` 里的枚举），但**只有少数字形族有映射**：`Folder*`、`Settings*`/`Gear*`、`Save*`、`Play*`/`Pause*`/`Stop*`、`Refresh`/`Sync`/`ArrowRepeat`、`Search*`、`Plus*`、`Minus*`、`Trash*`、`Exclamation*`、`Info`/`InfoCircle`、`Question*`、`Eye*`/`EyeSlash*`、`Check*`、`ArrowUp/Down/Left/Right`、`X*`、`Calendar*`；
-- ⚠️ 其它值（`Link45deg`、`Github` 这类"看起来很常用"的）`InspectorIcons.FromSdf` 返回 `null` → **按钮只显示文字**（不报错）。要加图标就往 `InspectorIcons.FromSdf` 的 switch 里补一条映射；
+- ⚠️ 其它值（`Link45deg`、`Github` 这类"看起来很常用"的）`Icons.FromSdf` 返回 `null` → **按钮只显示文字**（不报错）。要加图标就往 `Icons.FromSdf` 的 switch 里补一条映射；
 - `Tooltip` 生效；
 - `ButtonStyle`、`IconAlignment` **未读取**（图标统一居左）。
 
@@ -977,7 +977,7 @@ protected override void OnAfterInspectorDeserialize()
 
 ---
 
-## 第 9 章 工具窗口：`InspectorEditorWindow`
+## 第 9 章 工具窗口：`EditorWindowBase`
 
 ### 9.1 最小窗口
 
@@ -987,7 +987,7 @@ using RD.EditorKit.Editor;
 using UnityEditor;
 using UnityEngine;
 
-public class MyToolWindow : InspectorEditorWindow
+public class MyToolWindow : EditorWindowBase
 {
     [MenuItem("Tools/My Tool")]
     private static void OpenWindow() => GetWindow<MyToolWindow>("My Tool").Show();
@@ -1039,7 +1039,7 @@ protected override void OnGUI()
 
 - 自定义 `OnGUI` 时**别忘了** `EnsureWindowInitialized()`，否则 `Initialize()` 不会被调用；
 - 窗口里的滚动位置、折叠状态是会话缓存，**不写盘**。要持久化（例如菜单宽度、上次选项）就用 `*Prefs`（第 10.5）；
-- `InspectorEditorWindow` 自己会包一层 `BeginScrollView`（在 `DrawObjectPanel` 里），你手动再套一层会出现"双重滚动"。
+- `EditorWindowBase` 自己会包一层 `BeginScrollView`（在 `DrawObjectPanel` 里），你手动再套一层会出现"双重滚动"。
 
 ---
 
@@ -1047,7 +1047,7 @@ protected override void OnGUI()
 
 ### 10.1 结构
 
-`InspectorMenuEditorWindow` = `InspectorEditorWindow` + 左侧菜单树 + 可拖拽分割条 + 右侧内容面板。右侧会调 `DrawTargetObject(选中项的 Value)`，**所以菜单项的 `Value` 可以是任意对象**——这正是"工具面板"的实现方式：每个菜单项挂一个模块对象，模块里写 `[Button]` / 字段 / 表格。
+`MenuEditorWindow` = `EditorWindowBase` + 左侧菜单树 + 可拖拽分割条 + 右侧内容面板。右侧会调 `DrawTargetObject(选中项的 Value)`，**所以菜单项的 `Value` 可以是任意对象**——这正是"工具面板"的实现方式：每个菜单项挂一个模块对象，模块里写 `[Button]` / 字段 / 表格。
 
 ![菜单树窗口](images/07-menu-window.png)
 
@@ -1063,21 +1063,21 @@ using UnityEditor;
 using UnityEngine;
 
 // 窗口：只负责建树
-public class MyToolWindow : InspectorMenuEditorWindow
+public class MyToolWindow : MenuEditorWindow
 {
     private StringPrefs m_LastSelected = new("MyTool_LastSelected");
 
     [MenuItem("Tools/My Tool")]
     private static void OpenWindow() => GetWindow<MyToolWindow>("My Tool").Show();
 
-    protected override InspectorMenuTree BuildMenuTree()
+    protected override MenuTree BuildMenuTree()
     {
-        var tree = new InspectorMenuTree();
+        var tree = new MenuTree();
         tree.Selection.SelectionChanged += OnSelectionChanged;
 
-        tree.Add("概览", new OverviewModule(), InspectorIcons.SettingsCog);
-        tree.Add("资源/纹理", new TextureModule(), InspectorIcons.Folder);
-        tree.Add("资源/图集", new AtlasModule(), InspectorIcons.Folder);
+        tree.Add("概览", new OverviewModule(), Icons.SettingsCog);
+        tree.Add("资源/纹理", new TextureModule(), Icons.Folder);
+        tree.Add("资源/图集", new AtlasModule(), Icons.Folder);
         return tree;
     }
 
@@ -1129,12 +1129,12 @@ public class TextureEntry
 ### 10.3 建树的四种写法
 
 ```csharp
-var tree = new InspectorMenuTree();
+var tree = new MenuTree();
 
-tree.Add("全局设置", this, InspectorIcons.SettingsCog);   // 路径 + 值 + 图标（图标可省）
+tree.Add("全局设置", this, Icons.SettingsCog);   // 路径 + 值 + 图标（图标可省）
 tree.Add("父/子/孙", someObject);                        // 多级路径自动补中间节点
 
-tree.AddMenuItemAtPath("已有父级", item);                 // 已有 InspectorMenuItem 挂到某路径
+tree.AddMenuItemAtPath("已有父级", item);                 // 已有 MenuTreeItem 挂到某路径
 tree.AddAllAssetsAtPath("资源", "Assets/GameRes", typeof(Texture));        // 批量：目录下的资产（节点值 = 资产对象）
 tree.AddAllAssetImporterAtPath("导入器", "Assets/GameRes", typeof(TextureImporter));   // 节点值 = 导入器
 ```
@@ -1146,9 +1146,9 @@ tree.AddAllAssetImporterAtPath("导入器", "Assets/GameRes", typeof(TextureImpo
 - 目录参数会先归一化：不以 `Assets/` 或 `Packages/` 开头就自动补 `Assets/`，结尾自动补 `/`；
 - 它们是**一次性快照**（内部遍历 `AssetDatabase.GetAllAssetPaths()`），资源变了要 `RebuildMenuTree()` 才更新。
 
-`InspectorMenuItem` 上可用：`Name`、`Value`、`Icon`、`Parent`、`ChildMenuItems`、`IsSelected`、`Toggled`、`HasChildren`、`AddChild` / `RemoveChild` / `AddIcon` / `Select()`。
+`MenuTreeItem` 上可用：`Name`、`Value`、`Icon`、`Parent`、`ChildMenuItems`、`IsSelected`、`Toggled`、`HasChildren`、`AddChild` / `RemoveChild` / `AddIcon` / `Select()`。
 
-> 同名路径的项会被**就地替换**（重复 `Add("概览", x)` 不会长出两个"概览"）——这条有测试覆盖（`InspectorMenuTreeTests`）。
+> 同名路径的项会被**就地替换**（重复 `Add("概览", x)` 不会长出两个"概览"）——这条有测试覆盖（`MenuTreeTests`）。
 
 ### 10.4 选中回调
 
@@ -1511,10 +1511,10 @@ public class LevelConfigEditor : InspectorEditor { }
 | 提示 / 两段式提示 / 标题 | `[InfoBox]` / `[DetailedInfoBox]`（不是可展开控件，见 2.6）/ `[Title]` |
 | 编辑器数据资产 | 继承 `InspectorSerializedScriptableObject` + `[InspectorSerialize]` |
 | 组件检视器 | 继承 `InspectorEditor` + `[CustomEditor]` |
-| 工具窗口 | 继承 `InspectorEditorWindow` |
-| 左树右面板工具 | 继承 `InspectorMenuEditorWindow` + `BuildMenuTree()` |
+| 工具窗口 | 继承 `EditorWindowBase` |
+| 左树右面板工具 | 继承 `MenuEditorWindow` + `BuildMenuTree()` |
 | 持久化上次选项/窗口宽度 | `StringPrefs` / `FloatPrefs` / … |
-| 图标枚举 → Texture | `InspectorIcons.FromSdf(SdfIconType.X)`（只映射少数字形族，其余返回 `null`） |
+| 图标枚举 → Texture | `Icons.FromSdf(SdfIconType.X)`（只映射少数字形族，其余返回 `null`） |
 
 ---
 
@@ -1564,7 +1564,7 @@ public class LevelConfigEditor : InspectorEditor { }
 - **绘制引擎**：`Editor/InspectorEngine.cs` —— `GetMembers`（可见性/排序）、`GetGroupTree`（分组）、`DrawValueMemberBody`、`DrawScalarControl`、`DrawTableList`、`CheckVisibility`、`RunStateUpdates`；
 - **表达式**：`Editor/InspectorExpression.cs` —— `InspectorValue`（值语义）、`GetAst`（缓存）、`Evaluate`、`SetLeft`；
 - **序列化**：`Editor/InspectorSerialization.cs`；
-- **宿主**：`Editor/InspectorEditor.cs`、`Editor/InspectorEditorWindows.cs`、`Editor/InspectorMenuTree.cs`；
+- **宿主**：`Editor/InspectorEditor.cs`、`Editor/EditorWindowBase.cs`、`Editor/MenuTree.cs`；
 - **逐符号索引**：`README.md` §12。
 
 ### 16.2 想给引擎加东西时的推荐流程

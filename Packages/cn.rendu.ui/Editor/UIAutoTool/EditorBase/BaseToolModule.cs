@@ -15,11 +15,11 @@ namespace RD.UI.Editor
     {
         /// <summary>宿主编辑器窗口</summary>
         [HideInInspector]
-        public InspectorMenuEditorWindow Window { get; set; }
+        public MenuEditorWindow Window { get; set; }
 
         /// <summary>宿主窗口的菜单树</summary>
         [HideInInspector]
-        public InspectorMenuTree Tree { get; set; }
+        public MenuTree Tree { get; set; }
 
         /// <summary>模块名</summary>
         [HideInInspector]

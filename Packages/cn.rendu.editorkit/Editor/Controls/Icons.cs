@@ -4,23 +4,23 @@ using UnityEngine;
 namespace RD.EditorKit.Editor
 {
     /// <summary>
-    /// 轻量图标包装 兼容原 EditorIcon 用法
+    /// 轻量图标包装（原 EditorIcon）
     /// </summary>
-    public struct InspectorIcon
+    public struct EditorIcon
     {
         public readonly Texture Icon;
 
-        public InspectorIcon(Texture icon)
+        public EditorIcon(Texture icon)
         {
             Icon = icon;
         }
 
-        public static implicit operator Texture(InspectorIcon icon)
+        public static implicit operator Texture(EditorIcon icon)
         {
             return icon.Icon;
         }
 
-        public static implicit operator GUIContent(InspectorIcon icon)
+        public static implicit operator GUIContent(EditorIcon icon)
         {
             return new GUIContent(icon.Icon);
         }
@@ -29,11 +29,11 @@ namespace RD.EditorKit.Editor
     /// <summary>
     /// 编辑器内置图标集合
     /// </summary>
-    public static class InspectorIcons
+    public static class Icons
     {
-        public static InspectorIcon UnityFolderIcon = new(FindBuiltinIcon("Folder Icon"));
-        public static InspectorIcon Folder = new(FindBuiltinIcon("Folder Icon"));
-        public static InspectorIcon SettingsCog = new(FindBuiltinIcon("Settings Icon", "Settings"));
+        public static EditorIcon UnityFolderIcon = new(FindBuiltinIcon("Folder Icon"));
+        public static EditorIcon Folder = new(FindBuiltinIcon("Folder Icon"));
+        public static EditorIcon SettingsCog = new(FindBuiltinIcon("Settings Icon", "Settings"));
 
         /// <summary>
         /// 把 SdfIconType 解析为可绘制纹理。

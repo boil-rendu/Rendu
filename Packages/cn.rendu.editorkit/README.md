@@ -1,4 +1,4 @@
-# RD.EditorKit
+﻿# RD.EditorKit
 
 `cn.rendu.editorkit`（displayName **RD.EditorKit**，version **3.0.0**，最低 Unity **2022.3**）是一个**通用的声明式 Inspector 扩展包**：不引用任何业务类型，可以整包拎到任意 Unity 工程里直接用。
 
@@ -69,11 +69,11 @@ cn.rendu.editorkit/
 │   ├── InspectorExpression.cs       `@` 表达式词法 / 语法 / 求值 + 共用的值语义 InspectorValue
 │   ├── InspectorSerialization.cs    InspectorSerializedScriptableObject + JSON 序列化器
 │   ├── InspectorEditor.cs           InspectorEditor：UnityEditor.Editor 宿主
-│   ├── InspectorEditorWindows.cs    InspectorEditorWindow / InspectorMenuEditorWindow
-│   ├── InspectorMenuTree.cs         左侧菜单树数据模型
+│   ├── EditorWindowBase.cs    EditorWindowBase / MenuEditorWindow
+│   ├── MenuTree.cs         左侧菜单树数据模型
 │   ├── InspectorSession.cs          一次检视会话的编辑期状态（折叠 / 滚动）
 │   ├── InspectorLog.cs              统一日志出口（含 WarnOnce 去重）
-│   ├── InspectorIcons.cs            内置图标 + SdfIconType → Texture 解析
+│   ├── Icons.cs            内置图标 + SdfIconType → Texture 解析
 │   ├── InspectorPrefs.cs            String/Float/Int/Bool/EnumPrefs（EditorPrefs 包装）
 │   └── InspectorSerializedScriptableObjectEditor.cs   为序列化基类整族注册检视器
 └── Tests/Editor/                    EditMode 测试（程序集：RD.EditorKit.Tests.Editor）
@@ -147,13 +147,13 @@ public class MyEditorAsset : InspectorSerializedScriptableObject
 
 | 基类 | 用途 |
 |---|---|
-| `InspectorEditorWindow` | 普通窗口；`OnGUI` 里自动用引擎绘制**窗口自身**的成员 |
-| `InspectorMenuEditorWindow` | 左菜单树 + 右内容面板；右侧绘制当前选中项 |
+| `EditorWindowBase` | 普通窗口；`OnGUI` 里自动用引擎绘制**窗口自身**的成员 |
+| `MenuEditorWindow` | 左菜单树 + 右内容面板；右侧绘制当前选中项 |
 
-`InspectorEditorWindow` 提供的扩展点：
+`EditorWindowBase` 提供的扩展点：
 
 ```csharp
-public class MyWindow : InspectorEditorWindow
+public class MyWindow : EditorWindowBase
 {
     [MenuItem("Tools/My Window")]
     private static void OpenWindow() => GetWindow<MyWindow>("My").Show();
@@ -168,12 +168,12 @@ public class MyWindow : InspectorEditorWindow
 }
 ```
 
-`InspectorMenuEditorWindow` 的关键成员：
+`MenuEditorWindow` 的关键成员：
 
 | 成员 | 说明 |
 |---|---|
-| `protected virtual InspectorMenuTree BuildMenuTree()` | 构建左侧菜单树，返回 `null` 表示无菜单（退化为普通窗口） |
-| `protected InspectorMenuTree MenuTree { get; }` | 取菜单树（首次访问自动构建） |
+| `protected virtual MenuTree BuildMenuTree()` | 构建左侧菜单树，返回 `null` 表示无菜单（退化为普通窗口） |
+| `protected MenuTree MenuTree { get; }` | 取菜单树（首次访问自动构建） |
 | `protected void RebuildMenuTree()` | 强制重建（构建条件变化后调用） |
 | `public virtual float MenuWidth { get; set; }` | 菜单栏宽度，最小 150 |
 | `protected override void OnGUI()` | 已实现"左树 + 可拖拽分割条 + 右内容"，一般无需重写 |
@@ -529,15 +529,15 @@ public class InspectorSerializedScriptableObject : ScriptableObject, ISerializat
 
 ![菜单树窗口](Documentation~/images/07-menu-window.png)
 
-*图 7：`InspectorMenuEditorWindow` 的"左树 + 右面板"结构（示意图）。*
+*图 7：`MenuEditorWindow` 的"左树 + 右面板"结构（示意图）。*
 
-### `InspectorMenuTree`（菜单树数据模型）
+### `MenuTree`（菜单树数据模型）
 
 ```csharp
-var tree = new InspectorMenuTree();
+var tree = new MenuTree();
 tree.Selection.SelectionChanged += OnSelectionChanged;   // 选中项变化事件
 
-tree.Add("全局设置", this, InspectorIcons.SettingsCog);          // 加一项（末段为名字，值为任意对象）
+tree.Add("全局设置", this, Icons.SettingsCog);          // 加一项（末段为名字，值为任意对象）
 tree.Add("父级/子级", someObject, someIcon);                      // 支持路径形式
 tree.AddMenuItemAtPath("父级", item);                             // 已有 item 挂到指定路径
 tree.AddAllAssetsAtPath("资源", "Assets/GameRes", typeof(Texture));// 批量把目录下的资产加成菜单
@@ -551,23 +551,23 @@ tree.Clear();
 tree.ConfigID = "xxx";          // 供使用方做持久化标识
 ```
 
-`InspectorMenuItem`：`Name`、`Value`、`Icon`、`Parent`、`ChildMenuItems`、`IsSelected`、`Toggled`、`HasChildren`、`AddChild`、`RemoveChild`、`AddIcon`、`Select()`。
+`MenuTreeItem`：`Name`、`Value`、`Icon`、`Parent`、`ChildMenuItems`、`IsSelected`、`Toggled`、`HasChildren`、`AddChild`、`RemoveChild`、`AddIcon`、`Select()`。
 
 ### 窗口骨架
 
 ```csharp
-public class MyToolWindow : InspectorMenuEditorWindow
+public class MyToolWindow : MenuEditorWindow
 {
     [MenuItem("Tools/My Tool")]
     public static void OpenWindow() => GetWindow<MyToolWindow>("My Tool").Show();
 
     private StringPrefs m_LastSelectMenuPrefs = new("MyTool_LastSelectMenu", null, "全局设置");
 
-    protected override InspectorMenuTree BuildMenuTree()
+    protected override MenuTree BuildMenuTree()
     {
-        var tree = new InspectorMenuTree();
+        var tree = new MenuTree();
         tree.Selection.SelectionChanged += OnSelectionChanged;
-        tree.Add("模块A", new ModuleA(), InspectorIcons.Folder);
+        tree.Add("模块A", new ModuleA(), Icons.Folder);
         tree.Add("模块B", new ModuleB());
         return tree;
     }
@@ -582,8 +582,8 @@ public class MyToolWindow : InspectorMenuEditorWindow
 
 | API | 说明 |
 |---|---|
-| `InspectorIcons.FromSdf(SdfIconType)` | 把 `SdfIconType` 转成 `Texture`（优先映射 Unity 内置图标，映射不到返回 `null`，按钮退化为纯文本） |
-| `InspectorIcons.UnityFolderIcon` / `Folder` / `SettingsCog` | 现成图标（`InspectorIcon` 结构，可隐式转 `Texture` / `GUIContent`） |
+| `Icons.FromSdf(SdfIconType)` | 把 `SdfIconType` 转成 `Texture`（优先映射 Unity 内置图标，映射不到返回 `null`，按钮退化为纯文本） |
+| `Icons.UnityFolderIcon` / `Folder` / `SettingsCog` | 现成图标（`EditorIcon` 结构，可隐式转 `Texture` / `GUIContent`） |
 | `StringPrefs` / `FloatPrefs` / `IntPrefs` / `BoolPrefs` / `EnumPrefs<T>` | `EditorPrefs` 的强类型包装：`new StringPrefs("Key", null, "默认值").Value` |
 | `CollectionExtensions.AddRange<T>(this HashSet<T>, IEnumerable<T>)` | `HashSet` 批量添加（Runtime 侧） |
 | `InspectorExpressionEvaluator.IsExpression(string)` / `Evaluate(...)` / `EvaluateBool(...)` / `Truthy(object)` | 表达式工具，可在业务代码里复用 |
@@ -713,7 +713,7 @@ public class EnemyConfig : MonoBehaviour
 ### 11.2 纯工具窗口
 
 ```csharp
-public class MyToolWindow : InspectorEditorWindow
+public class MyToolWindow : EditorWindowBase
 {
     [Button("打开文档", 30, Icon = SdfIconType.Info)]   // Icon 只有部分字形有映射, 见 §11.2
     [PropertyOrder(-99999)]
@@ -741,11 +741,11 @@ public enum Mode { Simple, Advanced }
 
 要点：窗口自身的公共字段 / 带特性方法与 `[Button]` 方法都会被绘制；`[HorizontalGroup("Actions")]` 把两个按钮排到同一行。
 
-关于 `SdfIconType`：`InspectorIcons.FromSdf` 只映射了下面这些字形族（映射到 Unity 内置图标，缺失时回退到族内别名），**其余任何值都返回 `null`，按钮退化为纯文字**（不报错）：
+关于 `SdfIconType`：`Icons.FromSdf` 只映射了下面这些字形族（映射到 Unity 内置图标，缺失时回退到族内别名），**其余任何值都返回 `null`，按钮退化为纯文字**（不报错）：
 
 `Folder*`、`Settings*`/`Gear*`、`Save*`、`Play*`、`Pause*`、`Stop*`、`Refresh`/`Sync`/`ArrowRepeat`、`Search*`、`Plus*`、`Minus*`、`Trash*`、`Exclamation*`、`Info`/`InfoCircle`、`Question*`、`Eye*`、`EyeSlash*`、`Check*`、`ArrowUp`/`ArrowDown`/`ArrowLeft`/`ArrowRight`、`X*`、`Calendar*`。
 
-因此像 `Link45deg`、`Github` 这类常用图标目前**不会显示**——想要就自己往 `InspectorIcons.FromSdf` 的 switch 里加映射（返回一个 `Texture` 即可）。
+因此像 `Link45deg`、`Github` 这类常用图标目前**不会显示**——想要就自己往 `Icons.FromSdf` 的 switch 里加映射（返回一个 `Texture` 即可）。
 
 ---
 
@@ -777,15 +777,15 @@ public enum Mode { Simple, Advanced }
 | 表达式：求值入口 / 索引器元数据缓存 | `Editor/InspectorExpression.cs`（`Evaluate`、`s_IndexerCache`） |
 | 表达式：赋值节点 | `Editor/InspectorExpression.cs`（`SetLeft`、`SetMember`） |
 | 表达式：上下文根解析（`$value`/`$root`/`$property`） | `Editor/InspectorExpression.cs`（`ResolveRoot`） |
-| 菜单树订阅者回调的异常兜底 | `Editor/InspectorMenuTree.cs`（`OnSelectionChanged`） |
+| 菜单树订阅者回调的异常兜底 | `Editor/MenuTree.cs`（`OnSelectionChanged`） |
 | 序列化成员筛选（三条规则：特性 / Unity 值类型 / 属性包） | `Editor/InspectorSerialization.cs`（`GetDataMembers`、`AnnotatedMembers`、`IsUnitySerializableValueType`、`IsUnityPropertyBagType`） |
 | 写出与读成员容错（`{}` 告警 / 单成员读失败写 null） | `Editor/InspectorSerialization.cs`（`WriteObject`、`ReadMemberSafe`） |
 | 逐成员写回 / 嵌套对象创建（曲线走真实构造函数） | `Editor/InspectorSerialization.cs`（`ApplyMembers`、`CreateInstance`） |
 | 统一日志出口（`Debug.*` 保护 + `WarnOnce` 去重） | `Editor/InspectorLog.cs`（`InspectorLog`、`WarnOnce`） |
 | `UnityEngine.Object` 被写为 null / 深度上限 | `Editor/InspectorSerialization.cs`（`WriteValue`、`MaxDepth`） |
 | 检视器宿主与 Undo 处理 | `Editor/InspectorEditor.cs`（`InspectorEditor`、`OnBeforeChange`） |
-| 窗口/菜单树基类 | `Editor/InspectorEditorWindows.cs`（`InspectorEditorWindow`、`InspectorMenuEditorWindow`） |
-| 菜单树数据模型 | `Editor/InspectorMenuTree.cs`（`InspectorMenuTreeSelection`、`InspectorMenuTree`） |
+| 窗口/菜单树基类 | `Editor/EditorWindowBase.cs`（`EditorWindowBase`、`MenuEditorWindow`） |
+| 菜单树数据模型 | `Editor/MenuTree.cs`（`MenuTreeSelection`、`MenuTree`） |
 | 整族登记范例 | `Editor/InspectorSerializedScriptableObjectEditor.cs` |
 
 > 本表故意不写行号：行号会随实现漂移，用 IDE 的"转到符号"或全局搜符号名定位即可。符号名不会腐坏，且可机械校验（把表里每个 `` `符号` `` 拿去对应文件 `grep -w` 一遍即可）。
@@ -803,7 +803,7 @@ public enum Mode { Simple, Advanced }
 | `InspectorEngineReflectionTests.cs` | 引擎骨架：成员可见性规则、`PropertyOrder` → 收集序排序、`GroupID` 路径 → 分组树（嵌套/类型/同级顺序）、类型级缓存、无参方法解析（重载/仅有带参/被 `new` 隐藏） |
 | `InspectorEngineStateTests.cs` | 折叠状态：默认展开、实例/成员/会话间隔离、宿主对象回收后状态随之释放、`OnStateUpdate` 表达式写回与按名调用 |
 | `InspectorEngineConditionTests.cs` | 条件显隐与禁用：`[ShowIf]`/`[HideIf]` 的真值与相等语义（含数值相对容差，`float` 字段 vs `double` 字面量）、`@` 条件表达式、成员名解析（被 `new` 隐藏的成员取最派生）、多条件"与"、`[EnableIf]`/`[DisableIf]`、两种运行模式下的 `[HideInPlayMode]`/`[HideInEditorMode]` |
-| `InspectorMenuTreeTests.cs` | 菜单树：路径建树与自动补文件夹、同名就地替换、深度优先遍历、选中与事件 |
+| `MenuTreeTests.cs` | 菜单树：路径建树与自动补文件夹、同名就地替换、深度优先遍历、选中与事件 |
 
 ### 怎么跑
 
@@ -825,7 +825,7 @@ public enum Mode { Simple, Advanced }
 cd "Packages/cn.rendu.editorkit/Tools~/Verify" && dotnet run
 ```
 
-几秒内即可跑完全部纯逻辑断言（表达式、序列化、成员收集、折叠状态、条件显隐、菜单树），无需启动编辑器；依赖 Unity 运行时的用例会被自动跳过（当前 2 个：`Serialize_UnityObjectReferenceIsNotPersisted`、`RoundTrip_Gradient`）。当前规模：**6 个夹具 130 例，脱机 128 通过 / 2 跳过**（`InspectorExpressionEvaluatorTests` 44、`InspectorEngineReflectionTests` 21、`InspectorEngineConditionTests` 20、`InspectorSerializationTests` 19、`InspectorMenuTreeTests` 14、`InspectorEngineStateTests` 12）。
+几秒内即可跑完全部纯逻辑断言（表达式、序列化、成员收集、折叠状态、条件显隐、菜单树），无需启动编辑器；依赖 Unity 运行时的用例会被自动跳过（当前 2 个：`Serialize_UnityObjectReferenceIsNotPersisted`、`RoundTrip_Gradient`）。当前规模：**6 个夹具 130 例，脱机 128 通过 / 2 跳过**（`InspectorExpressionEvaluatorTests` 44、`InspectorEngineReflectionTests` 21、`InspectorEngineConditionTests` 20、`InspectorSerializationTests` 19、`MenuTreeTests` 14、`InspectorEngineStateTests` 12）。
 
 运行器接受一个**夹具名子串**作为可选参数（`Program.Main` 的 `args[0]`，大小写不敏感的 `IndexOf` 匹配），只想跑一块时：
 

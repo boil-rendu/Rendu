@@ -506,7 +506,7 @@ def fig_architecture():
         ("InspectorEngine", "反射收集成员 + 绘制（唯一入口 DrawObject）"),
         ("InspectorExpression", "表达式求值（含 AST 缓存）"),
         ("InspectorSerialization", "JSON 序列化与读回"),
-        ("InspectorEditorWindows", "窗口基类（含左树右面板）"),
+        ("EditorWindowBase", "窗口基类（含左树右面板）"),
         ("InspectorSession / InspectorLog", "会话状态 / 日志出口"),
     ]
     cy = 312
@@ -520,8 +520,8 @@ def fig_architecture():
     hosts = [
         ("InspectorEditor", "给 MonoBehaviour /", "ScriptableObject 用"),
         ("InspectorSerialized\nScriptableObject", "编辑器数据资产", "（自带整族检视器）"),
-        ("InspectorEditorWindow", "窗口自绘", "（工具窗口）"),
-        ("InspectorMenuEditorWindow", "左菜单树 +", "右内容面板"),
+        ("EditorWindowBase", "窗口自绘", "（工具窗口）"),
+        ("MenuEditorWindow", "左菜单树 +", "右内容面板"),
     ]
     hw = (W - 80 - 3 * 16) / 4
     for i, (name, a, b) in enumerate(hosts):

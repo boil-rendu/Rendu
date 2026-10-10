@@ -9,7 +9,7 @@ namespace RD.EditorKit.Editor
     /// 轻量编辑器窗口基类
     /// 默认在 OnGUI 中依据 Inspector 属性自动绘制窗口自身成员
     /// </summary>
-    public class InspectorEditorWindow : EditorWindow
+    public class EditorWindowBase : EditorWindow
     {
         private bool m_Initialized;
         private Vector2 m_ScrollPosition;
@@ -98,9 +98,9 @@ namespace RD.EditorKit.Editor
     /// 轻量菜单树编辑器窗口
     /// 左侧绘制 BuildMenuTree 返回的菜单树 右侧绘制当前选中项
     /// </summary>
-    public class InspectorMenuEditorWindow : InspectorEditorWindow
+    public class MenuEditorWindow : EditorWindowBase
     {
-        private InspectorMenuTree m_MenuTree;
+        private MenuTree m_MenuTree;
         private bool m_MenuTreeBuilt;
 
         protected float m_MenuWidth = 300f;
@@ -143,13 +143,13 @@ namespace RD.EditorKit.Editor
         }
 
         /// <summary>构建菜单树 返回 null 表示无菜单</summary>
-        protected virtual InspectorMenuTree BuildMenuTree()
+        protected virtual MenuTree BuildMenuTree()
         {
             return null;
         }
 
         /// <summary>当前菜单树(未构建时自动构建)</summary>
-        protected InspectorMenuTree MenuTree
+        protected MenuTree MenuTree
         {
             get
             {
@@ -217,7 +217,7 @@ namespace RD.EditorKit.Editor
 
         //-------------------------------------- 左侧菜单 --------------------------------------
 
-        private void DrawMenuPanel(InspectorMenuTree tree)
+        private void DrawMenuPanel(MenuTree tree)
         {
             GUILayout.BeginVertical(GUILayout.Width(MenuWidth));
 
@@ -232,7 +232,7 @@ namespace RD.EditorKit.Editor
             GUILayout.EndVertical();
         }
 
-        private void DrawMenuItems(IReadOnlyList<InspectorMenuItem> items)
+        private void DrawMenuItems(IReadOnlyList<MenuTreeItem> items)
         {
             if (items == null) return;
 
@@ -365,7 +365,7 @@ namespace RD.EditorKit.Editor
 
         //-------------------------------------- 右侧内容 --------------------------------------
 
-        private void DrawContentPanel(InspectorMenuTree tree)
+        private void DrawContentPanel(MenuTree tree)
         {
             GUILayout.BeginVertical();
 

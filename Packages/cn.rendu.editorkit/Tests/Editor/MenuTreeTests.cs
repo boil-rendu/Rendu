@@ -1,11 +1,11 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using RD.EditorKit.Editor;
 using NUnit.Framework;
 
 namespace RD.EditorKit.Tests.Editor
 {
     /// <summary>
-    /// InspectorMenuTree 的行为基线。
+    /// MenuTree 的行为基线。
     ///
     /// 这棵树的建树规则有几条容易踩的隐式约定, 都在这里固化:
     /// - Add("A/B/C") 会自动补齐中间层文件夹节点, 且已存在的层级会被复用而非重建;
@@ -16,14 +16,14 @@ namespace RD.EditorKit.Tests.Editor
     /// 未覆盖: AddAllAssetsAtPath / AddAllAssetImporterAtPath(依赖 AssetDatabase),
     /// 以及私有路径工具 NormalizeFolder / BuildChildMenuPath。
     /// </summary>
-    public class InspectorMenuTreeTests
+    public class MenuTreeTests
     {
         //-------------------------------------- 查路径 --------------------------------------
 
         [Test]
         public void FindMenuItem_ReturnsNullForMissingOrEmptyPath()
         {
-            var tree = new InspectorMenuTree();
+            var tree = new MenuTree();
 
             Assert.IsNull(tree.FindMenuItem(null));
             Assert.IsNull(tree.FindMenuItem(""));
@@ -33,7 +33,7 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void FindMenuItem_ResolvesBySlashPath()
         {
-            var tree = new InspectorMenuTree();
+            var tree = new MenuTree();
             var leaf = tree.Add("A/B/C", 42);
 
             Assert.AreSame(leaf, tree.FindMenuItem("A/B/C"));
@@ -48,7 +48,7 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void Add_NestedPath_CreatesIntermediateFolders()
         {
-            var tree = new InspectorMenuTree();
+            var tree = new MenuTree();
             var leaf = tree.Add("A/B/C", 42);
 
             Assert.AreEqual("C", leaf.Name);
@@ -70,7 +70,7 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void Add_ReusesExistingFolders()
         {
-            var tree = new InspectorMenuTree();
+            var tree = new MenuTree();
             tree.Add("A/B/One", 1);
             tree.Add("A/B/Two", 2);
             tree.Add("A/C/Three", 3);
@@ -87,7 +87,7 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void Add_SameNameReplacesValueInsteadOfDuplicating()
         {
-            var tree = new InspectorMenuTree();
+            var tree = new MenuTree();
             var first = tree.Add("A/Item", 1);
             var second = tree.Add("A/Item", 2);
 
@@ -100,9 +100,9 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void AddChild_SetsTreeAndParent()
         {
-            var tree = new InspectorMenuTree();
+            var tree = new MenuTree();
             var root = tree.Add("A", 1);
-            var child = new InspectorMenuItem(tree, "X", 2);
+            var child = new MenuTreeItem(tree, "X", 2);
 
             root.AddChild(child);
 
@@ -120,7 +120,7 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void ForEach_VisitsDepthFirstInInsertionOrder()
         {
-            var tree = new InspectorMenuTree();
+            var tree = new MenuTree();
             tree.Add("A/One", 1);
             tree.Add("A/Two", 2);
             tree.Add("B/Three", 3);
@@ -136,7 +136,7 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void Selection_SelectSetsIsSelectedAndRaisesEvent()
         {
-            var tree = new InspectorMenuTree();
+            var tree = new MenuTree();
             var one = tree.Add("A/One", 1);
             var two = tree.Add("A/Two", 2);
 
@@ -158,7 +158,7 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void Selection_SelectSameItemTwice_DoesNotRaiseAgain()
         {
-            var tree = new InspectorMenuTree();
+            var tree = new MenuTree();
             var one = tree.Add("A/One", 1);
 
             var count = 0;
@@ -173,12 +173,12 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void Selection_SelectNullClears()
         {
-            var tree = new InspectorMenuTree();
+            var tree = new MenuTree();
             var one = tree.Add("A/One", 1);
             tree.Selection.Select(one);
 
-            // 注意: Select(null) 会与 Select(InspectorMenuItem[]) 重载产生二义性, 调用方必须显式转型。
-            tree.Selection.Select((InspectorMenuItem)null);
+            // 注意: Select(null) 会与 Select(MenuTreeItem[]) 重载产生二义性, 调用方必须显式转型。
+            tree.Selection.Select((MenuTreeItem)null);
 
             Assert.AreEqual(0, tree.Selection.Count);
             Assert.IsFalse(one.IsSelected);
@@ -187,7 +187,7 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void Selection_SelectArrayReplacesSelection()
         {
-            var tree = new InspectorMenuTree();
+            var tree = new MenuTree();
             var one = tree.Add("A/One", 1);
             var two = tree.Add("A/Two", 2);
 
@@ -202,7 +202,7 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void SelectFirstMenuItem_OnlyAppliesWhenNothingSelected()
         {
-            var tree = new InspectorMenuTree();
+            var tree = new MenuTree();
             tree.Add("A/One", 1);
             var b = tree.Add("B/Two", 2);
 
@@ -218,7 +218,7 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void SelectMenuItem_ByPath()
         {
-            var tree = new InspectorMenuTree();
+            var tree = new MenuTree();
             var leaf = tree.Add("A/B/C", 42);
 
             tree.SelectMenuItem("A/B/C");
@@ -231,7 +231,7 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void Clear_EmptiesItemsAndSelection()
         {
-            var tree = new InspectorMenuTree();
+            var tree = new MenuTree();
             var leaf = tree.Add("A/B/C", 42);
             tree.Selection.Select(leaf);
 
