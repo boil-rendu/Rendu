@@ -3,7 +3,7 @@ using UnityEditor;
 namespace RD.EditorKit.Editor
 {
     /// <summary>
-    /// 为 InspectorSerializedScriptableObject 及其全部子类提供检视器。
+    /// 为 SerializedScriptableObject 及其全部子类提供检视器。
     ///
     /// 这个基类把 [InspectorSerialize] 成员序列化成 JSON 存进 m_InspectorData,
     /// 因此它的数据用 Unity 默认检视器是完全看不见的(成员大多是私有 [InspectorSerialize] 字段)。
@@ -13,8 +13,8 @@ namespace RD.EditorKit.Editor
     /// PackageHubAsset / PackageVersionAsset), 而这些包反过来依赖本包, 无法在各自包里注册,
     /// 在这里一次性覆盖是唯一不产生循环依赖的做法。
     /// </summary>
-    [CustomEditor(typeof(InspectorSerializedScriptableObject), true)]
-    public class InspectorSerializedScriptableObjectEditor : InspectorEditor
+    [CustomEditor(typeof(SerializedScriptableObject), true)]
+    public class SerializedScriptableObjectEditor : InspectorEditor
     {
     }
 }

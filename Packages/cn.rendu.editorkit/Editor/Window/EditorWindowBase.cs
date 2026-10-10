@@ -66,14 +66,14 @@ namespace RD.EditorKit.Editor
         protected void DrawObjectPanel()
         {
             m_ScrollPosition = GUILayout.BeginScrollView(m_ScrollPosition);
-            InspectorEngine.DrawObject(this, this, null, null, m_Session);
+            Engine.DrawObject(this, this, null, null, m_Session);
             GUILayout.EndScrollView();
         }
 
         /// <summary>用本窗口的会话绘制任意对象, 供子类复用。</summary>
         protected void DrawTargetObject(object target)
         {
-            InspectorEngine.DrawObject(target, this, null, null, m_Session);
+            Engine.DrawObject(target, this, null, null, m_Session);
         }
 
         private void OnEnable()

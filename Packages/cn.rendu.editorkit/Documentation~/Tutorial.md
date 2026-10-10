@@ -23,10 +23,10 @@
 - [第 5 章 按钮、回调、自定义 GUI](#第-5-章-按钮回调自定义-gui)
 - [第 6 章 列表、表格、字典、下拉](#第-6-章-列表表格字典下拉)
 - [第 7 章 表达式系统（`@`）](#第-7-章-表达式系统)
-- [第 8 章 编辑器数据资产：InspectorSerializedScriptableObject](#第-8-章-编辑器数据资产inspectorserializedscriptableobject)
+- [第 8 章 编辑器数据资产：SerializedScriptableObject](#第-8-章-编辑器数据资产inspectorserializedscriptableobject)
 - [第 9 章 工具窗口：EditorWindowBase](#第-9-章-工具窗口inspectoreditorwindow)
 - [第 10 章 菜单树窗口：做一个真正的工具](#第-10-章-菜单树窗口做一个真正的工具)
-- [第 11 章 自己写宿主：直接用 InspectorEngine.DrawObject](#第-11-章-自己写宿主直接用-inspectorenginedrawobject)
+- [第 11 章 自己写宿主：直接用 Engine.DrawObject](#第-11-章-自己写宿主直接用-inspectorenginedrawobject)
 - [第 12 章 综合实战：从零做一个关卡配置面板](#第-12-章-综合实战从零做一个关卡配置面板)
 - [第 13 章 排错手册（症状 → 原因 → 处理）](#第-13-章-排错手册症状--原因--处理)
 - [第 14 章 选型速查（我要 X → 怎么写）](#第-14-章-选型速查我要-x--怎么写)
@@ -39,14 +39,14 @@
 
 ### 0.1 它能画什么：四种宿主
 
-`RD.EditorKit` = **一套特性**（`Runtime/`，纯数据）+ **一个反射检视引擎**（`Editor/`，把特性解释成 IMGUI）。引擎的唯一入口是一个静态方法 `InspectorEngine.DrawObject`，谁来调它决定了"面板长在哪儿"：
+`RD.EditorKit` = **一套特性**（`Runtime/`，纯数据）+ **一个反射检视引擎**（`Editor/`，把特性解释成 IMGUI）。引擎的唯一入口是一个静态方法 `Engine.DrawObject`，谁来调它决定了"面板长在哪儿"：
 
 | 宿主 | 你会用到的基类 / API | 典型用途 |
 |---|---|---|
 | `MonoBehaviour` / `ScriptableObject` | 继承 `InspectorEditor` + `[CustomEditor]` | 替换某个组件原生检视器 |
-| 编辑器数据资产 | 继承 `InspectorSerializedScriptableObject` | 带 JSON 落盘的编辑器配置资产 |
+| 编辑器数据资产 | 继承 `SerializedScriptableObject` | 带 JSON 落盘的编辑器配置资产 |
 | `EditorWindow` 自身 | 继承 `EditorWindowBase` | 纯工具窗口（不必是 Unity 对象） |
-| **任意普通 C# 对象** | 继承 `MenuEditorWindow`，或直接调 `InspectorEngine.DrawObject(obj, window)` | 工具窗口右半边的"模块面板" |
+| **任意普通 C# 对象** | 继承 `MenuEditorWindow`，或直接调 `Engine.DrawObject(obj, window)` | 工具窗口右半边的"模块面板" |
 
 最后一行是关键差异：**被画的对象不必是 `UnityEngine.Object`**。一个普通 `class LevelModule { [Button("执行")] void Run() {} }` 就能当面板内容，`[Button]` 照常出按钮。这是做编辑器工具时最省事的地方。
 
@@ -60,7 +60,7 @@
 
 1. **不显示预制体 override 标记**，也无法右键还原单个属性；
 2. **不做多对象差异编辑**：多选时只画第一个对象，并给一条 `HelpBox` 警告；
-3. **不注册任何全局检视器**：本包没有 `[CustomEditor(typeof(MonoBehaviour), true)]` 这种一行改全工程的动作，用哪个类型要你自己登记（唯一的例外是 `InspectorSerializedScriptableObject` 的继承族自带检视器，见 8.2）；
+3. **不注册任何全局检视器**：本包没有 `[CustomEditor(typeof(MonoBehaviour), true)]` 这种一行改全工程的动作，用哪个类型要你自己登记（唯一的例外是 `SerializedScriptableObject` 的继承族自带检视器，见 8.2）；
 4. **不提供任何菜单入口**：全包没有 `[MenuItem]`，窗口入口由你写。
 
 ### 0.3 依赖与 asmdef 引用
@@ -88,7 +88,7 @@
 | 命名空间（= 程序集） | 里面有什么 |
 |---|---|
 | `RD.EditorKit`（`RD.EditorKit.asmdef`） | **全部特性**（`Runtime/Attributes/*`）+ `CollectionExtensions` —— 只有这些，没有任何逻辑代码 |
-| `RD.EditorKit.Editor`（`Editor/` 程序集） | `InspectorEngine`、`InspectorExpressionEvaluator`、`HostSession`、`InspectorLog`、`Icons`、`InspectorPrefs`（`*Prefs`）、`MenuTree`、`InspectorEditor`、`EditorWindowBase`、`MenuEditorWindow`、`InspectorSerialization` 与 `InspectorSerializedScriptableObject`（含它的 Editor） |
+| `RD.EditorKit.Editor`（`Editor/` 程序集） | `Engine`、`ExpressionEvaluator`、`HostSession`、`Log`、`Icons`、`InspectorPrefs`（`*Prefs`）、`MenuTree`、`InspectorEditor`、`EditorWindowBase`、`MenuEditorWindow`、`Serialization` 与 `SerializedScriptableObject`（含它的 Editor） |
 
 > 坑：`InspectorEditor` 继承 `UnityEditor.Editor`。因为文件位于 `RD.EditorKit.Editor` 命名空间内，**简单名 `Editor` 会被解析成命名空间 `RD.EditorKit` 下的 `Editor`**，写 `: Editor` 报 CS0118。基类一定写全：`: InspectorEditor`（本包已提供），自己写别的基类时写 `: UnityEditor.Editor`。
 
@@ -178,18 +178,18 @@ Display Name| [                 ]   (字符串输入框)
 2. **整个面板空白** → `target` 为 null，或该类型一个可见成员都没有（见 1.6）；
 3. **部分字段没出来** → 对照 1.6 的可见性规则；
 4. **编译报错 CS0118 `Editor`** → 见第 0 章末尾的命名空间坑；
-5. **控制台有 `[Inspector]` 开头的日志** → 引擎把异常都收敛到 `InspectorLog`（不会打断绘制），日志内容通常直接指出原因。
+5. **控制台有 `[Inspector]` 开头的日志** → 引擎把异常都收敛到 `Log`（不会打断绘制），日志内容通常直接指出原因。
 
 ### 1.6 为什么私有字段没出来：成员可见性规则（最小版）
 
-引擎按类型缓存成员清单，判定如下（照 `Editor/InspectorEngine.cs` 的 `GetMembers` 逐条核对）：
+引擎按类型缓存成员清单，判定如下（照 `Editor/Engine.cs` 的 `GetMembers` 逐条核对）：
 
 **字段**
 
 - 任一命中 → 不画：`[HideInInspector]`（优先级最高）、编译器生成字段（自动属性背后的字段、闭包）、声明类型所在程序集以 `UnityEngine` / `UnityEditor` / `mscorlib` 开头（`IsEngineInternal` —— 所以继承 `MonoBehaviour`/`ScriptableObject`/`EditorWindow` 不会把引擎的基类字段带进面板）；
 - 任一命中 → 画：`[ShowInInspector]`、`[SerializeField]`、`[InspectorSerialize]`、**public 且非 static**。
 
-> 推论：**private 字段必须挂标记**；**public static 字段默认不画** —— 但它是"默认不画"，不是"画不了"：加 `[ShowInInspector]`（或 `[SerializeField]`）就会被收集，所以静态字段**不需要**改写成属性。这条有测试钉住：`InspectorEngineReflectionTests.Members_StaticField_IsSkippedUnlessExplicitlyShown`。
+> 推论：**private 字段必须挂标记**；**public static 字段默认不画** —— 但它是"默认不画"，不是"画不了"：加 `[ShowInInspector]`（或 `[SerializeField]`）就会被收集，所以静态字段**不需要**改写成属性。这条有测试钉住：`EngineReflectionTests.Members_StaticField_IsSkippedUnlessExplicitlyShown`。
 
 **属性**
 
@@ -247,7 +247,7 @@ order 相同时的次序由**收集顺序**决定，规则是：**字段 → 属
 |---|---|---|
 | `[SerializeField]` | 字段 | 运行时要用的私有字段（Unity 自己也序列化它） |
 | `[ShowInInspector]` | 字段 / 属性（**放方法上无效**） | 只想在编辑器里看或改，不需要 Unity 序列化（属性也必须用它） |
-| `[InspectorSerialize]` | 字段 / 属性 | 配合 `InspectorSerializedScriptableObject` 走的 JSON 落盘通路（第 8 章） |
+| `[InspectorSerialize]` | 字段 / 属性 | 配合 `SerializedScriptableObject` 走的 JSON 落盘通路（第 8 章） |
 
 三者可以叠加。真实项目里常见写法是 `[NonSerialized] + [InspectorSerialize]`（数据不交给 Unity 存，交给本包的 JSON 存）。
 
@@ -388,7 +388,7 @@ public int Tint;
 - **无参方法**（例如 `private bool ShowIfAuthorURL() => !string.IsNullOrEmpty(PackageAuthorURL);`，这是表格行的典型写法）；
 - **`@` 开头的表达式**（见 4.3）。
 
-值比较走统一的 `InspectorValue.Equal`：数值用**随量级放大的相对容差**（1e-6，所以 `float` 字段 `0.1f` 和字面量 `0.1` 能相等）、枚举可以与字符串名比较、bool 按 bool 比。
+值比较走统一的 `Value.Equal`：数值用**随量级放大的相对容差**（1e-6，所以 `float` 字段 `0.1f` 和字面量 `0.1` 能相等）、枚举可以与字符串名比较、bool 按 bool 比。
 
 ### 4.3 用 `@` 表达式：组合条件时
 
@@ -820,7 +820,7 @@ public class DropTable : MonoBehaviour
 
 ### 7.5 六个必知陷阱
 
-1. **`Truthy(0)` 为真**。真值规则（`InspectorValue.Truthy`）是：`null` / `false` / 空串 / **空集合**（`ICollection.Count == 0`，数组 / `List` / `Dictionary` 都算）/ 已销毁的 Unity 对象为假，**其余全为真**（包括数值 0、枚举 0）。所以 `[ShowIf("@Count")]` 在 `Count == 0` 时**依然显示**；要判非零请写 `@Count > 0` 或 `@Count != 0`。注意判空只认 `ICollection`，延迟执行的 `IEnumerable`（比如 `Where(...)` 的结果）会被当成真；
+1. **`Truthy(0)` 为真**。真值规则（`Value.Truthy`）是：`null` / `false` / 空串 / **空集合**（`ICollection.Count == 0`，数组 / `List` / `Dictionary` 都算）/ 已销毁的 Unity 对象为假，**其余全为真**（包括数值 0、枚举 0）。所以 `[ShowIf("@Count")]` 在 `Count == 0` 时**依然显示**；要判非零请写 `@Count > 0` 或 `@Count != 0`。注意判空只认 `ICollection`，延迟执行的 `IEnumerable`（比如 `Where(...)` 的结果）会被当成真；
 2. **求值不短路**：`@A() && B()` 两边都会执行。条件表达式里不要放有副作用的方法；
 3. **数字字面量都是 double**：`@Flag == 1` 比较 int 字段没问题（有相对容差），但别指望 `int` 溢出语义；
 4. **`$value` 不可写回**：`@$value = $value + 1` 只改表达式内部的临时值，**不会改你的字段**；`$property.Value = x` 也一样（`$property.Value` 读写的就是同一份上下文值）。要写数据得写链末端成员（见下一条）；
@@ -848,15 +848,15 @@ public class DropTable : MonoBehaviour
 - 想单独验证一个表达式，可以在自己的编辑器代码里直接调（`Evaluate` / `EvaluateBool` 都是 public，且**传入时可以不带 `@`**——引擎内部会剥掉）：
 
 ```csharp
-bool r = InspectorExpressionEvaluator.EvaluateBool("@Count > 0", myObject, null, null);
-bool r2 = InspectorExpressionEvaluator.EvaluateBool("Count > 0", myObject, null, null);   // 等价
+bool r = ExpressionEvaluator.EvaluateBool("@Count > 0", myObject, null, null);
+bool r2 = ExpressionEvaluator.EvaluateBool("Count > 0", myObject, null, null);   // 等价
 ```
 
 - 缓存的是**元数据**，不是取值结果：每次求值都重新读成员、重新调方法，所以 `@Count` 能跟着字段实时变化。
 
 ---
 
-## 第 8 章 编辑器数据资产：`InspectorSerializedScriptableObject`
+## 第 8 章 编辑器数据资产：`SerializedScriptableObject`
 
 ### 8.1 什么时候用它
 
@@ -871,7 +871,7 @@ using System;
 using System.Collections.Generic;
 using RD.EditorKit;
 
-public class MyToolConfig : InspectorSerializedScriptableObject
+public class MyToolConfig : SerializedScriptableObject
 {
     [InspectorSerialize]
     [LabelText("服务器地址")]
@@ -894,16 +894,16 @@ public class MyToolConfig : InspectorSerializedScriptableObject
 }
 ```
 
-1. 继承 `InspectorSerializedScriptableObject`；
+1. 继承 `SerializedScriptableObject`；
 2. 想存/想显示的成员标 `[InspectorSerialize]`；
 3. 在 Project 里右键 `Create > ...`（或 `ScriptableObject.CreateInstance` + `AssetDatabase.CreateAsset`）建一个 `.asset`。
 
-**不需要写检视器**：基类自带 `[CustomEditor(typeof(InspectorSerializedScriptableObject), true)]`，覆盖了全部子类（范例源码见 `Editor/InspectorSerializedScriptableObjectEditor.cs`，只有一行）。
+**不需要写检视器**：基类自带 `[CustomEditor(typeof(SerializedScriptableObject), true)]`，覆盖了全部子类（范例源码见 `Editor/SerializedScriptableObjectEditor.cs`，只有一行）。
 
 ### 8.3 数据存在哪
 
 ```csharp
-public class InspectorSerializedScriptableObject : ScriptableObject, ISerializationCallbackReceiver
+public class SerializedScriptableObject : ScriptableObject, ISerializationCallbackReceiver
 {
     [SerializeField, HideInInspector] private string m_InspectorData = string.Empty;
 
@@ -912,14 +912,14 @@ public class InspectorSerializedScriptableObject : ScriptableObject, ISerializat
     public void OnBeforeSerialize()
     {
         if (m_Deserializing) return;                     // 读盘过程中不回写, 避免把半成品写回去
-        m_InspectorData = InspectorSerialization.Serialize(this);
+        m_InspectorData = Serialization.Serialize(this);
     }
 
     public void OnAfterDeserialize()
     {
         if (string.IsNullOrEmpty(m_InspectorData)) return;   // 还没有数据的资产直接跳过
         m_Deserializing = true;
-        try { InspectorSerialization.Deserialize(this, m_InspectorData); }
+        try { Serialization.Deserialize(this, m_InspectorData); }
         finally { m_Deserializing = false; }
         OnAfterInspectorDeserialize();
     }
@@ -1198,7 +1198,7 @@ protected void RebuildMenuTree();   // 清掉缓存并立刻重建
 
 ---
 
-## 第 11 章 自己写宿主：直接用 `InspectorEngine.DrawObject`
+## 第 11 章 自己写宿主：直接用 `Engine.DrawObject`
 
 ### 11.1 公开签名
 
@@ -1251,7 +1251,7 @@ public class LevelRootEditor : UnityEditor.Editor
         EditorGUILayout.LabelField("关卡模块", EditorStyles.boldLabel);
 
         EditorGUI.BeginChangeCheck();
-        InspectorEngine.DrawObject(root.Module, null, o => Undo.RecordObject(target, "Module"), o =>
+        Engine.DrawObject(root.Module, null, o => Undo.RecordObject(target, "Module"), o =>
         {
             EditorUtility.SetDirty(target);
             Repaint();
@@ -1509,7 +1509,7 @@ public class LevelConfigEditor : InspectorEditor { }
 | 键值对展示 | `Dictionary<K,V>`（注意：不能加新条目、键不可改、非标量值只读，见 6.5） |
 | 自定义"添加"按钮 | `[ListDrawerSettings(CustomAddFunction = "方法名")]` |
 | 提示 / 两段式提示 / 标题 | `[InfoBox]` / `[DetailedInfoBox]`（不是可展开控件，见 2.6）/ `[Title]` |
-| 编辑器数据资产 | 继承 `InspectorSerializedScriptableObject` + `[InspectorSerialize]` |
+| 编辑器数据资产 | 继承 `SerializedScriptableObject` + `[InspectorSerialize]` |
 | 组件检视器 | 继承 `InspectorEditor` + `[CustomEditor]` |
 | 工具窗口 | 继承 `EditorWindowBase` |
 | 左树右面板工具 | 继承 `MenuEditorWindow` + `BuildMenuTree()` |
@@ -1547,7 +1547,7 @@ public class LevelConfigEditor : InspectorEditor { }
 - **不内窥 `UnityEngine.Object` 成员**（只画对象引用控件，`[InlineEditor]` 才展开）；用户自定义类则**默认内联展开**；
 - **容器能力有限**：列表没有拖拽排序/中间插入，标量元素走文本框（`Vector2`/`Vector3`/`Color` 不可编辑），`UnityEngine.Object` 列表只读；字典不能新增条目、键不可改、非标量值只读（详见 6.1 / 6.4 与 README §4.6）；
 - 曲线/渐变用专用控件（可编辑，key 与 color/gradient 都能改）；
-- 嵌套深度上限 + 环引用剪断（**绘制侧 `InspectorEngine.MaxDepth = 24`，序列化侧 `InspectorSerialization.MaxDepth = 32`**，两个数字不一样）；
+- 嵌套深度上限 + 环引用剪断（**绘制侧 `Engine.MaxDepth = 24`，序列化侧 `Serialization.MaxDepth = 32`**，两个数字不一样）；
 - 多选只画第一个对象（并给 HelpBox 警告）；
 - 不显示 prefab override 标记，也无法右键还原单个属性；
 - `[Flags]` 枚举只能单选；
@@ -1561,16 +1561,16 @@ public class LevelConfigEditor : InspectorEditor { }
 ### 16.1 源码地图
 
 - **特性定义**：`Runtime/Attributes/*.cs`（纯数据，加特性先看这里）；
-- **绘制引擎**：`Editor/InspectorEngine.cs` —— `GetMembers`（可见性/排序）、`GetGroupTree`（分组）、`DrawValueMemberBody`、`DrawScalarControl`、`DrawTableList`、`CheckVisibility`、`RunStateUpdates`；
-- **表达式**：`Editor/InspectorExpression.cs` —— `InspectorValue`（值语义）、`GetAst`（缓存）、`Evaluate`、`SetLeft`；
-- **序列化**：`Editor/InspectorSerialization.cs`；
+- **绘制引擎**：`Editor/Engine.cs` —— `GetMembers`（可见性/排序）、`GetGroupTree`（分组）、`DrawValueMemberBody`、`DrawScalarControl`、`DrawTableList`、`CheckVisibility`、`RunStateUpdates`；
+- **表达式**：`Editor/InspectorExpression.cs` —— `Value`（值语义）、`GetAst`（缓存）、`Evaluate`、`SetLeft`；
+- **序列化**：`Editor/Serialization.cs`；
 - **宿主**：`Editor/InspectorEditor.cs`、`Editor/EditorWindowBase.cs`、`Editor/MenuTree.cs`；
 - **逐符号索引**：`README.md` §12。
 
 ### 16.2 想给引擎加东西时的推荐流程
 
 1. 在 `Runtime/Attributes/` 加/改特性（纯数据，别放逻辑）；
-2. 在 `InspectorEngine` 里找到读取它的位置（新特性通常要动 `GetMembers`/`DrawValueMemberBody`/`DescribeGroup` 之一）；
+2. 在 `Engine` 里找到读取它的位置（新特性通常要动 `GetMembers`/`DrawValueMemberBody`/`DescribeGroup` 之一）；
 3. **先在 `Tests/Editor/` 写断言**（固化"应该是什么行为"，尤其是你改变既有行为时）；
 4. 跑离线回归（不用开 Unity，几秒钟）：
 

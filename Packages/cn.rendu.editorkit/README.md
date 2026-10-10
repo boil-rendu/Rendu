@@ -25,7 +25,7 @@
 - [3. 引擎画什么：成员可见性规则](#3-引擎画什么成员可见性规则)
 - [4. 特性速查表](#4-特性速查表)
 - [5. 表达式系统（`@` 语法）](#5-表达式系统-语法)
-- [6. 编辑器资产序列化：InspectorSerializedScriptableObject](#6-编辑器资产序列化inspectorserializedscriptableobject)
+- [6. 编辑器资产序列化：SerializedScriptableObject](#6-编辑器资产序列化inspectorserializedscriptableobject)
 - [7. 编辑器窗口与菜单树](#7-编辑器窗口与菜单树)
 - [8. 辅助 API](#8-辅助-api)
 - [9. 登记检视器](#9-登记检视器)
@@ -65,17 +65,17 @@ cn.rendu.editorkit/
 │   └── Utilities/CollectionExtensions.cs    HashSet<T>.AddRange
 ├── Editor/
 │   ├── RD.EditorKit.Editor.asmdef   程序集：RD.EditorKit.Editor（Editor 平台）
-│   ├── InspectorEngine.cs           核心引擎（反射收集成员 + 绘制），唯一入口 DrawObject
-│   ├── InspectorExpression.cs       `@` 表达式词法 / 语法 / 求值 + 共用的值语义 InspectorValue
-│   ├── InspectorSerialization.cs    InspectorSerializedScriptableObject + JSON 序列化器
+│   ├── Engine.cs           核心引擎（反射收集成员 + 绘制），唯一入口 DrawObject
+│   ├── InspectorExpression.cs       `@` 表达式词法 / 语法 / 求值 + 共用的值语义 Value
+│   ├── Serialization.cs    SerializedScriptableObject + JSON 序列化器
 │   ├── InspectorEditor.cs           InspectorEditor：UnityEditor.Editor 宿主
 │   ├── EditorWindowBase.cs    EditorWindowBase / MenuEditorWindow
 │   ├── MenuTree.cs         左侧菜单树数据模型
 │   ├── HostSession.cs          一次检视会话的编辑期状态（折叠 / 滚动）
-│   ├── InspectorLog.cs              统一日志出口（含 WarnOnce 去重）
+│   ├── Log.cs              统一日志出口（含 WarnOnce 去重）
 │   ├── Icons.cs            内置图标 + SdfIconType → Texture 解析
 │   ├── InspectorPrefs.cs            String/Float/Int/Bool/EnumPrefs（EditorPrefs 包装）
-│   └── InspectorSerializedScriptableObjectEditor.cs   为序列化基类整族注册检视器
+│   └── SerializedScriptableObjectEditor.cs   为序列化基类整族注册检视器
 └── Tests/Editor/                    EditMode 测试（程序集：RD.EditorKit.Tests.Editor）
 ```
 
@@ -84,7 +84,7 @@ cn.rendu.editorkit/
 | 程序集 | 引用 | 说明 |
 |---|---|---|
 | `RD.EditorKit` | 无 | 纯特性定义，Runtime 可用（`autoReferenced = true`） |
-| `RD.EditorKit.Editor` | `RD.EditorKit` | **Editor-only**。全包没有任何 `[MenuItem]`，也不给 `MonoBehaviour`/`ScriptableObject` 做全局检视器覆盖：画什么、入口在哪，全部由使用方决定。唯一的 `[CustomEditor(..., true)]` 在 `InspectorSerializedScriptableObjectEditor.cs`（只覆盖 `InspectorSerializedScriptableObject` 自己的继承族，见 §6） |
+| `RD.EditorKit.Editor` | `RD.EditorKit` | **Editor-only**。全包没有任何 `[MenuItem]`，也不给 `MonoBehaviour`/`ScriptableObject` 做全局检视器覆盖：画什么、入口在哪，全部由使用方决定。唯一的 `[CustomEditor(..., true)]` 在 `SerializedScriptableObjectEditor.cs`（只覆盖 `SerializedScriptableObject` 自己的继承族，见 §6） |
 | `RD.EditorKit.Tests.Editor` | 前两者 | 仅测试用；通过 `InternalsVisibleTo` 访问引擎的 internal 元数据 |
 
 > 结论：**Runtime 代码只需要引用 `RD.EditorKit`**（用特性）；**写检视器 / 窗口的 Editor 代码要引用 `RD.EditorKit.Editor`**。
@@ -119,19 +119,19 @@ public class EnemyConfigBaseEditor : InspectorEditor { }
 
 `InspectorEditor` 的行为（其源码注释已明确）：
 
-- 内部调用 `InspectorEngine.DrawObject(target, null, OnBeforeChange, OnChanged)`，把反射写值前后的时机交给宿主做 Undo / `SetDirty` / 重绘；
+- 内部调用 `Engine.DrawObject(target, null, OnBeforeChange, OnChanged)`，把反射写值前后的时机交给宿主做 Undo / `SetDirty` / 重绘；
 - **刻意不做全局注册**（没有 `[CustomEditor(typeof(MonoBehaviour), true)]`），避免替换掉全工程其它脚本的 Unity 原生检视器 —— 用哪个组件要自己显式登记；
 - 基类必须写全 `UnityEditor.Editor`：该文件位于 `RD.EditorKit.Editor` 命名空间内，简单名 `Editor` 会被解析成 `RD.EditorKit` 下的 `Editor` 命名空间，报 CS0118。
 
 ### 2.2 编辑器数据资产（ScriptableObject）
 
-编辑器侧的数据资产推荐继承 `InspectorSerializedScriptableObject`，把成员标 `[InspectorSerialize]`：
+编辑器侧的数据资产推荐继承 `SerializedScriptableObject`，把成员标 `[InspectorSerialize]`：
 
 ```csharp
 using RD.EditorKit;                       // 特性命名空间
 using UnityEditor;                        // Editor 程序集里才有的基类
 
-public class MyEditorAsset : InspectorSerializedScriptableObject
+public class MyEditorAsset : SerializedScriptableObject
 {
     [InspectorSerialize]
     [LabelText("名字")]
@@ -139,7 +139,7 @@ public class MyEditorAsset : InspectorSerializedScriptableObject
 }
 ```
 
-- 基类自带 `[CustomEditor(typeof(InspectorSerializedScriptableObject), true)]`，**子类无需自己写检视器**；
+- 基类自带 `[CustomEditor(typeof(SerializedScriptableObject), true)]`，**子类无需自己写检视器**；
 - 基类位于 **Editor 程序集**，所以只能用于编辑器资产；**运行时资产不要继承它** —— 运行时资产用 `ScriptableObject` + 公共字段 / `[SerializeField]`；
 - 数据细节见 [第 6 节](#6-编辑器资产序列化inspectorserializedscriptableobject)。
 
@@ -224,7 +224,7 @@ public class MyWindow : EditorWindowBase
 - 成员类型是 `UnityEngine.Object` 时**默认不内窥**（只作为普通对象引用绘制），除非标了 `[InlineEditor]`；
 - **曲线 / 渐变不算"嵌套对象"**：`AnimationCurve` / `Gradient` 的数据在原生对象里，按普通类展开只会画出一堆无意义的句柄成员，因此它们直接走 `CurveField` / `GradientField`（序列化的对应规则见 §6）；
 - 根对象例外：宿主是 `EditorWindow` 时允许自绘窗口自身；
-- 引擎有深度上限与环检测（"正在绘制"集合 + parent 判定），自引用 / 循环引用会被剪断；**绘制侧上限 `InspectorEngine.MaxDepth = 24`**（序列化侧是 32，见第 6 节）；
+- 引擎有深度上限与环检测（"正在绘制"集合 + parent 判定），自引用 / 循环引用会被剪断；**绘制侧上限 `Engine.MaxDepth = 24`**（序列化侧是 32，见第 6 节）；
 - 折叠（展开）状态存在会话里（`HostSession`，成员状态按宿主对象弱引用分桶），域重载后回到默认展开。
 
 ![成员可见性规则](Documentation~/images/02-visibility-rules.png)
@@ -400,7 +400,7 @@ private IEnumerable GetTeamSelectList()
 2. 条件类特性的成员名 —— `[ShowIf]/[HideIf]/[EnableIf]/[DisableIf]`（`ConditionValue`）；
 3. 分组特性 `PropertyGroup` 上的 `VisibleIf`（见 4.2），走的也是 `ConditionValue`。
 
-**判定规则：字符串以 `@` 开头才算表达式**（`InspectorExpressionEvaluator.IsExpression`）。不带 `@` 的参数一律按"成员名 / 方法名"反射处理。
+**判定规则：字符串以 `@` 开头才算表达式**（`ExpressionEvaluator.IsExpression`）。不带 `@` 的参数一律按"成员名 / 方法名"反射处理。
 
 ![表达式求值管线](Documentation~/images/05-expressions.png)
 
@@ -458,21 +458,21 @@ private IEnumerable GetTeamSelectList()
 
 ### 5.4 容错
 
-求值被 `try/catch` 包裹：词法出错（字符串未闭合、非法字符、数字解析失败）或求值异常时，会记一条警告（`InspectorLog.Warn`）并返回 `null`，**不会中断绘制**。布尔上下文使用 `Truthy`：`null`→false、`bool` 原值、字符串非空、`UnityEngine.Object` 非 fake-null、集合 `Count > 0`、其它→true。
+求值被 `try/catch` 包裹：词法出错（字符串未闭合、非法字符、数字解析失败）或求值异常时，会记一条警告（`Log.Warn`）并返回 `null`，**不会中断绘制**。布尔上下文使用 `Truthy`：`null`→false、`bool` 原值、字符串非空、`UnityEngine.Object` 非 fake-null、集合 `Count > 0`、其它→true。
 
 ### 5.5 解析只做一次（AST 缓存）
 
-表达式每帧都会重新判定，但**词法 + 语法分析只做一次**：AST 按源码字符串缓存（`InspectorExpressionEvaluator.s_AstCache`），稳态下每帧只剩遍历求值。缓存的是**元数据**，不是取值结果 —— 每次求值照样重新读成员、重新调用方法，所以 `@Count` 能跟着字段变化。
+表达式每帧都会重新判定，但**词法 + 语法分析只做一次**：AST 按源码字符串缓存（`ExpressionEvaluator.s_AstCache`），稳态下每帧只剩遍历求值。缓存的是**元数据**，不是取值结果 —— 每次求值照样重新读成员、重新调用方法，所以 `@Count` 能跟着字段变化。
 
 解析失败也缓存（负缓存）：写错的表达式只报**一次**警告，之后按空表达式处理（返回 `null`，条件判定为假）。没有这条负缓存，一个拼错的表达式会每帧重新词法分析一遍、每帧重报一条日志。缓存上限 512 条，超出整体清空（`Evaluate` 是公开 API，若被塞进动态拼出来的字符串则缓存会无界增长）。
 
 同一层的成员/方法解析（`(类型, 名字) → 字段 / 属性 / 无参方法`）也带缓存，见 §10。
 
-> 记日志这件事本身也被 `try/catch` 包住（`InspectorLog`）：Unity 的 `Debug.*` 是内部调用，在非 Unity 进程里调用会抛 `SecurityException`。包住它，包内的离线校验工程（`Tools~/Verify`）才能覆盖到这些告警路径 —— 表达式求值、序列化、引擎的告警现在都走这一个出口。它另外提供 `WarnOnce(key, message)`：条件显隐与表达式是每帧重算的，同一件事（同一个拼错的表达式、同一个解析不到的成员名、同一个没有可序列化成员的类型）只报一次，否则控制台会被刷爆、用户反而看不到第一条。
+> 记日志这件事本身也被 `try/catch` 包住（`Log`）：Unity 的 `Debug.*` 是内部调用，在非 Unity 进程里调用会抛 `SecurityException`。包住它，包内的离线校验工程（`Tools~/Verify`）才能覆盖到这些告警路径 —— 表达式求值、序列化、引擎的告警现在都走这一个出口。它另外提供 `WarnOnce(key, message)`：条件显隐与表达式是每帧重算的，同一件事（同一个拼错的表达式、同一个解析不到的成员名、同一个没有可序列化成员的类型）只报一次，否则控制台会被刷爆、用户反而看不到第一条。
 
-### 5.6 值语义只有一份实现（`InspectorValue`）
+### 5.6 值语义只有一份实现（`Value`）
 
-真值 / 数值判定 / 相等这三件事由 `InspectorValue`（`Editor/InspectorExpression.cs` 顶部）统一定义，**条件显隐（`[ShowIf]` 等）与表达式求值共用同一套规则**，因此同一个值不会在两处得到相反结论。
+真值 / 数值判定 / 相等这三件事由 `Value`（`Editor/InspectorExpression.cs` 顶部）统一定义，**条件显隐（`[ShowIf]` 等）与表达式求值共用同一套规则**，因此同一个值不会在两处得到相反结论。
 
 数值相等用**随量级放大的相对容差**（`NumericTolerance = 1e-6`），不是 `==` 也不是 `double.Epsilon`：
 
@@ -481,17 +481,17 @@ private IEnumerable GetTeamSelectList()
 
 ---
 
-## 6. 编辑器资产序列化：`InspectorSerializedScriptableObject`
+## 6. 编辑器资产序列化：`SerializedScriptableObject`
 
 ### 工作方式
 
 ```csharp
-public class InspectorSerializedScriptableObject : ScriptableObject, ISerializationCallbackReceiver
+public class SerializedScriptableObject : ScriptableObject, ISerializationCallbackReceiver
 {
     [SerializeField, HideInInspector] private string m_InspectorData;
 
-    public void OnBeforeSerialize()  => m_InspectorData = InspectorSerialization.Serialize(this);
-    public void OnAfterDeserialize() => InspectorSerialization.Deserialize(this, m_InspectorData);
+    public void OnBeforeSerialize()  => m_InspectorData = Serialization.Serialize(this);
+    public void OnAfterDeserialize() => Serialization.Deserialize(this, m_InspectorData);
 
     protected virtual void OnAfterInspectorDeserialize() { }   // 反序列化完成后回调，可重写重算派生状态
 }
@@ -517,7 +517,7 @@ public class InspectorSerializedScriptableObject : ScriptableObject, ISerializat
 2. **成员名就是 JSON 的 key**：字段改名 = 旧数据丢失，且**没有版本迁移机制**；
 3. 无 setter 的属性在反序列化时会被**静默跳过**；
 4. 嵌套对象用 `FormatterServices.GetUninitializedObject` 创建（不执行构造函数、不初始化字段初始值，靠 JSON 覆盖）；
-5. 私有字段能显示的前提是"引擎可见性规则认得 `[InspectorSerialize]`"，两者是一致的（这就是 `InspectorSerializedScriptableObjectEditor` 能把私有成员画出来的原因）；
+5. 私有字段能显示的前提是"引擎可见性规则认得 `[InspectorSerialize]`"，两者是一致的（这就是 `SerializedScriptableObjectEditor` 能把私有成员画出来的原因）；
 6. 前提是**编辑器程序集**里使用（基类本身在 `RD.EditorKit.Editor`）；
 7. 递归写出有**深度上限**（32 层）：环引用（如 `A.B = A`）会被剪断写成 `null`，而不是把编辑器递归到栈溢出闪退；
 8. **单个成员失败不拖垮整份数据**：写回侧类型对不上或 setter 抛异常只记一条警告后跳过，其余成员照常还原；读入侧对称 —— 某个成员的 getter 抛异常（自定义属性、原生对象不可用等）时该键写成 `null` 并记警告，不会让整份配置存不出来。无法实例化的目标类型（`IList<T>` 这类接口、无默认构造的字典）保持字段默认值；
@@ -574,7 +574,7 @@ public class MyToolWindow : MenuEditorWindow
 }
 ```
 
-右侧内容面板会用 `InspectorEngine.DrawObject(选中项的 Value, 窗口实例)` 绘制，所以**任何普通 C# 对象都能直接当面板内容**（不需要是 `UnityEngine.Object`），面板里用 `[Button]` 就能做工具按钮。
+右侧内容面板会用 `Engine.DrawObject(选中项的 Value, 窗口实例)` 绘制，所以**任何普通 C# 对象都能直接当面板内容**（不需要是 `UnityEngine.Object`），面板里用 `[Button]` 就能做工具按钮。
 
 ---
 
@@ -586,9 +586,9 @@ public class MyToolWindow : MenuEditorWindow
 | `Icons.UnityFolderIcon` / `Folder` / `SettingsCog` | 现成图标（`EditorIcon` 结构，可隐式转 `Texture` / `GUIContent`） |
 | `StringPrefs` / `FloatPrefs` / `IntPrefs` / `BoolPrefs` / `EnumPrefs<T>` | `EditorPrefs` 的强类型包装：`new StringPrefs("Key", null, "默认值").Value` |
 | `CollectionExtensions.AddRange<T>(this HashSet<T>, IEnumerable<T>)` | `HashSet` 批量添加（Runtime 侧） |
-| `InspectorExpressionEvaluator.IsExpression(string)` / `Evaluate(...)` / `EvaluateBool(...)` / `Truthy(object)` | 表达式工具，可在业务代码里复用 |
+| `ExpressionEvaluator.IsExpression(string)` / `Evaluate(...)` / `EvaluateBool(...)` / `Truthy(object)` | 表达式工具，可在业务代码里复用 |
 
-`InspectorEngine` 的公开 API 只有一个方法：
+`Engine` 的公开 API 只有一个方法：
 
 ```csharp
 public static void DrawObject(object target,
@@ -616,14 +616,14 @@ public class EnemyConfigEditor : InspectorEditor { }
 public class EnemyConfigBaseEditor : InspectorEditor { }
 ```
 
-**一次覆盖整族的范例**（本包自带）：`Editor/InspectorSerializedScriptableObjectEditor.cs` 用一行覆盖了 `InspectorSerializedScriptableObject` 的全部子类：
+**一次覆盖整族的范例**（本包自带）：`Editor/SerializedScriptableObjectEditor.cs` 用一行覆盖了 `SerializedScriptableObject` 的全部子类：
 
 ```csharp
-[CustomEditor(typeof(InspectorSerializedScriptableObject), true)]
-public class InspectorSerializedScriptableObjectEditor : InspectorEditor { }
+[CustomEditor(typeof(SerializedScriptableObject), true)]
+public class SerializedScriptableObjectEditor : InspectorEditor { }
 ```
 
-于是任何继承 `InspectorSerializedScriptableObject` 的资产都自动获得本包检视器，子类不必再写检视器代码。
+于是任何继承 `SerializedScriptableObject` 的资产都自动获得本包检视器，子类不必再写检视器代码。
 
 > **为什么不做全局注册**（例如 `[CustomEditor(typeof(MonoBehaviour), true)]`）：那会替换掉全工程其它脚本的 Unity 原生检视器。通用包不应该替使用方做这种决定 —— 登记什么类型属于使用方的知识。
 
@@ -639,7 +639,7 @@ public class InspectorSerializedScriptableObjectEditor : InspectorEditor { }
 
 ### 其它
 
-- 反射改值绕过了 `SerializedProperty`，`InspectorEditor` 里已用 `EditorUtility.SetDirty` + `PrefabUtility.RecordPrefabInstancePropertyModifications` 兜底；**自己写宿主（例如直接用 `InspectorEngine.DrawObject`）必须自己实现 `onChanged`**，否则改动不会落盘；
+- 反射改值绕过了 `SerializedProperty`，`InspectorEditor` 里已用 `EditorUtility.SetDirty` + `PrefabUtility.RecordPrefabInstancePropertyModifications` 兜底；**自己写宿主（例如直接用 `Engine.DrawObject`）必须自己实现 `onChanged`**，否则改动不会落盘；
 - 引擎**不绘制** `UnityEngine.Object` 成员内部的字段（除非 `[InlineEditor]`）；
 - **private 字段必须挂特性**（`[SerializeField]`/`[ShowInInspector]`/`[InspectorSerialize]`）才可见；**public static 字段默认不显示**（挂特性即可显示）；**基类的 `private` 字段永远收不到**（`FlattenHierarchy` 对非公开实例成员只覆盖 `protected`，实测确认），继承体系请用 `protected`/`public`；
 - **方法必须无参**才会被 `[Button]`/`[OnInspectorGUI]` 识别；`[Button]` / `[OnValueChanged]` / `CustomAddFunction` / 表达式的方法名解析同样只认无参版本（按形参个数挑）—— **同名重载不会再抛 `AmbiguousMatchException`**（`Type.GetMethod(name, flags)` 在重载时必抛，实测），带参方法直接判为"没有"（用 null 参数调用本来就执行不了）；被 `new` 隐藏的成员按"取最派生"这条确定规则解析（`Type.GetMember` 一次查返回的是成员数组、顺序未定义）；
@@ -651,7 +651,7 @@ public class InspectorSerializedScriptableObjectEditor : InspectorEditor { }
 - 表达式解析会校验收尾：写了一半的表达式（如 `@Items[0`）整体返回 `null`，而不是被静默截断成一个错值；
 - 表达式里的数字字面量一律是 `double`；方法调用（`InvokeRaw`）会先按形参类型显式收窄，因此 **`@Foo(1, 2)` 可以调用 `Foo(int, int)`**，`Foo(SomeEnum)` 也能接收整数字面量。收窄只覆盖数值与枚举形参，其余类型原样交给反射 binder；
 - 已声明但当前**无实现/无效果**的特性与参数（完整清单）：`[HideReferenceObjectPicker]`、`[HideMonoScript]`、`[Searchable]`、`[OnInspectorInit]`、`[HideInTables]`、`[TabGroup]`（降级为垂直组）、`PropertyGroup.AnimateVisibility`、`ShowIf.Animate`、`OnValueChanged.IncludeChildren`、`GUIColorAttribute.MethodName`、`TitleAttribute.Alignment`、`TableListAttribute.ShowPaging`/`ShowItemCount`、`HorizontalGroupAttribute.Width`、`Button.ButtonStyle`/`IconAlignment`、`TableColumnWidth.Resizable`、`DictionaryDrawerSettings` 的多数参数、`ListDrawerSettings` 的多数参数、`FilePath.ParentFolder`、`FolderPath` 的参数、Unity 原生 `[Tooltip]`；
-- 本包**不提供菜单入口**；也不注册针对 `MonoBehaviour`/`ScriptableObject` 的全局检视器覆盖 —— 唯一的 `[CustomEditor(..., true)]` 只挂在 `InspectorSerializedScriptableObject` 上（覆盖它自己的继承族，见第 6 节）。业务类型的入口与登记都在使用方。
+- 本包**不提供菜单入口**；也不注册针对 `MonoBehaviour`/`ScriptableObject` 的全局检视器覆盖 —— 唯一的 `[CustomEditor(..., true)]` 只挂在 `SerializedScriptableObject` 上（覆盖它自己的继承族，见第 6 节）。业务类型的入口与登记都在使用方。
 
 ---
 
@@ -753,40 +753,40 @@ public enum Mode { Simple, Advanced }
 
 | 主题 | 文件（符号名） |
 |---|---|
-| 绘制入口 / 变更回调 | `Editor/InspectorEngine.cs`（`DrawObject`、`Mutate`） |
-| 有意不实现的特性说明（含原话） | `Editor/InspectorEngine.cs`（类首"有意不实现的属性"注释段） |
-| 成员收集与可见性规则 | `Editor/InspectorEngine.cs`（`GetMembers`） |
-| 排序算法（`PropertyOrder` → 声明序） | `Editor/InspectorEngine.cs`（`GetMembers` 内的比较器） |
-| 分组树构建 / 整组隐藏 | `Editor/InspectorEngine.cs`（`GetGroupTree`） |
-| `TabGroup` 降级为垂直组 | `Editor/InspectorEngine.cs`（`DescribeGroup`） |
-| 按钮绘制（含图标/Tooltip/高度/背景色还原） | `Editor/InspectorEngine.cs`（`DrawButton`） |
-| 每帧状态更新 | `Editor/InspectorEngine.cs`（`RunStateUpdates`） |
-| `[InlineEditor]` 内联展开 / 目标判定 | `Editor/InspectorEngine.cs`（`DrawInlineEditor`、`IsInlineEditorTarget`） |
-| `Min/MaxValue` → Slider 判定 | `Editor/InspectorEngine.cs`（`DrawScalarControl` 内的 `EditorGUILayout.Slider` 分支） |
-| 标量控件（含 `Vector4`/`Quaternion`/`Rect`/`Bounds`/`LayerMask`/曲线/渐变分支） | `Editor/InspectorEngine.cs`（`DrawScalarControl`） |
-| 容器判定（曲线/渐变在此被排除，改走专用控件） | `Editor/InspectorEngine.cs`（`IsContainerType`） |
-| 表格绘制（工具栏/索引/每页条数） | `Editor/InspectorEngine.cs`（`DrawTableList`） |
-| 列表 `CustomAddFunction` | `Editor/InspectorEngine.cs`（`AddListElement`） |
-| 提示框 / 运行模式显隐 | `Editor/InspectorEngine.cs`（`DrawTitlePrelude`、`CheckVisibility`） |
-| 无参方法查找与缓存 / 字段属性查找与缓存 | `Editor/InspectorEngine.cs`（`FindMethod`、`ResolveFieldOrProperty`） |
-| `GUIColor` / `InlineButton` | `Editor/InspectorEngine.cs`（`ResolveGUIColor`、`DrawInlineButtons`） |
-| 条件显隐 / 禁用判定 / 成员名解析不到时的告警 | `Editor/InspectorEngine.cs`（`CheckVisibility`、`GetMemberValue`） |
+| 绘制入口 / 变更回调 | `Editor/Engine.cs`（`DrawObject`、`Mutate`） |
+| 有意不实现的特性说明（含原话） | `Editor/Engine.cs`（类首"有意不实现的属性"注释段） |
+| 成员收集与可见性规则 | `Editor/Engine.cs`（`GetMembers`） |
+| 排序算法（`PropertyOrder` → 声明序） | `Editor/Engine.cs`（`GetMembers` 内的比较器） |
+| 分组树构建 / 整组隐藏 | `Editor/Engine.cs`（`GetGroupTree`） |
+| `TabGroup` 降级为垂直组 | `Editor/Engine.cs`（`DescribeGroup`） |
+| 按钮绘制（含图标/Tooltip/高度/背景色还原） | `Editor/Engine.cs`（`DrawButton`） |
+| 每帧状态更新 | `Editor/Engine.cs`（`RunStateUpdates`） |
+| `[InlineEditor]` 内联展开 / 目标判定 | `Editor/Engine.cs`（`DrawInlineEditor`、`IsInlineEditorTarget`） |
+| `Min/MaxValue` → Slider 判定 | `Editor/Engine.cs`（`DrawScalarControl` 内的 `EditorGUILayout.Slider` 分支） |
+| 标量控件（含 `Vector4`/`Quaternion`/`Rect`/`Bounds`/`LayerMask`/曲线/渐变分支） | `Editor/Engine.cs`（`DrawScalarControl`） |
+| 容器判定（曲线/渐变在此被排除，改走专用控件） | `Editor/Engine.cs`（`IsContainerType`） |
+| 表格绘制（工具栏/索引/每页条数） | `Editor/Engine.cs`（`DrawTableList`） |
+| 列表 `CustomAddFunction` | `Editor/Engine.cs`（`AddListElement`） |
+| 提示框 / 运行模式显隐 | `Editor/Engine.cs`（`DrawTitlePrelude`、`CheckVisibility`） |
+| 无参方法查找与缓存 / 字段属性查找与缓存 | `Editor/Engine.cs`（`FindMethod`、`ResolveFieldOrProperty`） |
+| `GUIColor` / `InlineButton` | `Editor/Engine.cs`（`ResolveGUIColor`、`DrawInlineButtons`） |
+| 条件显隐 / 禁用判定 / 成员名解析不到时的告警 | `Editor/Engine.cs`（`CheckVisibility`、`GetMemberValue`） |
 | 折叠状态与滚动位置的会话存取（按对象弱引用分桶） | `Editor/HostSession.cs`（`HostSession`） |
-| 值语义（真值/数值/相等容差，两份实现合并于此） | `Editor/InspectorExpression.cs`（`InspectorValue`） |
+| 值语义（真值/数值/相等容差，两份实现合并于此） | `Editor/InspectorExpression.cs`（`Value`） |
 | 表达式：AST 缓存与负缓存（上限清空） | `Editor/InspectorExpression.cs`（`AstCacheLimit`、`GetAst`） |
 | 表达式：求值入口 / 索引器元数据缓存 | `Editor/InspectorExpression.cs`（`Evaluate`、`s_IndexerCache`） |
 | 表达式：赋值节点 | `Editor/InspectorExpression.cs`（`SetLeft`、`SetMember`） |
 | 表达式：上下文根解析（`$value`/`$root`/`$property`） | `Editor/InspectorExpression.cs`（`ResolveRoot`） |
 | 菜单树订阅者回调的异常兜底 | `Editor/MenuTree.cs`（`OnSelectionChanged`） |
-| 序列化成员筛选（三条规则：特性 / Unity 值类型 / 属性包） | `Editor/InspectorSerialization.cs`（`GetDataMembers`、`AnnotatedMembers`、`IsUnitySerializableValueType`、`IsUnityPropertyBagType`） |
-| 写出与读成员容错（`{}` 告警 / 单成员读失败写 null） | `Editor/InspectorSerialization.cs`（`WriteObject`、`ReadMemberSafe`） |
-| 逐成员写回 / 嵌套对象创建（曲线走真实构造函数） | `Editor/InspectorSerialization.cs`（`ApplyMembers`、`CreateInstance`） |
-| 统一日志出口（`Debug.*` 保护 + `WarnOnce` 去重） | `Editor/InspectorLog.cs`（`InspectorLog`、`WarnOnce`） |
-| `UnityEngine.Object` 被写为 null / 深度上限 | `Editor/InspectorSerialization.cs`（`WriteValue`、`MaxDepth`） |
+| 序列化成员筛选（三条规则：特性 / Unity 值类型 / 属性包） | `Editor/Serialization.cs`（`GetDataMembers`、`AnnotatedMembers`、`IsUnitySerializableValueType`、`IsUnityPropertyBagType`） |
+| 写出与读成员容错（`{}` 告警 / 单成员读失败写 null） | `Editor/Serialization.cs`（`WriteObject`、`ReadMemberSafe`） |
+| 逐成员写回 / 嵌套对象创建（曲线走真实构造函数） | `Editor/Serialization.cs`（`ApplyMembers`、`CreateInstance`） |
+| 统一日志出口（`Debug.*` 保护 + `WarnOnce` 去重） | `Editor/Log.cs`（`Log`、`WarnOnce`） |
+| `UnityEngine.Object` 被写为 null / 深度上限 | `Editor/Serialization.cs`（`WriteValue`、`MaxDepth`） |
 | 检视器宿主与 Undo 处理 | `Editor/InspectorEditor.cs`（`InspectorEditor`、`OnBeforeChange`） |
 | 窗口/菜单树基类 | `Editor/EditorWindowBase.cs`（`EditorWindowBase`、`MenuEditorWindow`） |
 | 菜单树数据模型 | `Editor/MenuTree.cs`（`MenuTreeSelection`、`MenuTree`） |
-| 整族登记范例 | `Editor/InspectorSerializedScriptableObjectEditor.cs` |
+| 整族登记范例 | `Editor/SerializedScriptableObjectEditor.cs` |
 
 > 本表故意不写行号：行号会随实现漂移，用 IDE 的"转到符号"或全局搜符号名定位即可。符号名不会腐坏，且可机械校验（把表里每个 `` `符号` `` 拿去对应文件 `grep -w` 一遍即可）。
 
@@ -798,11 +798,11 @@ public enum Mode { Simple, Advanced }
 
 | 测试文件 | 覆盖对象 |
 |---|---|
-| `InspectorExpressionEvaluatorTests.cs` | `@` 表达式的词法/优先级/求值/真值语义、`$property` 读写、失败路径、解析缓存（重复求值仍读当前值/仍写回）、按形参个数挑重载、被 `new` 隐藏的成员取最派生、自定义索引器 |
-| `InspectorSerializationTests.cs` | 标量/字符/枚举/数组/List/Dictionary/HashSet/嵌套 POCO/Unity 值类型（`Vector2`、`Vector4`、`Quaternion`、`Rect`、`LayerMask`）的 JSON 往返、Unity 属性包类型（曲线/渐变）的成员规则与 null 语义、渐变的完整往返（需 Unity）、转义、null 语义、类型强转、`null` 根、环引用的深度剪断、截断 `\uXXXX` 的容错 |
-| `InspectorEngineReflectionTests.cs` | 引擎骨架：成员可见性规则、`PropertyOrder` → 收集序排序、`GroupID` 路径 → 分组树（嵌套/类型/同级顺序）、类型级缓存、无参方法解析（重载/仅有带参/被 `new` 隐藏） |
-| `InspectorEngineStateTests.cs` | 折叠状态：默认展开、实例/成员/会话间隔离、宿主对象回收后状态随之释放、`OnStateUpdate` 表达式写回与按名调用 |
-| `InspectorEngineConditionTests.cs` | 条件显隐与禁用：`[ShowIf]`/`[HideIf]` 的真值与相等语义（含数值相对容差，`float` 字段 vs `double` 字面量）、`@` 条件表达式、成员名解析（被 `new` 隐藏的成员取最派生）、多条件"与"、`[EnableIf]`/`[DisableIf]`、两种运行模式下的 `[HideInPlayMode]`/`[HideInEditorMode]` |
+| `ExpressionEvaluatorTests.cs` | `@` 表达式的词法/优先级/求值/真值语义、`$property` 读写、失败路径、解析缓存（重复求值仍读当前值/仍写回）、按形参个数挑重载、被 `new` 隐藏的成员取最派生、自定义索引器 |
+| `SerializationTests.cs` | 标量/字符/枚举/数组/List/Dictionary/HashSet/嵌套 POCO/Unity 值类型（`Vector2`、`Vector4`、`Quaternion`、`Rect`、`LayerMask`）的 JSON 往返、Unity 属性包类型（曲线/渐变）的成员规则与 null 语义、渐变的完整往返（需 Unity）、转义、null 语义、类型强转、`null` 根、环引用的深度剪断、截断 `\uXXXX` 的容错 |
+| `EngineReflectionTests.cs` | 引擎骨架：成员可见性规则、`PropertyOrder` → 收集序排序、`GroupID` 路径 → 分组树（嵌套/类型/同级顺序）、类型级缓存、无参方法解析（重载/仅有带参/被 `new` 隐藏） |
+| `EngineStateTests.cs` | 折叠状态：默认展开、实例/成员/会话间隔离、宿主对象回收后状态随之释放、`OnStateUpdate` 表达式写回与按名调用 |
+| `EngineConditionTests.cs` | 条件显隐与禁用：`[ShowIf]`/`[HideIf]` 的真值与相等语义（含数值相对容差，`float` 字段 vs `double` 字面量）、`@` 条件表达式、成员名解析（被 `new` 隐藏的成员取最派生）、多条件"与"、`[EnableIf]`/`[DisableIf]`、两种运行模式下的 `[HideInPlayMode]`/`[HideInEditorMode]` |
 | `MenuTreeTests.cs` | 菜单树：路径建树与自动补文件夹、同名就地替换、深度优先遍历、选中与事件 |
 
 ### 怎么跑
@@ -825,13 +825,13 @@ public enum Mode { Simple, Advanced }
 cd "Packages/cn.rendu.editorkit/Tools~/Verify" && dotnet run
 ```
 
-几秒内即可跑完全部纯逻辑断言（表达式、序列化、成员收集、折叠状态、条件显隐、菜单树），无需启动编辑器；依赖 Unity 运行时的用例会被自动跳过（当前 2 个：`Serialize_UnityObjectReferenceIsNotPersisted`、`RoundTrip_Gradient`）。当前规模：**6 个夹具 130 例，脱机 128 通过 / 2 跳过**（`InspectorExpressionEvaluatorTests` 44、`InspectorEngineReflectionTests` 21、`InspectorEngineConditionTests` 20、`InspectorSerializationTests` 19、`MenuTreeTests` 14、`InspectorEngineStateTests` 12）。
+几秒内即可跑完全部纯逻辑断言（表达式、序列化、成员收集、折叠状态、条件显隐、菜单树），无需启动编辑器；依赖 Unity 运行时的用例会被自动跳过（当前 2 个：`Serialize_UnityObjectReferenceIsNotPersisted`、`RoundTrip_Gradient`）。当前规模：**6 个夹具 130 例，脱机 128 通过 / 2 跳过**（`ExpressionEvaluatorTests` 44、`EngineReflectionTests` 21、`EngineConditionTests` 20、`SerializationTests` 19、`MenuTreeTests` 14、`EngineStateTests` 12）。
 
 运行器接受一个**夹具名子串**作为可选参数（`Program.Main` 的 `args[0]`，大小写不敏感的 `IndexOf` 匹配），只想跑一块时：
 
 ```bash
-dotnet run -- InspectorExpression      # 只跑 InspectorExpressionEvaluatorTests
-dotnet run -- InspectorEngine          # 跑两个 InspectorEngine*Tests
+dotnet run -- InspectorExpression      # 只跑 ExpressionEvaluatorTests
+dotnet run -- Engine          # 跑两个 Engine*Tests
 ```
 
 （`--` 后面的参数才会传给程序；不带参数就跑全部。）
@@ -848,7 +848,7 @@ UNITY_MANAGED=/path/to/Managed dotnet run
 - 这些断言固化的是**当前实现的真实行为**，不是"理想行为"。"表达式不短路求值"、"`Truthy(0)` 为真"、"数字字面量一律是 `double`"这类反直觉规则是**故意**钉住的陷阱提示 —— 改实现时先让测试变红，再决定是改断言还是改代码；
 - `Serialize_UnityObjectReferenceIsNotPersisted` 依赖 `ScriptableObject`，`RoundTrip_Gradient` 依赖原生对象（**曲线/渐变在纯 .NET 里 `new` 不出来，直接抛 `SecurityException: ECall methods must be packaged into a system module`**），这两个**只能**在 Test Runner 内跑 —— 跳过名单是 `Tools~/Verify/Program.cs` 里的 `RequiresUnityRuntime`。曲线/渐变其余能脱机验证的部分（成员规则、null 语义）只走反射，因此在纯 .NET 下同样有覆盖；
 - 测试通过 `Editor/AssemblyInfo.cs` 里的 `InternalsVisibleTo` 访问引擎的 internal 元数据与状态存取方法（`CachedMember` / `GroupNode` / `GetMembers` / `GetGroupTree` / `GetExpanded` / `SetExpanded` / `FindMethod` 等），这样不必让测试去反射私有成员；`internal` 在程序集之外依然不可见，不扩大公共 API；
-- 仍然**没有** GUI 层测试：`InspectorEngine` 的绘制流程与 `Begin/End` 配平还没有自动化覆盖，改动这些区域依然只能靠 Unity Test Runner 或手工回归（条件显隐规则本身已可脱机验证，见 `InspectorEngineConditionTests`）；
+- 仍然**没有** GUI 层测试：`Engine` 的绘制流程与 `Begin/End` 配平还没有自动化覆盖，改动这些区域依然只能靠 Unity Test Runner 或手工回归（条件显隐规则本身已可脱机验证，见 `EngineConditionTests`）；
 - 折叠状态与滚动位置存在 `HostSession`（由宿主持有，`DrawObject` 在绘制期间挂载、退出时还原；未显式传入时用默认会话兜底）：状态的生存期与宿主一致、窗口之间彼此隔离，不再是进程级静态字典；
-- 会话内的成员状态按**宿主对象弱引用分桶**（`ConditionalWeakTable<object, ObjectState>`，桶内再按成员名索引）：对象被回收即整桶消失，不会像早期实现那样留下永不释放的键；分桶判定走"引用相等"，也消除了身份哈希被复用后把状态错给新对象的问题（回归用例 `InspectorEngineStateTests.FoldedState_OwnerStateIsReleasedWithTheOwner`）；
-- 分组展开状态并入同一套分桶（桶内键为 `GroupID` 路径）：此前它挂在会话级平铺字典上，而分组路径在同类型的所有实例上是同一个字符串，于是同一窗口里两个同类型对象（例如列表中的两行）会共用一次折叠。现在 `FoldoutGroup` 的展开逐实例独立（回归用例 `InspectorEngineStateTests.GroupExpanded_IsolatedPerInstance`）。
+- 会话内的成员状态按**宿主对象弱引用分桶**（`ConditionalWeakTable<object, ObjectState>`，桶内再按成员名索引）：对象被回收即整桶消失，不会像早期实现那样留下永不释放的键；分桶判定走"引用相等"，也消除了身份哈希被复用后把状态错给新对象的问题（回归用例 `EngineStateTests.FoldedState_OwnerStateIsReleasedWithTheOwner`）；
+- 分组展开状态并入同一套分桶（桶内键为 `GroupID` 路径）：此前它挂在会话级平铺字典上，而分组路径在同类型的所有实例上是同一个字符串，于是同一窗口里两个同类型对象（例如列表中的两行）会共用一次折叠。现在 `FoldoutGroup` 的展开逐实例独立（回归用例 `EngineStateTests.GroupExpanded_IsolatedPerInstance`）。

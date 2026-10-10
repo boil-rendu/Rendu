@@ -503,11 +503,11 @@ def fig_architecture():
     txt(d, 56, 285, "Editor / RD.EditorKit.Editor", 14, TEXT, bold=True, anchor="lm")
     txt(d, W - 60, 285, "Editor-only，不 using 任何业务类型", 12, WARN, anchor="rm")
     mods = [
-        ("InspectorEngine", "反射收集成员 + 绘制（唯一入口 DrawObject）"),
+        ("Engine", "反射收集成员 + 绘制（唯一入口 DrawObject）"),
         ("InspectorExpression", "表达式求值（含 AST 缓存）"),
-        ("InspectorSerialization", "JSON 序列化与读回"),
+        ("Serialization", "JSON 序列化与读回"),
         ("EditorWindowBase", "窗口基类（含左树右面板）"),
-        ("HostSession / InspectorLog", "会话状态 / 日志出口"),
+        ("HostSession / Log", "会话状态 / 日志出口"),
     ]
     cy = 312
     for k, v in mods:

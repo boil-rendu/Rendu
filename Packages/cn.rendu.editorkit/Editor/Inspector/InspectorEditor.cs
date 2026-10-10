@@ -5,7 +5,7 @@ namespace RD.EditorKit.Editor
 {
     /// <summary>
     /// Inspector 通用检视器
-    /// 用 InspectorEngine 反射绘制目标对象, 支持 [ShowInInspector] / [Button] / 各类分组等全部 Inspector 属性。
+    /// 用 Engine 反射绘制目标对象, 支持 [ShowInInspector] / [Button] / 各类分组等全部 Inspector 属性。
     ///
     /// 用法: 由业务侧显式注册, 例如
     ///     [CustomEditor(typeof(MyBehaviour))]
@@ -42,7 +42,7 @@ namespace RD.EditorKit.Editor
             // 控件式修改(输入框/滑杆/开关)由 BeginChangeCheck 兜底;
             // 按钮与集合增删不走 GUI.changed, 由引擎的 onChanged 回调兜底。
             EditorGUI.BeginChangeCheck();
-            InspectorEngine.DrawObject(target, null, OnBeforeChange, OnChanged, m_Session);
+            Engine.DrawObject(target, null, OnBeforeChange, OnChanged, m_Session);
             if (EditorGUI.EndChangeCheck())
             {
                 OnChanged(target);

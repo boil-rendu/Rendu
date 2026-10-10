@@ -16,7 +16,7 @@ namespace RD.EditorKit.Editor
     /// 通过 Unity 原生序列化落盘, 保持数据资产的读写能力。
     /// 支持类型: 数值/字符串/布尔/枚举/一维数组/List/Dictionary(键为字符串或数值)/嵌套 POCO。
     /// </summary>
-    public class InspectorSerializedScriptableObject : ScriptableObject, ISerializationCallbackReceiver
+    public class SerializedScriptableObject : ScriptableObject, ISerializationCallbackReceiver
     {
         [SerializeField]
         [HideInInspector]
@@ -28,7 +28,7 @@ namespace RD.EditorKit.Editor
         public void OnBeforeSerialize()
         {
             if (m_Deserializing) return;
-            m_InspectorData = InspectorSerialization.Serialize(this);
+            m_InspectorData = Serialization.Serialize(this);
         }
 
         public void OnAfterDeserialize()
@@ -38,7 +38,7 @@ namespace RD.EditorKit.Editor
             m_Deserializing = true;
             try
             {
-                InspectorSerialization.Deserialize(this, m_InspectorData);
+                Serialization.Deserialize(this, m_InspectorData);
             }
             finally
             {
@@ -55,7 +55,7 @@ namespace RD.EditorKit.Editor
     }
 
     /// <summary>[InspectorSerialize] 成员集合的 JSON 序列化工具。</summary>
-    public static class InspectorSerialization
+    public static class Serialization
     {
         private const BindingFlags MemberFlags =
                 BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
@@ -178,7 +178,7 @@ namespace RD.EditorKit.Editor
 
         /// <summary>
         /// Unity 里"数据不在托管字段上、靠专用控件编辑"的引用类型: 曲线与渐变。
-        /// 绘制侧靠它决定用 CurveField/GradientField 而不是展开成员(见 InspectorEngine.IsContainerType),
+        /// 绘制侧靠它决定用 CurveField/GradientField 而不是展开成员(见 Engine.IsContainerType),
         /// 序列化侧靠它决定"按公开读写属性存取 + 用真实构造函数创建"(见 UnityPropertyBagMembers/CreateInstance)。
         /// 注意曲线的数据实际存在原生的 m_Ptr 里, 所以既不能按字段序列化, 也不能用
         /// FormatterServices 绕过构造函数去造它。
@@ -214,7 +214,7 @@ namespace RD.EditorKit.Editor
             {
                 // 一个成员都取不到就只能写成 {} , 读回来必然是 default —— 这跟"静默丢数据"没有区别。
                 // 把类型名点出来, 让"忘了标 [InspectorSerialize]"当场可见, 而不是等到读档才发现值没了。
-                InspectorLog.WarnOnce($"no-member:{type.FullName}",
+                Log.WarnOnce($"no-member:{type.FullName}",
                                       $"[Inspector] {type.FullName} 没有任何可序列化成员, 本次只能写成 {{}}, " +
                                       "读回来会变回 default —— 它的数据成员需要标 [InspectorSerialize]。");
             }
@@ -242,7 +242,7 @@ namespace RD.EditorKit.Editor
             }
             catch (Exception e)
             {
-                InspectorLog.WarnOnce($"read-member:{ownerType.FullName}.{member.Name}",
+                Log.WarnOnce($"read-member:{ownerType.FullName}.{member.Name}",
                                       $"[Inspector] 读取成员失败 {ownerType.Name}.{member.Name}: {e.Message}");
                 return null;
             }
@@ -447,7 +447,7 @@ namespace RD.EditorKit.Editor
                 {
                     // 单个成员写回失败(类型对不上、setter 抛异常等)不该拖垮整个资产,
                     // 记一条警告后继续还原其余成员。
-                    InspectorLog.Warn(
+                    Log.Warn(
                         $"[Inspector] 反序列化成员失败 {obj.GetType().Name}.{member.Name}: {e.Message}");
                 }
             }

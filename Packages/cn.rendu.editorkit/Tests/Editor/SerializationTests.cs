@@ -12,11 +12,11 @@ namespace RD.EditorKit.Tests.Editor
     }
 
     /// <summary>
-    /// InspectorSerialization 的行为基线。
+    /// Serialization 的行为基线。
     /// 覆盖: 标量/字符/枚举/数组/List/Dictionary/嵌套 POCO 的写出与读回,
     /// 字符串转义, null 语义, 缺失与只读成员的处理, 以及 JSON 数值到目标类型的强转。
     /// </summary>
-    public class InspectorSerializationTests
+    public class SerializationTests
     {
         private enum Tag
         {
@@ -111,7 +111,7 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void Serialize_EmitsScalarsCollectionsAndNestedObjects()
         {
-            var json = InspectorSerialization.Serialize(new Sample());
+            var json = Serialization.Serialize(new Sample());
 
             StringAssert.Contains("\"IntValue\":42", json);
             StringAssert.Contains("\"FloatValue\":1.5", json);
@@ -130,7 +130,7 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void Serialize_EscapesControlAndQuoteCharacters()
         {
-            var json = InspectorSerialization.Serialize(new Escapes());
+            var json = Serialization.Serialize(new Escapes());
 
             StringAssert.Contains("\\\"", json);
             StringAssert.Contains("\\\\", json);
@@ -142,7 +142,7 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void Serialize_NullMembersBecomeJsonNull()
         {
-            var json = InspectorSerialization.Serialize(new Nullable());
+            var json = Serialization.Serialize(new Nullable());
 
             StringAssert.Contains("\"Text\":null", json);
             StringAssert.Contains("\"Child\":null", json);
@@ -154,7 +154,7 @@ namespace RD.EditorKit.Tests.Editor
             var asset = ScriptableObject.CreateInstance<SerializationTestsDummyAsset>();
             try
             {
-                var json = InspectorSerialization.Serialize(new UnityRefHolder { Asset = asset });
+                var json = Serialization.Serialize(new UnityRefHolder { Asset = asset });
                 StringAssert.Contains("\"Asset\":null", json);
             }
             finally
@@ -166,7 +166,7 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void Serialize_NullRoot_EmitsJsonNull()
         {
-            Assert.AreEqual("null", InspectorSerialization.Serialize(null));
+            Assert.AreEqual("null", Serialization.Serialize(null));
         }
 
         [Test]
@@ -176,7 +176,7 @@ namespace RD.EditorKit.Tests.Editor
             node.Next = node;
 
             string json = null;
-            Assert.DoesNotThrow(() => json = InspectorSerialization.Serialize(node),
+            Assert.DoesNotThrow(() => json = Serialization.Serialize(node),
                 "环引用必须被深度剪断, 而不是栈溢出 —— 那在编辑器里无法捕获, 会直接闪退");
             StringAssert.Contains("\"Next\":null", json);
         }
@@ -186,7 +186,7 @@ namespace RD.EditorKit.Tests.Editor
         {
             var target = new Escapes { Value = "keep" };
 
-            Assert.DoesNotThrow(() => InspectorSerialization.Deserialize(target, "{\"Value\":\"a\\u00"),
+            Assert.DoesNotThrow(() => Serialization.Deserialize(target, "{\"Value\":\"a\\u00"),
                 "截断的 \\uXXXX 若直接 Substring 会抛异常, 而这条路径在 OnAfterDeserialize 里");
             Assert.AreEqual("a", target.Value, "解析不到完整转义时按已读到的内容收尾");
         }
@@ -197,7 +197,7 @@ namespace RD.EditorKit.Tests.Editor
         public void RoundTrip_PreservesAllSupportedShapes()
         {
             var source = new Sample();
-            var json = InspectorSerialization.Serialize(source);
+            var json = Serialization.Serialize(source);
 
             var target = new Sample
             {
@@ -209,7 +209,7 @@ namespace RD.EditorKit.Tests.Editor
                 Map = null,
             };
 
-            InspectorSerialization.Deserialize(target, json);
+            Serialization.Deserialize(target, json);
 
             Assert.AreEqual(source.IntValue, target.IntValue);
             Assert.AreEqual(source.FloatValue, target.FloatValue);
@@ -235,10 +235,10 @@ namespace RD.EditorKit.Tests.Editor
         public void RoundTrip_PreservesStringEscapes()
         {
             var source = new Escapes();
-            var json = InspectorSerialization.Serialize(source);
+            var json = Serialization.Serialize(source);
 
             var target = new Escapes { Value = null };
-            InspectorSerialization.Deserialize(target, json);
+            Serialization.Deserialize(target, json);
 
             Assert.AreEqual(source.Value, target.Value);
         }
@@ -246,10 +246,10 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void RoundTrip_NullStaysNull()
         {
-            var json = InspectorSerialization.Serialize(new Nullable());
+            var json = Serialization.Serialize(new Nullable());
 
             var target = new Nullable { Text = "stale", Child = new Inner() };
-            InspectorSerialization.Deserialize(target, json);
+            Serialization.Deserialize(target, json);
 
             Assert.IsNull(target.Text);
             Assert.IsNull(target.Child);
@@ -258,10 +258,10 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void RoundTrip_SetIsSupported()
         {
-            var json = InspectorSerialization.Serialize(new SetHolder());
+            var json = Serialization.Serialize(new SetHolder());
             var target = new SetHolder { Values = null };
 
-            Assert.DoesNotThrow(() => InspectorSerialization.Deserialize(target, json),
+            Assert.DoesNotThrow(() => Serialization.Deserialize(target, json),
                 "HashSet 只实现 ICollection<T> 而非 IList, 强转 IList 会把整个反序列化打断");
             Assert.IsNotNull(target.Values);
             CollectionAssert.AreEquivalent(new[] { 1, 2 }, target.Values);
@@ -279,12 +279,12 @@ namespace RD.EditorKit.Tests.Editor
                 Layer = 5,
             };
 
-            var json = InspectorSerialization.Serialize(source);
+            var json = Serialization.Serialize(source);
             StringAssert.DoesNotContain("\"Direction\":{}", json,
                 "Unity 值类型的成员带不了 [InspectorSerialize], 不能因此被写成空对象(那等于静默清零)");
 
             var target = new UnityStructHolder();
-            InspectorSerialization.Deserialize(target, json);
+            Serialization.Deserialize(target, json);
 
             Assert.AreEqual(source.Direction, target.Direction);
             Assert.AreEqual(source.Plane, target.Plane);
@@ -304,12 +304,12 @@ namespace RD.EditorKit.Tests.Editor
                 new[] { new GradientColorKey(Color.red, 0f), new GradientColorKey(Color.blue, 1f) },
                 new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0.25f, 1f) });
 
-            var json = InspectorSerialization.Serialize(source);
+            var json = Serialization.Serialize(source);
             StringAssert.DoesNotContain("\"Fade\":{}", json,
                 "渐变的数据在公开读写属性上, 不能因为它的字段既没有也不能带 [InspectorSerialize] 就写成空对象");
 
             var target = new UnityPropertyBagHolder { Fade = new Gradient() };
-            InspectorSerialization.Deserialize(target, json);
+            Serialization.Deserialize(target, json);
 
             Assert.AreEqual(source.Fade.mode, target.Fade.mode);
             Assert.AreEqual(2, target.Fade.colorKeys.Length);
@@ -326,11 +326,11 @@ namespace RD.EditorKit.Tests.Editor
             Assert.IsNull(source.Curve);
             Assert.IsNull(source.Fade);
 
-            var json = InspectorSerialization.Serialize(source);
+            var json = Serialization.Serialize(source);
             StringAssert.Contains("\"Fade\":null", json);
 
             var target = new UnityPropertyBagHolder();
-            Assert.DoesNotThrow(() => InspectorSerialization.Deserialize(target, json));
+            Assert.DoesNotThrow(() => Serialization.Deserialize(target, json));
             Assert.IsNull(target.Curve);
             Assert.IsNull(target.Fade);
         }
@@ -339,7 +339,7 @@ namespace RD.EditorKit.Tests.Editor
         public void DataMembers_AnimationCurveUsesPublicProperties()
         {
             var names = new List<string>();
-            foreach (var member in InspectorSerialization.GetDataMembers(typeof(AnimationCurve)))
+            foreach (var member in Serialization.GetDataMembers(typeof(AnimationCurve)))
             {
                 names.Add(member.Name);
             }
@@ -352,7 +352,7 @@ namespace RD.EditorKit.Tests.Editor
         public void DataMembers_GradientUsesPublicProperties()
         {
             var names = new List<string>();
-            foreach (var member in InspectorSerialization.GetDataMembers(typeof(Gradient)))
+            foreach (var member in Serialization.GetDataMembers(typeof(Gradient)))
             {
                 names.Add(member.Name);
             }
@@ -367,7 +367,7 @@ namespace RD.EditorKit.Tests.Editor
         public void Deserialize_IgnoresUnknownAndGetOnlyMembers()
         {
             var target = new ReadOnlyHolder();
-            InspectorSerialization.Deserialize(target, "{\"Settable\":5,\"Unknown\":1,\"GetterOnly\":123}");
+            Serialization.Deserialize(target, "{\"Settable\":5,\"Unknown\":1,\"GetterOnly\":123}");
 
             Assert.AreEqual(5, target.Settable);
             Assert.AreEqual(99, target.GetterOnly, "无 setter 的成员应被跳过而不是抛异常");
@@ -377,7 +377,7 @@ namespace RD.EditorKit.Tests.Editor
         public void Deserialize_CoercesJsonNumberToTargetType()
         {
             var target = new Sample();
-            InspectorSerialization.Deserialize(target, "{\"IntValue\":7,\"FloatValue\":3}");
+            Serialization.Deserialize(target, "{\"IntValue\":7,\"FloatValue\":3}");
 
             Assert.AreEqual(7, target.IntValue);
             Assert.AreEqual(3f, target.FloatValue);
@@ -387,8 +387,8 @@ namespace RD.EditorKit.Tests.Editor
         public void Deserialize_EmptyOrNullJson_IsNoOp()
         {
             var target = new Sample { IntValue = 42 };
-            InspectorSerialization.Deserialize(target, "");
-            InspectorSerialization.Deserialize(target, null);
+            Serialization.Deserialize(target, "");
+            Serialization.Deserialize(target, null);
 
             Assert.AreEqual(42, target.IntValue);
         }

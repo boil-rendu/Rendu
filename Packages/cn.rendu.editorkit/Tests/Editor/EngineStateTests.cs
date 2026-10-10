@@ -19,7 +19,7 @@ namespace RD.EditorKit.Tests.Editor
     ///
     /// 未覆盖: 所有绘制路径对 GetExpanded/SetExpanded 的调用(如 foldout、Dictionary/List/Table 的展开)。
     /// </summary>
-    public class InspectorEngineStateTests
+    public class EngineStateTests
     {
         //-------------------------------------- 夹具 --------------------------------------
 
@@ -59,9 +59,9 @@ namespace RD.EditorKit.Tests.Editor
             return sample;
         }
 
-        private static InspectorEngine.CachedMember Member(string name)
+        private static Engine.CachedMember Member(string name)
         {
-            foreach (var m in InspectorEngine.GetMembers(typeof(StateSample)))
+            foreach (var m in Engine.GetMembers(typeof(StateSample)))
             {
                 if (m.RawName == name) return m;
             }
@@ -76,7 +76,7 @@ namespace RD.EditorKit.Tests.Editor
         public void FoldedState_DefaultsToExpanded()
         {
             var sample = NewSample();
-            Assert.IsTrue(InspectorEngine.GetExpanded(sample, Member("Plain")), "没有记录时默认展开");
+            Assert.IsTrue(Engine.GetExpanded(sample, Member("Plain")), "没有记录时默认展开");
         }
 
         [Test]
@@ -85,11 +85,11 @@ namespace RD.EditorKit.Tests.Editor
             var sample = NewSample();
             var member = Member("Plain");
 
-            InspectorEngine.SetExpanded(sample, member, false);
-            Assert.IsFalse(InspectorEngine.GetExpanded(sample, member));
+            Engine.SetExpanded(sample, member, false);
+            Assert.IsFalse(Engine.GetExpanded(sample, member));
 
-            InspectorEngine.SetExpanded(sample, member, true);
-            Assert.IsTrue(InspectorEngine.GetExpanded(sample, member));
+            Engine.SetExpanded(sample, member, true);
+            Assert.IsTrue(Engine.GetExpanded(sample, member));
         }
 
         [Test]
@@ -99,10 +99,10 @@ namespace RD.EditorKit.Tests.Editor
             var plain = Member("Plain");
             var autoExpand = Member("AutoExpand");
 
-            InspectorEngine.SetExpanded(sample, plain, false);
+            Engine.SetExpanded(sample, plain, false);
 
-            Assert.IsFalse(InspectorEngine.GetExpanded(sample, plain));
-            Assert.IsTrue(InspectorEngine.GetExpanded(sample, autoExpand), "同实例的不同成员互不影响");
+            Assert.IsFalse(Engine.GetExpanded(sample, plain));
+            Assert.IsTrue(Engine.GetExpanded(sample, autoExpand), "同实例的不同成员互不影响");
         }
 
         [Test]
@@ -112,10 +112,10 @@ namespace RD.EditorKit.Tests.Editor
             var b = NewSample();
             var member = Member("Plain");
 
-            InspectorEngine.SetExpanded(a, member, false);
+            Engine.SetExpanded(a, member, false);
 
-            Assert.IsFalse(InspectorEngine.GetExpanded(a, member));
-            Assert.IsTrue(InspectorEngine.GetExpanded(b, member), "折叠状态按实例隔离");
+            Assert.IsFalse(Engine.GetExpanded(a, member));
+            Assert.IsTrue(Engine.GetExpanded(b, member), "折叠状态按实例隔离");
         }
 
         [Test]
@@ -128,15 +128,15 @@ namespace RD.EditorKit.Tests.Editor
             ForceCollection();
 
             Assert.IsFalse(weak.IsAlive, "会话按弱引用分桶, 不应让宿主对象无法回收");
-            Assert.IsTrue(InspectorEngine.GetExpanded(NewSample(), member, session),
+            Assert.IsTrue(Engine.GetExpanded(NewSample(), member, session),
                 "宿主对象回收后, 不会把折叠状态留给后来的对象");
         }
 
         /// <summary>在独立栈帧里给临时对象设状态, 保证返回后它只被弱引用指向。</summary>
-        private static WeakReference CollapseOnThrowawayInstance(HostSession session, InspectorEngine.CachedMember member)
+        private static WeakReference CollapseOnThrowawayInstance(HostSession session, Engine.CachedMember member)
         {
             var sample = new StateSample();     // 刻意不进 s_KeepAlive, 允许回收
-            InspectorEngine.SetExpanded(sample, member, false, session);
+            Engine.SetExpanded(sample, member, false, session);
             return new WeakReference(sample);
         }
 
@@ -157,15 +157,15 @@ namespace RD.EditorKit.Tests.Editor
             var sample = NewSample();
 
             var autoCollapse = Member("AutoCollapse");
-            Assert.IsTrue(InspectorEngine.GetExpanded(sample, autoCollapse), "起点是默认展开");
-            InspectorEngine.RunStateUpdates(sample, autoCollapse);
-            Assert.IsFalse(InspectorEngine.GetExpanded(sample, autoCollapse),
+            Assert.IsTrue(Engine.GetExpanded(sample, autoCollapse), "起点是默认展开");
+            Engine.RunStateUpdates(sample, autoCollapse);
+            Assert.IsFalse(Engine.GetExpanded(sample, autoCollapse),
                 "@$property.State.Expanded = false 应写回折叠状态");
 
             var autoExpand = Member("AutoExpand");
-            InspectorEngine.SetExpanded(sample, autoExpand, false);
-            InspectorEngine.RunStateUpdates(sample, autoExpand);
-            Assert.IsTrue(InspectorEngine.GetExpanded(sample, autoExpand),
+            Engine.SetExpanded(sample, autoExpand, false);
+            Engine.RunStateUpdates(sample, autoExpand);
+            Assert.IsTrue(Engine.GetExpanded(sample, autoExpand),
                 "@$property.State.Expanded = true 应写回展开状态");
         }
 
@@ -175,10 +175,10 @@ namespace RD.EditorKit.Tests.Editor
             var sample = NewSample();
             var plain = Member("Plain");
 
-            InspectorEngine.SetExpanded(sample, plain, false);
-            InspectorEngine.RunStateUpdates(sample, plain);
+            Engine.SetExpanded(sample, plain, false);
+            Engine.RunStateUpdates(sample, plain);
 
-            Assert.IsFalse(InspectorEngine.GetExpanded(sample, plain),
+            Assert.IsFalse(Engine.GetExpanded(sample, plain),
                 "没有 [OnStateUpdate] 的成员不应被改动");
         }
 
@@ -189,7 +189,7 @@ namespace RD.EditorKit.Tests.Editor
             var viaMethod = Member("ViaMethod");
 
             Assert.AreEqual(0, sample.MethodCalls);
-            InspectorEngine.RunStateUpdates(sample, viaMethod);
+            Engine.RunStateUpdates(sample, viaMethod);
             Assert.AreEqual(1, sample.MethodCalls, "非表达式 Action 按方法名直接调用");
         }
 
@@ -204,10 +204,10 @@ namespace RD.EditorKit.Tests.Editor
             var windowA = new HostSession();
             var windowB = new HostSession();
 
-            InspectorEngine.SetExpanded(sample, member, false, windowA);
+            Engine.SetExpanded(sample, member, false, windowA);
 
-            Assert.IsFalse(InspectorEngine.GetExpanded(sample, member, windowA));
-            Assert.IsTrue(InspectorEngine.GetExpanded(sample, member, windowB),
+            Assert.IsFalse(Engine.GetExpanded(sample, member, windowA));
+            Assert.IsTrue(Engine.GetExpanded(sample, member, windowB),
                 "不同会话(例如两个窗口)的折叠状态应彼此独立");
         }
 
@@ -218,10 +218,10 @@ namespace RD.EditorKit.Tests.Editor
             var autoCollapse = Member("AutoCollapse");
             var session = new HostSession();
 
-            InspectorEngine.RunStateUpdates(sample, autoCollapse, session);
+            Engine.RunStateUpdates(sample, autoCollapse, session);
 
-            Assert.IsFalse(InspectorEngine.GetExpanded(sample, autoCollapse, session));
-            Assert.IsTrue(InspectorEngine.GetExpanded(sample, autoCollapse), "默认会话不应被牵连改动");
+            Assert.IsFalse(Engine.GetExpanded(sample, autoCollapse, session));
+            Assert.IsTrue(Engine.GetExpanded(sample, autoCollapse), "默认会话不应被牵连改动");
         }
 
         //-------------------------------------- 分组展开状态 --------------------------------------
@@ -241,7 +241,7 @@ namespace RD.EditorKit.Tests.Editor
         }
 
         /// <summary>分组树的根 GroupId 为空串, 因此按 GroupId 递归查找。</summary>
-        private static InspectorEngine.GroupNode FindGroup(InspectorEngine.GroupNode node, string groupId)
+        private static Engine.GroupNode FindGroup(Engine.GroupNode node, string groupId)
         {
             if (node.GroupId == groupId) return node;
             foreach (var child in node.Children)
@@ -253,10 +253,10 @@ namespace RD.EditorKit.Tests.Editor
             return null;
         }
 
-        private static InspectorEngine.GroupNode FoldedGroup()
+        private static Engine.GroupNode FoldedGroup()
         {
-            var members = InspectorEngine.GetMembers(typeof(GroupSample));
-            var tree = InspectorEngine.GetGroupTree(typeof(GroupSample), members);
+            var members = Engine.GetMembers(typeof(GroupSample));
+            var tree = Engine.GetGroupTree(typeof(GroupSample), members);
             var node = FindGroup(tree, "Folded");
             Assert.IsNotNull(node, "夹具 GroupSample 上应存在分组 Folded");
             return node;
@@ -268,7 +268,7 @@ namespace RD.EditorKit.Tests.Editor
             var node = FoldedGroup();
             var session = new HostSession();
 
-            Assert.AreEqual(node.Expanded, InspectorEngine.GetGroupExpanded(NewGroupSample(), node, session),
+            Assert.AreEqual(node.Expanded, Engine.GetGroupExpanded(NewGroupSample(), node, session),
                 "没有记录时用分组属性声明的默认值");
         }
 
@@ -280,10 +280,10 @@ namespace RD.EditorKit.Tests.Editor
             var a = NewGroupSample();
             var b = NewGroupSample();
 
-            InspectorEngine.SetGroupExpanded(a, node, false, session);
+            Engine.SetGroupExpanded(a, node, false, session);
 
-            Assert.IsFalse(InspectorEngine.GetGroupExpanded(a, node, session));
-            Assert.IsTrue(InspectorEngine.GetGroupExpanded(b, node, session),
+            Assert.IsFalse(Engine.GetGroupExpanded(a, node, session));
+            Assert.IsTrue(Engine.GetGroupExpanded(b, node, session),
                 "同一分组路径在两个实例上必须各自独立, 否则折叠一个会连带折叠另一个");
         }
     }

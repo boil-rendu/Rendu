@@ -9,7 +9,7 @@ using UnityEngine;
 namespace RD.EditorKit.Tests.Editor
 {
     /// <summary>
-    /// InspectorEngine 中"画什么(可见性)、按什么顺序(排序)、归到哪一组(分组树)"的回归基线。
+    /// Engine 中"画什么(可见性)、按什么顺序(排序)、归到哪一组(分组树)"的回归基线。
     ///
     /// 这三件事是纯反射逻辑, 不碰 IMGUI, 因此可以脱离编辑器运行。它们是引擎的骨架,
     /// 也是后续重构(状态归属、抽 DrawContext)最先会动到的地方, 所以先钉住。
@@ -17,7 +17,7 @@ namespace RD.EditorKit.Tests.Editor
     /// 覆盖不到: CheckVisibility/CheckDisabled 依赖 Application.isPlaying(Unity ECall),
     /// 以及全部绘制流程与 Begin/End 配平, 仍只能靠 Unity Test Runner 或手工回归。
     /// </summary>
-    public class InspectorEngineReflectionTests
+    public class EngineReflectionTests
     {
         //-------------------------------------- 夹具 --------------------------------------
 
@@ -113,7 +113,7 @@ namespace RD.EditorKit.Tests.Editor
         private static List<string> MemberNames(Type type)
         {
             var names = new List<string>();
-            foreach (var m in InspectorEngine.GetMembers(type))
+            foreach (var m in Engine.GetMembers(type))
             {
                 names.Add(m.RawName);
             }
@@ -121,9 +121,9 @@ namespace RD.EditorKit.Tests.Editor
             return names;
         }
 
-        private static InspectorEngine.CachedMember FindMember(Type type, string name)
+        private static Engine.CachedMember FindMember(Type type, string name)
         {
-            foreach (var m in InspectorEngine.GetMembers(type))
+            foreach (var m in Engine.GetMembers(type))
             {
                 if (m.RawName == name) return m;
             }
@@ -131,17 +131,17 @@ namespace RD.EditorKit.Tests.Editor
             return null;
         }
 
-        private static InspectorEngine.GroupNode BuildGroupTree()
+        private static Engine.GroupNode BuildGroupTree()
         {
             return BuildGroupTree(typeof(GroupSample));
         }
 
-        private static InspectorEngine.GroupNode BuildGroupTree(Type type)
+        private static Engine.GroupNode BuildGroupTree(Type type)
         {
-            return InspectorEngine.GetGroupTree(type, InspectorEngine.GetMembers(type));
+            return Engine.GetGroupTree(type, Engine.GetMembers(type));
         }
 
-        private static InspectorEngine.GroupNode FindGroup(InspectorEngine.GroupNode parent, string groupId)
+        private static Engine.GroupNode FindGroup(Engine.GroupNode parent, string groupId)
         {
             foreach (var child in parent.Children)
             {
@@ -206,9 +206,9 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void Members_ButtonsAndOnInspectorGUI_AreCollectedWithCorrectKind()
         {
-            Assert.AreEqual(InspectorEngine.MemberKind.MethodButton,
+            Assert.AreEqual(Engine.MemberKind.MethodButton,
                 FindMember(typeof(VisibilitySample), "ButtonMethod").Kind);
-            Assert.AreEqual(InspectorEngine.MemberKind.MethodOnInspectorGUI,
+            Assert.AreEqual(Engine.MemberKind.MethodOnInspectorGUI,
                 FindMember(typeof(VisibilitySample), "OnGuiMethod").Kind);
         }
 
@@ -233,8 +233,8 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void Members_AreCachedPerType()
         {
-            Assert.AreSame(InspectorEngine.GetMembers(typeof(OrderSample)),
-                           InspectorEngine.GetMembers(typeof(OrderSample)));
+            Assert.AreSame(Engine.GetMembers(typeof(OrderSample)),
+                           Engine.GetMembers(typeof(OrderSample)));
         }
 
         //-------------------------------------- 方法解析 --------------------------------------
@@ -242,7 +242,7 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void FindMethod_Overloads_ResolveToTheParameterlessOne()
         {
-            var method = InspectorEngine.FindMethod(new MethodLookupSample(), nameof(MethodLookupSample.Overloaded));
+            var method = Engine.FindMethod(new MethodLookupSample(), nameof(MethodLookupSample.Overloaded));
 
             Assert.IsNotNull(method, "同名重载不能再让 Type.GetMethod 抛 AmbiguousMatchException");
             Assert.AreEqual(0, method.GetParameters().Length);
@@ -252,14 +252,14 @@ namespace RD.EditorKit.Tests.Editor
         public void FindMethod_MethodWithParametersOnly_ReturnsNull()
         {
             Assert.IsNull(
-                InspectorEngine.FindMethod(new MethodLookupSample(), nameof(MethodLookupSample.WithParamOnly)),
+                Engine.FindMethod(new MethodLookupSample(), nameof(MethodLookupSample.WithParamOnly)),
                 "按钮/回调用 null 参数调用, 带参方法根本无法执行, 应直接判为'没有'");
         }
 
         [Test]
         public void FindMethod_PrefersMostDerivedDeclaration()
         {
-            var method = InspectorEngine.FindMethod(new LookupDerived(), nameof(LookupDerived.Ping));
+            var method = Engine.FindMethod(new LookupDerived(), nameof(LookupDerived.Ping));
 
             Assert.IsNotNull(method);
             Assert.AreEqual(typeof(LookupDerived), method.DeclaringType, "被 new 隐藏的成员应取最派生的那个");
@@ -272,7 +272,7 @@ namespace RD.EditorKit.Tests.Editor
         {
             var root = BuildGroupTree();
 
-            Assert.AreEqual(InspectorEngine.GroupKind.None, root.Kind);
+            Assert.AreEqual(Engine.GroupKind.None, root.Kind);
             Assert.AreEqual(1, root.Members.Count);
             Assert.AreEqual("Ungrouped", root.Members[0].RawName);
             Assert.AreEqual(2, root.Children.Count);
@@ -302,9 +302,9 @@ namespace RD.EditorKit.Tests.Editor
             var root = BuildGroupTree();
 
             var info = FindGroup(root, "信息");
-            Assert.AreEqual(InspectorEngine.GroupKind.Vertical, info.Kind);
-            Assert.AreEqual(InspectorEngine.GroupKind.ButtonGroup, FindGroup(info, "信息/更新版本").Kind);
-            Assert.AreEqual(InspectorEngine.GroupKind.Box, FindGroup(root, "外观").Kind);
+            Assert.AreEqual(Engine.GroupKind.Vertical, info.Kind);
+            Assert.AreEqual(Engine.GroupKind.ButtonGroup, FindGroup(info, "信息/更新版本").Kind);
+            Assert.AreEqual(Engine.GroupKind.Box, FindGroup(root, "外观").Kind);
         }
 
         [Test]
@@ -330,7 +330,7 @@ namespace RD.EditorKit.Tests.Editor
             var node = FindGroup(BuildGroupTree(typeof(VisibleGroupSample)), "Advanced");
             Assert.IsNotNull(node, "夹具上应存在分组 Advanced");
 
-            Assert.IsTrue(InspectorEngine.IsGroupVisible(node, new VisibleGroupSample { ShowAdvanced = true }, false));
+            Assert.IsTrue(Engine.IsGroupVisible(node, new VisibleGroupSample { ShowAdvanced = true }, false));
         }
 
         [Test]
@@ -339,7 +339,7 @@ namespace RD.EditorKit.Tests.Editor
             var node = FindGroup(BuildGroupTree(typeof(VisibleGroupSample)), "Advanced");
             Assert.IsNotNull(node, "夹具上应存在分组 Advanced");
 
-            Assert.IsFalse(InspectorEngine.IsGroupVisible(node, new VisibleGroupSample { ShowAdvanced = false }, false),
+            Assert.IsFalse(Engine.IsGroupVisible(node, new VisibleGroupSample { ShowAdvanced = false }, false),
                 "VisibleIf 为假时整组不画, 而不是留下一个空框");
         }
 
@@ -349,8 +349,8 @@ namespace RD.EditorKit.Tests.Editor
             var outer = FindGroup(BuildGroupTree(typeof(NestedVisibleGroupSample)), "Outer");
             Assert.IsNotNull(outer, "夹具上应存在分组 Outer");
 
-            Assert.IsTrue(InspectorEngine.IsGroupVisible(outer, new NestedVisibleGroupSample { ShowDetail = true }, false));
-            Assert.IsFalse(InspectorEngine.IsGroupVisible(outer, new NestedVisibleGroupSample { ShowDetail = false }, false),
+            Assert.IsTrue(Engine.IsGroupVisible(outer, new NestedVisibleGroupSample { ShowDetail = true }, false));
+            Assert.IsFalse(Engine.IsGroupVisible(outer, new NestedVisibleGroupSample { ShowDetail = false }, false),
                 "唯一的子组被 VisibleIf 隐藏后, 父组不应再被当成'还有内容'而画出空框");
         }
     }

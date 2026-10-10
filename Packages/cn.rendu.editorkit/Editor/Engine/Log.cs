@@ -14,7 +14,7 @@ namespace RD.EditorKit.Editor
     ///
     /// 注: EditorWindowBase 里的日志直接走 Debug.* —— 那些回调只可能在编辑器里跑, 没有第二套宿主。
     /// </summary>
-    internal static class InspectorLog
+    internal static class Log
     {
         /// <summary>去重表的容量上限。键来自写死的成员名/表达式, 正常到不了这儿; 到了就清空重来。</summary>
         private const int MaxRemembered = 512;

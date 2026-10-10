@@ -5,12 +5,12 @@ using NUnit.Framework;
 namespace RD.EditorKit.Tests.Editor
 {
     /// <summary>
-    /// InspectorExpressionEvaluator 的行为基线。
+    /// ExpressionEvaluator 的行为基线。
     /// 这里固化的多数是"当前实现的事实契约", 而非"理想语义"——
     /// 其中若干条(不短路求值、Truthy(0) 为真、字面量一律为 double、字符串拼接的触发条件)
     /// 属于容易踩坑的隐式规则。改动求值器前, 应先让这里变红。
     /// </summary>
-    public class InspectorExpressionEvaluatorTests
+    public class ExpressionEvaluatorTests
     {
         private enum Tag
         {
@@ -130,12 +130,12 @@ namespace RD.EditorKit.Tests.Editor
 
         private static object Eval(string expression)
         {
-            return InspectorExpressionEvaluator.Evaluate(expression, null, null, null);
+            return ExpressionEvaluator.Evaluate(expression, null, null, null);
         }
 
         private static object EvalOn(string expression, object target)
         {
-            return InspectorExpressionEvaluator.Evaluate(expression, target, null, null);
+            return ExpressionEvaluator.Evaluate(expression, target, null, null);
         }
 
         //-------------------------------------- 入口判定 --------------------------------------
@@ -143,10 +143,10 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void IsExpression_OnlyAcceptsAtPrefix()
         {
-            Assert.IsTrue(InspectorExpressionEvaluator.IsExpression("@1"));
-            Assert.IsFalse(InspectorExpressionEvaluator.IsExpression("1"));
-            Assert.IsFalse(InspectorExpressionEvaluator.IsExpression(""));
-            Assert.IsFalse(InspectorExpressionEvaluator.IsExpression(null));
+            Assert.IsTrue(ExpressionEvaluator.IsExpression("@1"));
+            Assert.IsFalse(ExpressionEvaluator.IsExpression("1"));
+            Assert.IsFalse(ExpressionEvaluator.IsExpression(""));
+            Assert.IsFalse(ExpressionEvaluator.IsExpression(null));
         }
 
         [Test]
@@ -299,8 +299,8 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void Root_DollarValueResolvesToSuppliedValue()
         {
-            Assert.AreEqual(42, InspectorExpressionEvaluator.Evaluate("@$value", null, 42, null));
-            Assert.AreEqual(43d, InspectorExpressionEvaluator.Evaluate("@$value + 1", null, 42, null));
+            Assert.AreEqual(42, ExpressionEvaluator.Evaluate("@$value", null, 42, null));
+            Assert.AreEqual(43d, ExpressionEvaluator.Evaluate("@$value + 1", null, 42, null));
         }
 
         [Test]
@@ -350,27 +350,27 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void Property_StateIsReadable()
         {
-            var state = new InspectorPropertyState { Expanded = false, Visible = true, Enabled = false };
-            Assert.AreEqual(false, InspectorExpressionEvaluator.Evaluate("@$property.State.Expanded", null, null, state));
-            Assert.AreEqual(true, InspectorExpressionEvaluator.Evaluate("@$property.State.Visible", null, null, state));
-            Assert.AreEqual(false, InspectorExpressionEvaluator.Evaluate("@$property.State.Enabled", null, null, state));
+            var state = new PropertyState { Expanded = false, Visible = true, Enabled = false };
+            Assert.AreEqual(false, ExpressionEvaluator.Evaluate("@$property.State.Expanded", null, null, state));
+            Assert.AreEqual(true, ExpressionEvaluator.Evaluate("@$property.State.Visible", null, null, state));
+            Assert.AreEqual(false, ExpressionEvaluator.Evaluate("@$property.State.Enabled", null, null, state));
         }
 
         [Test]
         public void Property_StateIsWritable()
         {
-            var state = new InspectorPropertyState { Expanded = true };
-            InspectorExpressionEvaluator.Evaluate("@$property.State.Expanded = false", null, null, state);
+            var state = new PropertyState { Expanded = true };
+            ExpressionEvaluator.Evaluate("@$property.State.Expanded = false", null, null, state);
             Assert.IsFalse(state.Expanded, "赋值表达式必须写回宿主传进来的同一个 State 实例");
         }
 
         [Test]
         public void Property_CanDriveConditionExpression()
         {
-            var state = new InspectorPropertyState { Selected = false };
-            Assert.AreEqual(false, InspectorExpressionEvaluator.EvaluateBool("@$property.State.Selected", null, null, state));
+            var state = new PropertyState { Selected = false };
+            Assert.AreEqual(false, ExpressionEvaluator.EvaluateBool("@$property.State.Selected", null, null, state));
             state.Selected = true;
-            Assert.AreEqual(true, InspectorExpressionEvaluator.EvaluateBool("@$property.State.Selected", null, null, state));
+            Assert.AreEqual(true, ExpressionEvaluator.EvaluateBool("@$property.State.Selected", null, null, state));
         }
 
         //-------------------------------------- 失败路径 --------------------------------------
@@ -405,12 +405,12 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void Assignment_SameExpressionTwice_WritesBothTimes()
         {
-            var state = new InspectorPropertyState { Expanded = false };
+            var state = new PropertyState { Expanded = false };
 
-            InspectorExpressionEvaluator.Evaluate("@$property.State.Expanded = true", null, null, state);
+            ExpressionEvaluator.Evaluate("@$property.State.Expanded = true", null, null, state);
             Assert.IsTrue(state.Expanded);
 
-            InspectorExpressionEvaluator.Evaluate("@$property.State.Expanded = false", null, null, state);
+            ExpressionEvaluator.Evaluate("@$property.State.Expanded = false", null, null, state);
             Assert.IsFalse(state.Expanded, "第二次求值命中的是缓存的 AST 与成员元数据, 但必须照样写回");
         }
 
@@ -449,14 +449,14 @@ namespace RD.EditorKit.Tests.Editor
         [Test]
         public void Truthy_Semantics()
         {
-            Assert.IsFalse(InspectorExpressionEvaluator.Truthy(null));
-            Assert.IsFalse(InspectorExpressionEvaluator.Truthy(false));
-            Assert.IsTrue(InspectorExpressionEvaluator.Truthy(true));
-            Assert.IsFalse(InspectorExpressionEvaluator.Truthy(""));
-            Assert.IsTrue(InspectorExpressionEvaluator.Truthy("x"));
-            Assert.IsFalse(InspectorExpressionEvaluator.Truthy(new List<int>()));
-            Assert.IsTrue(InspectorExpressionEvaluator.Truthy(new List<int> { 1 }));
-            Assert.IsTrue(InspectorExpressionEvaluator.Truthy(0), "数值 0 按当前实现为真");
+            Assert.IsFalse(ExpressionEvaluator.Truthy(null));
+            Assert.IsFalse(ExpressionEvaluator.Truthy(false));
+            Assert.IsTrue(ExpressionEvaluator.Truthy(true));
+            Assert.IsFalse(ExpressionEvaluator.Truthy(""));
+            Assert.IsTrue(ExpressionEvaluator.Truthy("x"));
+            Assert.IsFalse(ExpressionEvaluator.Truthy(new List<int>()));
+            Assert.IsTrue(ExpressionEvaluator.Truthy(new List<int> { 1 }));
+            Assert.IsTrue(ExpressionEvaluator.Truthy(0), "数值 0 按当前实现为真");
         }
 
         //-------------------------------------- 实参收窄 --------------------------------------

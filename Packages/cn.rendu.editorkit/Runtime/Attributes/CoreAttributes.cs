@@ -32,7 +32,7 @@ namespace RD.EditorKit
     {
     }
 
-    /// <summary>标记：该成员交由 Inspector 序列化器处理（参与 Inspector 显示，并写入 InspectorSerializedScriptableObject 的 JSON 数据）。</summary>
+    /// <summary>标记：该成员交由 Inspector 序列化器处理（参与 Inspector 显示，并写入 SerializedScriptableObject 的 JSON 数据）。</summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
     public sealed class InspectorSerializeAttribute : Attribute
     {

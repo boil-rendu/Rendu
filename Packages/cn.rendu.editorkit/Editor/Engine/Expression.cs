@@ -15,7 +15,7 @@ namespace RD.EditorKit.Editor
     /// <c>[ShowIf("Speed", 0.1)]</c> 在 Speed 是 float 时会因 float→double 的表示误差被判成
     /// "不相等"，字段诡异地消失。统一到这里，容差只有一个定义。
     /// </summary>
-    internal static class InspectorValue
+    internal static class Value
     {
         /// <summary>
         /// 数值比较容差（相对）。
@@ -78,7 +78,7 @@ namespace RD.EditorKit.Editor
     /// Inspector 属性状态（对应表达式 $property.State 语义）。
     /// 由引擎在绘制时构造，Expanded 等读写会联动实际折叠状态。
     /// </summary>
-    public sealed class InspectorPropertyState
+    public sealed class PropertyState
     {
         public bool Expanded = true;
         public bool Selected;
@@ -90,11 +90,11 @@ namespace RD.EditorKit.Editor
     /// 表达式求值上下文。
     /// Target=当前绘制对象(this)；Value=当前成员当前值($value)；State=当前成员状态($property.State)。
     /// </summary>
-    public sealed class InspectorExpressionContext
+    public sealed class ExpressionContext
     {
         public object Target;
         public object Value;
-        public InspectorPropertyState State = new InspectorPropertyState();
+        public PropertyState State = new PropertyState();
     }
 
     /// <summary>
@@ -102,7 +102,7 @@ namespace RD.EditorKit.Editor
     /// 支持: @ 前缀、$property/$value/$root/this、成员访问链、方法调用(实例/静态/全局静态类)、
     /// 括号、比较/逻辑/算术、一元、三元、赋值(如 $property.State.Expanded = true)。
     /// </summary>
-    public static class InspectorExpressionEvaluator
+    public static class ExpressionEvaluator
     {
         private const BindingFlags AllFlags = BindingFlags.Public | BindingFlags.NonPublic |
                                               BindingFlags.Instance | BindingFlags.Static;
@@ -143,7 +143,7 @@ namespace RD.EditorKit.Editor
             return !string.IsNullOrEmpty(s) && s[0] == '@';
         }
 
-        public static object Evaluate(string expression, object target, object value, InspectorPropertyState state)
+        public static object Evaluate(string expression, object target, object value, PropertyState state)
         {
             if (string.IsNullOrEmpty(expression)) return null;
             var code = expression[0] == '@' ? expression.Substring(1) : expression;
@@ -153,11 +153,11 @@ namespace RD.EditorKit.Editor
 
             try
             {
-                var ctx = new InspectorExpressionContext
+                var ctx = new ExpressionContext
                 {
                     Target = target,
                     Value = value,
-                    State = state ?? new InspectorPropertyState(),
+                    State = state ?? new PropertyState(),
                 };
                 return Interpreter.Eval(node, ctx);
             }
@@ -200,27 +200,27 @@ namespace RD.EditorKit.Editor
         }
 
         /// <summary>
-        /// 记一条警告, 且不让"记日志"本身把求值打断(见 <see cref="InspectorLog"/>:
+        /// 记一条警告, 且不让"记日志"本身把求值打断(见 <see cref="Log"/>:
         /// Unity 的 Debug.* 在非 Unity 进程里会抛 SecurityException, 包住它这条路径才能被校验工程覆盖)。
         /// </summary>
         private static void LogWarning(string message)
         {
-            InspectorLog.Warn(message);
+            Log.Warn(message);
         }
 
-        public static bool EvaluateBool(string expression, object target, object value, InspectorPropertyState state)
+        public static bool EvaluateBool(string expression, object target, object value, PropertyState state)
         {
             return Truthy(Evaluate(expression, target, value, state));
         }
 
         public static bool Truthy(object o)
         {
-            return InspectorValue.Truthy(o);
+            return Value.Truthy(o);
         }
 
         private static int CompareValues(object a, object b)
         {
-            if (InspectorValue.IsNumeric(a) && InspectorValue.IsNumeric(b)) return Convert.ToDouble(a).CompareTo(Convert.ToDouble(b));
+            if (Value.IsNumeric(a) && Value.IsNumeric(b)) return Convert.ToDouble(a).CompareTo(Convert.ToDouble(b));
             if (a is string sa && b is string sb) return string.Compare(sa, sb, StringComparison.Ordinal);
             if (a is bool ba && b is bool bb) return ba.CompareTo(bb);
             return string.Compare(a?.ToString() ?? "", b?.ToString() ?? "", StringComparison.Ordinal);
@@ -765,7 +765,7 @@ namespace RD.EditorKit.Editor
 
         private static class Interpreter
         {
-            public static object Eval(Node node, InspectorExpressionContext ctx)
+            public static object Eval(Node node, ExpressionContext ctx)
             {
                 if (node == null) return null;
                 switch (node.K)
@@ -784,7 +784,7 @@ namespace RD.EditorKit.Editor
                     {
                         var v = Eval(node.A, ctx);
                         if (node.S == "!") return !Truthy(v);
-                        if (node.S == "-") return InspectorValue.IsNumeric(v) ? -Convert.ToDouble(v) : v;
+                        if (node.S == "-") return Value.IsNumeric(v) ? -Convert.ToDouble(v) : v;
                         return v;
                     }
                     case NK.Binary:
@@ -812,7 +812,7 @@ namespace RD.EditorKit.Editor
                 }
             }
 
-            private static object EvalBinary(Node node, InspectorExpressionContext ctx)
+            private static object EvalBinary(Node node, ExpressionContext ctx)
             {
                 var l = Eval(node.A, ctx);
                 var r = Eval(node.B_, ctx);
@@ -820,8 +820,8 @@ namespace RD.EditorKit.Editor
                 {
                     case "&&": return Truthy(l) && Truthy(r);
                     case "||": return Truthy(l) || Truthy(r);
-                    case "==": return InspectorValue.Equal(l, r);
-                    case "!=": return !InspectorValue.Equal(l, r);
+                    case "==": return Value.Equal(l, r);
+                    case "!=": return !Value.Equal(l, r);
                     case "<": return CompareValues(l, r) < 0;
                     case "<=": return CompareValues(l, r) <= 0;
                     case ">": return CompareValues(l, r) > 0;
@@ -842,7 +842,7 @@ namespace RD.EditorKit.Editor
 
             private static object Numeric(object a, object b, Func<double, double, double> op)
             {
-                return InspectorValue.IsNumeric(a) && InspectorValue.IsNumeric(b)
+                return Value.IsNumeric(a) && Value.IsNumeric(b)
                            ? op(Convert.ToDouble(a), Convert.ToDouble(b))
                            : null;
             }
@@ -850,12 +850,12 @@ namespace RD.EditorKit.Editor
             //-------------------------------------- 根与链 --------------------------------------
 
             /// <summary>解析裸标识符根: 预置变量 > 目标实例成员 > 全局静态类型。</summary>
-            private static object ResolveRoot(string name, InspectorExpressionContext ctx)
+            private static object ResolveRoot(string name, ExpressionContext ctx)
             {
                 switch (name)
                 {
                     case "$property":
-                        return new InspectorPropertyAccessor { Context = ctx };
+                        return new PropertyAccessor { Context = ctx };
                     case "$value":
                         return ctx.Value;
                     case "$root":
@@ -865,15 +865,15 @@ namespace RD.EditorKit.Editor
 
                 if (ctx.Target != null)
                 {
-                    var member = InspectorEngine.ResolveFieldOrProperty(ctx.Target.GetType(), name, false);
-                    if (member != null) return InspectorEngine.ReadMemberValue(member, ctx.Target);
+                    var member = Engine.ResolveFieldOrProperty(ctx.Target.GetType(), name, false);
+                    if (member != null) return Engine.ReadMemberValue(member, ctx.Target);
                 }
 
                 var global = FindGlobalType(name);
                 return global;
             }
 
-            private static object EvalChain(Node chain, InspectorExpressionContext ctx)
+            private static object EvalChain(Node chain, ExpressionContext ctx)
             {
                 var current = Eval(chain.A, ctx);
                 if (chain.Args == null) return current;
@@ -886,7 +886,7 @@ namespace RD.EditorKit.Editor
             }
 
             /// <summary>执行链上一步。Var 步骤=字段/属性/无参方法；Call 步骤=带参方法。</summary>
-            private static object Step(Node step, object current, InspectorExpressionContext ctx)
+            private static object Step(Node step, object current, ExpressionContext ctx)
             {
                 if (current == null) return null;
 
@@ -898,7 +898,7 @@ namespace RD.EditorKit.Editor
                 if (step.K == NK.Call)
                 {
                     var args = EvalArgs(step.Args, ctx);
-                    var mi = InspectorEngine.FindMethod(runType, step.S, args.Length, staticAccess);
+                    var mi = Engine.FindMethod(runType, step.S, args.Length, staticAccess);
                     if (mi == null) return null;
                     return InvokeRaw(mi, mi.IsStatic ? null : target, args);
                 }
@@ -909,13 +909,13 @@ namespace RD.EditorKit.Editor
                 }
 
                 var name = step.S;
-                var member = InspectorEngine.ResolveFieldOrProperty(runType, name, staticAccess);
+                var member = Engine.ResolveFieldOrProperty(runType, name, staticAccess);
                 if (member is FieldInfo || member is PropertyInfo readable && readable.GetMethod != null)
                 {
-                    return InspectorEngine.ReadMemberValue(member, target);
+                    return Engine.ReadMemberValue(member, target);
                 }
 
-                var noArg = InspectorEngine.FindMethod(runType, name, 0, staticAccess);
+                var noArg = Engine.FindMethod(runType, name, 0, staticAccess);
                 if (noArg != null) return InvokeRaw(noArg, noArg.IsStatic ? null : target, null);
 
                 return null;
@@ -999,7 +999,7 @@ namespace RD.EditorKit.Editor
                 }
             }
 
-            private static void SetLeft(Node node, object value, InspectorExpressionContext ctx)
+            private static void SetLeft(Node node, object value, ExpressionContext ctx)
             {
                 try
                 {
@@ -1025,7 +1025,7 @@ namespace RD.EditorKit.Editor
                     if (node.K == NK.Var)
                     {
                         var name = node.S;
-                        if (name == "$value" && ctx.Value is InspectorPropertyAccessor) return;
+                        if (name == "$value" && ctx.Value is PropertyAccessor) return;
                         if (name == "$value")
                         {
                             ctx.Value = value;
@@ -1042,7 +1042,7 @@ namespace RD.EditorKit.Editor
             {
                 if (obj == null) return;
 
-                var member = InspectorEngine.ResolveFieldOrProperty(obj.GetType(), name, false);
+                var member = Engine.ResolveFieldOrProperty(obj.GetType(), name, false);
                 switch (member)
                 {
                     case FieldInfo fi:
@@ -1087,11 +1087,11 @@ namespace RD.EditorKit.Editor
             }
 
             /// <summary>未绑定根的方法调用: 目标实例方法 > 目标静态方法。</summary>
-            private static object InvokeUnbound(string name, object[] args, InspectorExpressionContext ctx)
+            private static object InvokeUnbound(string name, object[] args, ExpressionContext ctx)
             {
                 if (ctx.Target != null)
                 {
-                    var mi = InspectorEngine.FindMethod(ctx.Target.GetType(), name, args.Length, false);
+                    var mi = Engine.FindMethod(ctx.Target.GetType(), name, args.Length, false);
                     if (mi != null) return InvokeRaw(mi, mi.IsStatic ? null : ctx.Target, args);
                 }
 
@@ -1160,7 +1160,7 @@ namespace RD.EditorKit.Editor
                 return value;
             }
 
-            private static object[] EvalArgs(List<Node> args, InspectorExpressionContext ctx)
+            private static object[] EvalArgs(List<Node> args, ExpressionContext ctx)
             {
                 if (args == null || args.Count == 0) return new object[0];
                 var result = new object[args.Count];
@@ -1177,11 +1177,11 @@ namespace RD.EditorKit.Editor
     /// <summary>
     /// 表达式 $property 访问器：State 联动的真实对象与状态。引擎绘制时作为上下文。
     /// </summary>
-    public sealed class InspectorPropertyAccessor
+    public sealed class PropertyAccessor
     {
-        internal InspectorExpressionContext Context;
+        internal ExpressionContext Context;
 
-        public InspectorPropertyState State => Context?.State;
+        public PropertyState State => Context?.State;
 
         public object Value
         {

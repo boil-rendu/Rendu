@@ -166,8 +166,8 @@ namespace RD.EditorKit.Editor
             {
                 // 订阅者回调抛异常不该把 Select/Clear 的调用栈顶穿, 但也不能用 Debug.LogException:
                 // 它同样是 Unity 内部调用, 在非 Unity 进程里会再抛 SecurityException, 等于用一个异常换掉另一个。
-                // 走 InspectorLog 后消息里仍带完整堆栈(字符串插值会调 Exception.ToString())。
-                InspectorLog.Error($"[Inspector] 菜单选中回调失败\n{e}");
+                // 走 Log 后消息里仍带完整堆栈(字符串插值会调 Exception.ToString())。
+                Log.Error($"[Inspector] 菜单选中回调失败\n{e}");
             }
         }
     }

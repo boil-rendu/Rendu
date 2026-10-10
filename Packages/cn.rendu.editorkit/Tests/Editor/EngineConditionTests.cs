@@ -14,14 +14,14 @@ namespace RD.EditorKit.Tests.Editor
     ///
     /// 固化的语义要点：
     /// - 不带 value 的条件按真值判断（Truthy），带 value 的按相等判断（ValuesEqual）；
-    /// - 数值相等走相对容差（InspectorValue.NumericTolerance），float 字段与 double 字面量也能对上；
+    /// - 数值相等走相对容差（Value.NumericTolerance），float 字段与 double 字面量也能对上；
     /// - ShowIf / EnableIf 要求条件成立，HideIf / DisableIf 要求条件不成立；
     /// - 多个同名条件之间是"与"——任一不满足即拒绝（EnableIf / DisableIf 支持 AllowMultiple）；
     /// - 条件既能写成员名，也能写 @ 表达式。
     ///
     /// 未覆盖：Truthy 对 UnityEngine.Object 的重载判空（那需要 Unity 运行时）。
     /// </summary>
-    public class InspectorEngineConditionTests
+    public class EngineConditionTests
     {
         //-------------------------------------- 夹具 --------------------------------------
 
@@ -92,9 +92,9 @@ namespace RD.EditorKit.Tests.Editor
 
         //-------------------------------------- 辅助 --------------------------------------
 
-        private static InspectorEngine.CachedMember Member(object target, string name)
+        private static Engine.CachedMember Member(object target, string name)
         {
-            foreach (var m in InspectorEngine.GetMembers(target.GetType()))
+            foreach (var m in Engine.GetMembers(target.GetType()))
             {
                 if (m.RawName == name) return m;
             }
@@ -105,12 +105,12 @@ namespace RD.EditorKit.Tests.Editor
 
         private static bool Visible(object target, string name, bool isPlaying = false)
         {
-            return InspectorEngine.CheckVisibility(Member(target, name), target, isPlaying);
+            return Engine.CheckVisibility(Member(target, name), target, isPlaying);
         }
 
         private static bool Disabled(object target, string name)
         {
-            return InspectorEngine.CheckDisabled(Member(target, name), target);
+            return Engine.CheckDisabled(Member(target, name), target);
         }
 
         //-------------------------------------- ShowIf --------------------------------------
@@ -294,28 +294,28 @@ namespace RD.EditorKit.Tests.Editor
         public void AnnotationVisible_EmptyCondition_IsAlwaysVisible()
         {
             var sample = new ConditionSample();
-            Assert.IsTrue(InspectorEngine.IsAnnotationVisible(null, sample), "没写条件 = 无条件显示");
-            Assert.IsTrue(InspectorEngine.IsAnnotationVisible("", sample));
+            Assert.IsTrue(Engine.IsAnnotationVisible(null, sample), "没写条件 = 无条件显示");
+            Assert.IsTrue(Engine.IsAnnotationVisible("", sample));
         }
 
         [Test]
         public void AnnotationVisible_AcceptsMemberName()
         {
             var sample = new ConditionSample { Flag = true };
-            Assert.IsTrue(InspectorEngine.IsAnnotationVisible("Flag", sample));
+            Assert.IsTrue(Engine.IsAnnotationVisible("Flag", sample));
 
             sample.Flag = false;
-            Assert.IsFalse(InspectorEngine.IsAnnotationVisible("Flag", sample));
+            Assert.IsFalse(Engine.IsAnnotationVisible("Flag", sample));
         }
 
         [Test]
         public void AnnotationVisible_AcceptsExpression()
         {
             var sample = new ConditionSample { Count = 3 };
-            Assert.IsTrue(InspectorEngine.IsAnnotationVisible("@Count > 2", sample));
+            Assert.IsTrue(Engine.IsAnnotationVisible("@Count > 2", sample));
 
             sample.Count = 1;
-            Assert.IsFalse(InspectorEngine.IsAnnotationVisible("@Count > 2", sample));
+            Assert.IsFalse(Engine.IsAnnotationVisible("@Count > 2", sample));
         }
     }
 }

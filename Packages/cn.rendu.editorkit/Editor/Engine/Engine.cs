@@ -13,7 +13,7 @@ namespace RD.EditorKit.Editor
     /// Inspector 属性渲染引擎
     /// 依据反射 + Runtime 层特性即时绘制任意 C# 对象
     /// </summary>
-    public static class InspectorEngine
+    public static class Engine
     {
         private const int MaxDepth = 24;
 
@@ -242,7 +242,7 @@ namespace RD.EditorKit.Editor
             }
             catch (Exception e)
             {
-                InspectorLog.Error($"[Inspector] 绘制失败 {target.GetType().Name}\n{e}");
+                Log.Error($"[Inspector] 绘制失败 {target.GetType().Name}\n{e}");
             }
             finally
             {
@@ -714,7 +714,7 @@ namespace RD.EditorKit.Editor
                     }
                     catch (Exception e)
                     {
-                        InspectorLog.Error($"[Inspector] 绘制成员失败 {m.RawName}\n{e}");
+                        Log.Error($"[Inspector] 绘制成员失败 {m.RawName}\n{e}");
                     }
                 }
             }
@@ -908,7 +908,7 @@ namespace RD.EditorKit.Editor
             var updates = GetAttrs<OnStateUpdateAttribute>(m);
             if (updates.Length == 0) return;
 
-            var state = new InspectorPropertyState
+            var state = new PropertyState
             {
                 Expanded = GetExpanded(target, m, session),
             };
@@ -917,9 +917,9 @@ namespace RD.EditorKit.Editor
             foreach (var attr in updates)
             {
                 if (string.IsNullOrEmpty(attr.Action)) continue;
-                if (InspectorExpressionEvaluator.IsExpression(attr.Action))
+                if (ExpressionEvaluator.IsExpression(attr.Action))
                 {
-                    InspectorExpressionEvaluator.Evaluate(attr.Action, target, value, state);
+                    ExpressionEvaluator.Evaluate(attr.Action, target, value, state);
                 }
                 else
                 {
@@ -961,9 +961,9 @@ namespace RD.EditorKit.Editor
         /// <summary>条件成员求值: 支持以 @ 开头的表达式与普通成员名。</summary>
         private static object ConditionValue(object target, string memberName)
         {
-            if (InspectorExpressionEvaluator.IsExpression(memberName))
+            if (ExpressionEvaluator.IsExpression(memberName))
             {
-                return InspectorExpressionEvaluator.Evaluate(memberName, target, null, null);
+                return ExpressionEvaluator.Evaluate(memberName, target, null, null);
             }
 
             return GetMemberValue(target, memberName);
@@ -1027,7 +1027,7 @@ namespace RD.EditorKit.Editor
                 }
                 catch (Exception e)
                 {
-                    InspectorLog.Error($"[Inspector] 方法执行失败 {method.Name}\n{e}");
+                    Log.Error($"[Inspector] 方法执行失败 {method.Name}\n{e}");
                 }
             });
         }
@@ -1139,7 +1139,7 @@ namespace RD.EditorKit.Editor
             }
             catch (Exception e)
             {
-                InspectorLog.Error($"[Inspector] 绘制成员失败 {m.RawName}\n{e}");
+                Log.Error($"[Inspector] 绘制成员失败 {m.RawName}\n{e}");
                 return;
             }
 
@@ -1158,7 +1158,7 @@ namespace RD.EditorKit.Editor
                 }
                 catch (Exception e)
                 {
-                    InspectorLog.Error($"[Inspector] 赋值失败 {m.RawName}\n{e}");
+                    Log.Error($"[Inspector] 赋值失败 {m.RawName}\n{e}");
                 }
             }
         }
@@ -1297,7 +1297,7 @@ namespace RD.EditorKit.Editor
 
             // 曲线/渐变不是"嵌套对象": 它们的数据在原生对象里, 展开出来只是一堆无意义的句柄成员,
             // 交给 DrawScalarControl 用 CurveField/GradientField 画。
-            if (InspectorSerialization.IsUnityPropertyBagType(type)) return false;
+            if (Serialization.IsUnityPropertyBagType(type)) return false;
 
             // 普通用户类/结构体按嵌套对象展开
             if (type.IsClass == false) return false;
@@ -2203,7 +2203,7 @@ namespace RD.EditorKit.Editor
             }
             catch (Exception e)
             {
-                InspectorLog.Warn($"[Inspector] 无法添加列表元素 {elemType.Name}\n{e.Message}");
+                Log.Warn($"[Inspector] 无法添加列表元素 {elemType.Name}\n{e.Message}");
             }
         }
 
@@ -2378,16 +2378,16 @@ namespace RD.EditorKit.Editor
             return false;
         }
 
-        // 真值/相等语义与表达式求值器共用一套实现(InspectorValue), 否则同一个值在
+        // 真值/相等语义与表达式求值器共用一套实现(Value), 否则同一个值在
         // [ShowIf("X", v)] 与 @X == v 两处会得到不同结论。
         private static bool Truthy(object value)
         {
-            return InspectorValue.Truthy(value);
+            return Value.Truthy(value);
         }
 
         private static bool ValuesEqual(object a, object b)
         {
-            return InspectorValue.Equal(a, b);
+            return Value.Equal(a, b);
         }
 
         /// <summary>
@@ -2418,7 +2418,7 @@ namespace RD.EditorKit.Editor
                 // 名字解析不到的既有语义是"视为可见": 宁可不隐藏, 也不要因为一个拼错的名字把成员整片吞掉。
                 // 但"宁可不隐藏"不该连线索都不留: 拼错的名字(条件里的成员名、@ 表达式里的裸名字)报一次,
                 // 否则成员一直显示, 谁也想不到是名字写错了。
-                InspectorLog.WarnOnce($"member-unresolved:{target.GetType().FullName}.{memberName}",
+                Log.WarnOnce($"member-unresolved:{target.GetType().FullName}.{memberName}",
                                       $"[Inspector] 条件成员名解析不到: {target.GetType().Name}.{memberName}, " +
                                       "已按“视为可见”处理 —— 请检查成员名是否写错。");
                 return true;
@@ -2492,7 +2492,7 @@ namespace RD.EditorKit.Editor
             }
             catch (Exception e)
             {
-                InspectorLog.Warn($"[Inspector] 读取失败 {m.RawName}\n{e.Message}");
+                Log.Warn($"[Inspector] 读取失败 {m.RawName}\n{e.Message}");
                 return null;
             }
         }
