@@ -71,7 +71,7 @@ cn.rendu.editorkit/
 │   ├── InspectorEditor.cs           InspectorEditor：UnityEditor.Editor 宿主
 │   ├── EditorWindowBase.cs    EditorWindowBase / MenuEditorWindow
 │   ├── MenuTree.cs         左侧菜单树数据模型
-│   ├── InspectorSession.cs          一次检视会话的编辑期状态（折叠 / 滚动）
+│   ├── HostSession.cs          一次检视会话的编辑期状态（折叠 / 滚动）
 │   ├── InspectorLog.cs              统一日志出口（含 WarnOnce 去重）
 │   ├── Icons.cs            内置图标 + SdfIconType → Texture 解析
 │   ├── InspectorPrefs.cs            String/Float/Int/Bool/EnumPrefs（EditorPrefs 包装）
@@ -225,7 +225,7 @@ public class MyWindow : EditorWindowBase
 - **曲线 / 渐变不算"嵌套对象"**：`AnimationCurve` / `Gradient` 的数据在原生对象里，按普通类展开只会画出一堆无意义的句柄成员，因此它们直接走 `CurveField` / `GradientField`（序列化的对应规则见 §6）；
 - 根对象例外：宿主是 `EditorWindow` 时允许自绘窗口自身；
 - 引擎有深度上限与环检测（"正在绘制"集合 + parent 判定），自引用 / 循环引用会被剪断；**绘制侧上限 `InspectorEngine.MaxDepth = 24`**（序列化侧是 32，见第 6 节）；
-- 折叠（展开）状态存在会话里（`InspectorSession`，成员状态按宿主对象弱引用分桶），域重载后回到默认展开。
+- 折叠（展开）状态存在会话里（`HostSession`，成员状态按宿主对象弱引用分桶），域重载后回到默认展开。
 
 ![成员可见性规则](Documentation~/images/02-visibility-rules.png)
 
@@ -771,7 +771,7 @@ public enum Mode { Simple, Advanced }
 | 无参方法查找与缓存 / 字段属性查找与缓存 | `Editor/InspectorEngine.cs`（`FindMethod`、`ResolveFieldOrProperty`） |
 | `GUIColor` / `InlineButton` | `Editor/InspectorEngine.cs`（`ResolveGUIColor`、`DrawInlineButtons`） |
 | 条件显隐 / 禁用判定 / 成员名解析不到时的告警 | `Editor/InspectorEngine.cs`（`CheckVisibility`、`GetMemberValue`） |
-| 折叠状态与滚动位置的会话存取（按对象弱引用分桶） | `Editor/InspectorSession.cs`（`InspectorSession`） |
+| 折叠状态与滚动位置的会话存取（按对象弱引用分桶） | `Editor/HostSession.cs`（`HostSession`） |
 | 值语义（真值/数值/相等容差，两份实现合并于此） | `Editor/InspectorExpression.cs`（`InspectorValue`） |
 | 表达式：AST 缓存与负缓存（上限清空） | `Editor/InspectorExpression.cs`（`AstCacheLimit`、`GetAst`） |
 | 表达式：求值入口 / 索引器元数据缓存 | `Editor/InspectorExpression.cs`（`Evaluate`、`s_IndexerCache`） |
@@ -849,6 +849,6 @@ UNITY_MANAGED=/path/to/Managed dotnet run
 - `Serialize_UnityObjectReferenceIsNotPersisted` 依赖 `ScriptableObject`，`RoundTrip_Gradient` 依赖原生对象（**曲线/渐变在纯 .NET 里 `new` 不出来，直接抛 `SecurityException: ECall methods must be packaged into a system module`**），这两个**只能**在 Test Runner 内跑 —— 跳过名单是 `Tools~/Verify/Program.cs` 里的 `RequiresUnityRuntime`。曲线/渐变其余能脱机验证的部分（成员规则、null 语义）只走反射，因此在纯 .NET 下同样有覆盖；
 - 测试通过 `Editor/AssemblyInfo.cs` 里的 `InternalsVisibleTo` 访问引擎的 internal 元数据与状态存取方法（`CachedMember` / `GroupNode` / `GetMembers` / `GetGroupTree` / `GetExpanded` / `SetExpanded` / `FindMethod` 等），这样不必让测试去反射私有成员；`internal` 在程序集之外依然不可见，不扩大公共 API；
 - 仍然**没有** GUI 层测试：`InspectorEngine` 的绘制流程与 `Begin/End` 配平还没有自动化覆盖，改动这些区域依然只能靠 Unity Test Runner 或手工回归（条件显隐规则本身已可脱机验证，见 `InspectorEngineConditionTests`）；
-- 折叠状态与滚动位置存在 `InspectorSession`（由宿主持有，`DrawObject` 在绘制期间挂载、退出时还原；未显式传入时用默认会话兜底）：状态的生存期与宿主一致、窗口之间彼此隔离，不再是进程级静态字典；
+- 折叠状态与滚动位置存在 `HostSession`（由宿主持有，`DrawObject` 在绘制期间挂载、退出时还原；未显式传入时用默认会话兜底）：状态的生存期与宿主一致、窗口之间彼此隔离，不再是进程级静态字典；
 - 会话内的成员状态按**宿主对象弱引用分桶**（`ConditionalWeakTable<object, ObjectState>`，桶内再按成员名索引）：对象被回收即整桶消失，不会像早期实现那样留下永不释放的键；分桶判定走"引用相等"，也消除了身份哈希被复用后把状态错给新对象的问题（回归用例 `InspectorEngineStateTests.FoldedState_OwnerStateIsReleasedWithTheOwner`）；
 - 分组展开状态并入同一套分桶（桶内键为 `GroupID` 路径）：此前它挂在会话级平铺字典上，而分组路径在同类型的所有实例上是同一个字符串，于是同一窗口里两个同类型对象（例如列表中的两行）会共用一次折叠。现在 `FoldoutGroup` 的展开逐实例独立（回归用例 `InspectorEngineStateTests.GroupExpanded_IsolatedPerInstance`）。

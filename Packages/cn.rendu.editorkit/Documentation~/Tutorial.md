@@ -88,7 +88,7 @@
 | 命名空间（= 程序集） | 里面有什么 |
 |---|---|
 | `RD.EditorKit`（`RD.EditorKit.asmdef`） | **全部特性**（`Runtime/Attributes/*`）+ `CollectionExtensions` —— 只有这些，没有任何逻辑代码 |
-| `RD.EditorKit.Editor`（`Editor/` 程序集） | `InspectorEngine`、`InspectorExpressionEvaluator`、`InspectorSession`、`InspectorLog`、`Icons`、`InspectorPrefs`（`*Prefs`）、`MenuTree`、`InspectorEditor`、`EditorWindowBase`、`MenuEditorWindow`、`InspectorSerialization` 与 `InspectorSerializedScriptableObject`（含它的 Editor） |
+| `RD.EditorKit.Editor`（`Editor/` 程序集） | `InspectorEngine`、`InspectorExpressionEvaluator`、`HostSession`、`InspectorLog`、`Icons`、`InspectorPrefs`（`*Prefs`）、`MenuTree`、`InspectorEditor`、`EditorWindowBase`、`MenuEditorWindow`、`InspectorSerialization` 与 `InspectorSerializedScriptableObject`（含它的 Editor） |
 
 > 坑：`InspectorEditor` 继承 `UnityEditor.Editor`。因为文件位于 `RD.EditorKit.Editor` 命名空间内，**简单名 `Editor` 会被解析成命名空间 `RD.EditorKit` 下的 `Editor`**，写 `: Editor` 报 CS0118。基类一定写全：`: InspectorEditor`（本包已提供），自己写别的基类时写 `: UnityEditor.Editor`。
 
@@ -359,7 +359,7 @@ public int Tint;
 
 - 组名字符串**必须一字不差**，`"战斗"` 与 `"战斗 "`（多个空格）是两个组；
 - 组内成员全部被条件藏起来时，组会消失（默认行为），如果你希望"空框还在"，把 `HideWhenChildrenAreInvisible = false`；
-- 展开状态存在会话对象 `InspectorSession` 里：**按"被绘制的对象 → 组路径 / 成员名"两级分桶**（`ConditionalWeakTable<object, ObjectState>` + 两个 `Dictionary<string,bool>`）。所以：
+- 展开状态存在会话对象 `HostSession` 里：**按"被绘制的对象 → 组路径 / 成员名"两级分桶**（`ConditionalWeakTable<object, ObjectState>` + 两个 `Dictionary<string,bool>`）。所以：
   - 同窗口内两个同类型对象（或同一列表的两行元素）的折叠**互不影响**；
   - **两个窗口各自持有一个会话，状态不共享**（窗口 A 里展开的组，窗口 B 里还是默认状态）；
   - 会话不写盘、域重载后回到默认；对象被回收时它的状态桶自动释放。
@@ -1552,7 +1552,7 @@ public class LevelConfigEditor : InspectorEditor { }
 - 不显示 prefab override 标记，也无法右键还原单个属性；
 - `[Flags]` 枚举只能单选；
 - 成员清单/分组树/反射查找条件/AST 都是**按类型缓存**的，靠域重载刷新；
-- `InspectorSession` 承担折叠与滚动状态（宿主弱引用分桶，宿主回收即释放，不写盘）。
+- `HostSession` 承担折叠与滚动状态（宿主弱引用分桶，宿主回收即释放，不写盘）。
 
 ---
 

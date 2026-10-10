@@ -9,13 +9,13 @@ namespace RD.EditorKit.Editor
     /// 轻量编辑器窗口基类
     /// 默认在 OnGUI 中依据 Inspector 属性自动绘制窗口自身成员
     /// </summary>
-    public class EditorWindowBase : EditorWindow
+    public class EditorWindowBase : UnityEditor.EditorWindow
     {
         private bool m_Initialized;
         private Vector2 m_ScrollPosition;
 
         /// <summary>本窗口的状态会话: 生命周期与窗口一致, 窗口关闭即释放。</summary>
-        private readonly InspectorSession m_Session = new();
+        private readonly HostSession m_Session = new();
 
         /// <summary>
         /// 首次显示前调用一次 子类可重写做初始化

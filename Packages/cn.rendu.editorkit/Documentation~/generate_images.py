@@ -507,7 +507,7 @@ def fig_architecture():
         ("InspectorExpression", "表达式求值（含 AST 缓存）"),
         ("InspectorSerialization", "JSON 序列化与读回"),
         ("EditorWindowBase", "窗口基类（含左树右面板）"),
-        ("InspectorSession / InspectorLog", "会话状态 / 日志出口"),
+        ("HostSession / InspectorLog", "会话状态 / 日志出口"),
     ]
     cy = 312
     for k, v in mods:

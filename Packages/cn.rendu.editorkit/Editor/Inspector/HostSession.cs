@@ -18,7 +18,7 @@ namespace RD.EditorKit.Editor
     /// 会话由宿主持有(InspectorEditor 各持一份, 窗口之间彼此隔离);
     /// DrawObject 在绘制期间挂载、退出时还原, 未显式传入时用默认会话兜底(也便于脱机测试)。
     /// </summary>
-    internal sealed class InspectorSession
+    internal sealed class HostSession
     {
         /// <summary>单个宿主对象的状态。</summary>
         private sealed class ObjectState

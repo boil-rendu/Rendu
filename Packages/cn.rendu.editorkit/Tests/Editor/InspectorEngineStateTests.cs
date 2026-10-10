@@ -11,7 +11,7 @@ namespace RD.EditorKit.Tests.Editor
     ///
     /// 状态的存放走过三代, 本文件把每一代都可观察到的语义钉成契约:
     ///   1. 进程级静态字典, 键为 RuntimeHelpers.GetHashCode(target) + "_" + 成员名 —— 对象销毁后键不清理;
-    ///   2. 会话对象 InspectorSession 内的同类键 —— 生命周期跟随宿主, 但键仍不回收、身份哈希仍可被复用;
+    ///   2. 会话对象 HostSession 内的同类键 —— 生命周期跟随宿主, 但键仍不回收、身份哈希仍可被复用;
     ///   3. 现在: 会话内按宿主对象弱引用分桶(ConditionalWeakTable), 桶内才按成员名索引,
     ///      判定走"引用相等" —— 对象被回收即整桶消失, 既不残留键, 也不会把状态错给后来的对象。
     /// 契约本身没变: 默认展开、按成员隔离、按实例隔离、按会话隔离;
@@ -122,7 +122,7 @@ namespace RD.EditorKit.Tests.Editor
         public void FoldedState_OwnerStateIsReleasedWithTheOwner()
         {
             var member = Member("Plain");
-            var session = new InspectorSession();
+            var session = new HostSession();
 
             var weak = CollapseOnThrowawayInstance(session, member);
             ForceCollection();
@@ -133,7 +133,7 @@ namespace RD.EditorKit.Tests.Editor
         }
 
         /// <summary>在独立栈帧里给临时对象设状态, 保证返回后它只被弱引用指向。</summary>
-        private static WeakReference CollapseOnThrowawayInstance(InspectorSession session, InspectorEngine.CachedMember member)
+        private static WeakReference CollapseOnThrowawayInstance(HostSession session, InspectorEngine.CachedMember member)
         {
             var sample = new StateSample();     // 刻意不进 s_KeepAlive, 允许回收
             InspectorEngine.SetExpanded(sample, member, false, session);
@@ -201,8 +201,8 @@ namespace RD.EditorKit.Tests.Editor
             var sample = NewSample();
             var member = Member("Plain");
 
-            var windowA = new InspectorSession();
-            var windowB = new InspectorSession();
+            var windowA = new HostSession();
+            var windowB = new HostSession();
 
             InspectorEngine.SetExpanded(sample, member, false, windowA);
 
@@ -216,7 +216,7 @@ namespace RD.EditorKit.Tests.Editor
         {
             var sample = NewSample();
             var autoCollapse = Member("AutoCollapse");
-            var session = new InspectorSession();
+            var session = new HostSession();
 
             InspectorEngine.RunStateUpdates(sample, autoCollapse, session);
 
@@ -266,7 +266,7 @@ namespace RD.EditorKit.Tests.Editor
         public void GroupExpanded_FallsBackToAttributeDefault()
         {
             var node = FoldedGroup();
-            var session = new InspectorSession();
+            var session = new HostSession();
 
             Assert.AreEqual(node.Expanded, InspectorEngine.GetGroupExpanded(NewGroupSample(), node, session),
                 "没有记录时用分组属性声明的默认值");
@@ -276,7 +276,7 @@ namespace RD.EditorKit.Tests.Editor
         public void GroupExpanded_IsolatedPerInstance()
         {
             var node = FoldedGroup();
-            var session = new InspectorSession();
+            var session = new HostSession();
             var a = NewGroupSample();
             var b = NewGroupSample();
 

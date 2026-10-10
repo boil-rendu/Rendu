@@ -187,13 +187,13 @@ namespace RD.EditorKit.Editor
         private static readonly HashSet<object> s_DrawingObjects = new(ReferenceComparer.Instance);
 
         /// <summary>宿主未显式提供会话时的兜底, 使引擎可脱离宿主单独使用(也便于测试)。</summary>
-        private static readonly InspectorSession s_DefaultSession = new();
+        private static readonly HostSession s_DefaultSession = new();
 
         /// <summary>本次绘制期间生效的会话, 由 DrawObject 在进入/退出时挂载与还原。</summary>
-        private static InspectorSession s_Session;
+        private static HostSession s_Session;
 
         /// <summary>当前生效的会话: 折叠状态与滚动位置都存在这里, 不再使用进程级静态字典。</summary>
-        internal static InspectorSession Session => s_Session ?? s_DefaultSession;
+        internal static HostSession Session => s_Session ?? s_DefaultSession;
 
         //-------------------------------------- 对外入口 --------------------------------------
 
@@ -218,12 +218,12 @@ namespace RD.EditorKit.Editor
 
         /// <summary>
         /// 绘制任意对象, 并显式指定本次绘制使用的状态会话。
-        /// 该重载只供包内宿主使用: InspectorSession 是内部实现类型, 不对外暴露。
+        /// 该重载只供包内宿主使用: HostSession 是内部实现类型, 不对外暴露。
         /// </summary>
         internal static void DrawObject(object target, EditorWindow host,
                                         Action<object> onBeforeChange,
                                         Action<object> onChanged,
-                                        InspectorSession session)
+                                        HostSession session)
         {
             if (target == null) return;
             // 已销毁的 Unity 对象(fake null)不再绘制
@@ -903,7 +903,7 @@ namespace RD.EditorKit.Editor
         //-------------------------------------- OnStateUpdate / 表达式 状态 --------------------------------------
 
         /// <summary>每帧执行成员的 OnStateUpdate 表达式(如 $property.State.Expanded = true)。</summary>
-        internal static void RunStateUpdates(object target, CachedMember m, InspectorSession session = null)
+        internal static void RunStateUpdates(object target, CachedMember m, HostSession session = null)
         {
             var updates = GetAttrs<OnStateUpdateAttribute>(m);
             if (updates.Length == 0) return;
@@ -932,13 +932,13 @@ namespace RD.EditorKit.Editor
             SetExpanded(target, m, state.Expanded, session);
         }
 
-        internal static bool GetExpanded(object target, CachedMember m, InspectorSession session = null)
+        internal static bool GetExpanded(object target, CachedMember m, HostSession session = null)
         {
             // 没有记录时为展开: 折叠状态只在用户显式收起后才存在
             return (session ?? Session).GetToggle(target, m.RawName, true);
         }
 
-        internal static void SetExpanded(object target, CachedMember m, bool value, InspectorSession session = null)
+        internal static void SetExpanded(object target, CachedMember m, bool value, HostSession session = null)
         {
             (session ?? Session).SetToggle(target, m.RawName, value);
         }
@@ -948,12 +948,12 @@ namespace RD.EditorKit.Editor
         /// 这里必须带上宿主对象: 分组路径在同类型的所有实例上是同一个字符串,
         /// 若只按路径存取, 同窗口里的两个同类型对象会共用一次折叠。
         /// </summary>
-        internal static bool GetGroupExpanded(object target, GroupNode node, InspectorSession session = null)
+        internal static bool GetGroupExpanded(object target, GroupNode node, HostSession session = null)
         {
             return (session ?? Session).GetGroupToggle(target, node.GroupId, node.Expanded);
         }
 
-        internal static void SetGroupExpanded(object target, GroupNode node, bool value, InspectorSession session = null)
+        internal static void SetGroupExpanded(object target, GroupNode node, bool value, HostSession session = null)
         {
             (session ?? Session).SetGroupToggle(target, node.GroupId, value);
         }

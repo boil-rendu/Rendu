@@ -28,7 +28,7 @@ namespace RD.EditorKit.Editor
         private const string UndoName = "Inspector";
 
         /// <summary>本检视器的状态会话: 生存期与 Editor 实例一致, 折叠状态不会泄漏到进程级。</summary>
-        private readonly InspectorSession m_Session = new();
+        private readonly HostSession m_Session = new();
 
         public override void OnInspectorGUI()
         {
