@@ -858,7 +858,8 @@ namespace RD.EditorKit.Editor
                     GUILayout.BeginVertical(GUI.skin.GetStyle("box"));
                     if (string.IsNullOrEmpty(name) == false)
                     {
-                        GUILayout.Label(name, node.BoldTitle ? EditorStyles.boldLabel : EditorStyles.label);
+                        // 分组没有副标题, Split 退化为 Left(TitleAnchor 对 Split 也返回 MiddleLeft)
+                        GUILayout.Label(name, TitleStyle(TitleAnchor(node.Alignment), node.BoldTitle));
                     }
 
                     if (node.HorizontalLine)
@@ -911,6 +912,46 @@ namespace RD.EditorKit.Editor
                 alignment = center ? TextAnchor.MiddleCenter : TextAnchor.MiddleLeft,
             };
             return style;
+        }
+
+        /// <summary>标题样式缓存: (锚点, 是否加粗) → GUIStyle。标题绘制在热路径上, 不该每帧 new。</summary>
+        private static readonly Dictionary<(TextAnchor anchor, bool bold), GUIStyle> s_TitleLabelStyles = new();
+
+        /// <summary>副标题(mini)样式缓存: 锚点 → GUIStyle。</summary>
+        private static readonly Dictionary<TextAnchor, GUIStyle> s_SubtitleLabelStyles = new();
+
+        /// <summary>带缓存的标题样式(锚点 × 加粗)。</summary>
+        private static GUIStyle TitleStyle(TextAnchor anchor, bool bold)
+        {
+            if (s_TitleLabelStyles.TryGetValue((anchor, bold), out var cached)) return cached;
+
+            var style = new GUIStyle(bold ? EditorStyles.boldLabel : EditorStyles.label) { alignment = anchor };
+            s_TitleLabelStyles[(anchor, bold)] = style;
+            return style;
+        }
+
+        /// <summary>带缓存的副标题样式(基于 miniLabel)。</summary>
+        private static GUIStyle SubtitleStyle(TextAnchor anchor)
+        {
+            if (s_SubtitleLabelStyles.TryGetValue(anchor, out var cached)) return cached;
+
+            var style = new GUIStyle(EditorStyles.miniLabel) { alignment = anchor };
+            s_SubtitleLabelStyles[anchor] = style;
+            return style;
+        }
+
+        /// <summary>
+        /// [Title]/[TitleGroup] 的对齐枚举 → 文本锚点。Split 的主标题仍靠左(副标题才是被"劈"到
+        /// 右侧的那半), 无副标题时 Split 退化为 Left。
+        /// </summary>
+        internal static TextAnchor TitleAnchor(TitleAlignments alignment)
+        {
+            switch (alignment)
+            {
+                case TitleAlignments.Centered: return TextAnchor.MiddleCenter;
+                case TitleAlignments.Right:    return TextAnchor.MiddleRight;
+                default:                       return TextAnchor.MiddleLeft;
+            }
         }
 
         //-------------------------------------- 成员分发 --------------------------------------
@@ -2309,10 +2350,24 @@ namespace RD.EditorKit.Editor
                     case TitleAttribute title:
                         if (string.IsNullOrEmpty(title.Title) == false)
                         {
-                            GUILayout.Label(title.Title, title.Bold ? EditorStyles.boldLabel : EditorStyles.label);
-                            if (string.IsNullOrEmpty(title.Subtitle) == false)
+                            // Split: 主标题靠左、副标题同一行靠右(没有副标题时退化为 Left)
+                            if (title.Alignment == TitleAlignments.Split &&
+                                string.IsNullOrEmpty(title.Subtitle) == false)
                             {
-                                GUILayout.Label(title.Subtitle, EditorStyles.miniLabel);
+                                EditorGUILayout.BeginHorizontal();
+                                GUILayout.Label(title.Title, TitleStyle(TextAnchor.MiddleLeft, title.Bold));
+                                GUILayout.FlexibleSpace();
+                                GUILayout.Label(title.Subtitle, SubtitleStyle(TextAnchor.MiddleRight));
+                                EditorGUILayout.EndHorizontal();
+                            }
+                            else
+                            {
+                                var anchor = TitleAnchor(title.Alignment);
+                                GUILayout.Label(title.Title, TitleStyle(anchor, title.Bold));
+                                if (string.IsNullOrEmpty(title.Subtitle) == false)
+                                {
+                                    GUILayout.Label(title.Subtitle, SubtitleStyle(anchor));
+                                }
                             }
 
                             if (title.HorizontalLine)

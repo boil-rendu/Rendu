@@ -282,7 +282,7 @@ public class MyWindow : EditorWindowBase
 | `[VerticalGroup("名字")]` | `PaddingTop/PaddingBottom` | 垂直排列 | 生效（Padding 两项未读取） |
 | `[HorizontalGroup("名字")]` | `Width` | 水平排列（把多个字段 / 按钮排一行） | 生效；`Width` **未读取**（行宽由内容与窗口决定，不能靠它定宽） |
 | `[ButtonGroup("名字")]` | — | 同组按钮排一行 | 生效 |
-| `[TitleGroup("名字")]` | `Alignment`、`HorizontalLine`、`BoldTitle` | 带横线的大标题分组 | 生效（`IndentChildren` 未读取） |
+| `[TitleGroup("名字")]` | `Alignment`、`HorizontalLine`、`BoldTitle` | 带横线的大标题分组 | 生效（`IndentChildren` 未读取）。`Alignment`：`Left`/`Centered`/`Right` 生效；分组没有副标题，`Split` 退化为 `Left` |
 | `[TabGroup("页签名")]` | — | 页签分组 | **降级实现**：引擎当前把它当作垂直组绘制（源码注释原话："页签分组暂按垂直组降级"） |
 
 ![六种分组容器的样子](Documentation~/images/03-groups.png)
@@ -394,7 +394,7 @@ private IEnumerable GetTeamSelectList()
 |---|---|
 | `[InfoBox("信息", InfoMessageType.Warning)]` | 提示框（`None/Info/Warning/Error`） |
 | `[DetailedInfoBox("摘要", "详情", InfoMessageType.Info)]` | 详细提示（⚠️ **不是可展开控件**：引擎画的是同一个 `HelpBox`，内容为 `摘要 + "\n" + 详情`） |
-| `[Title("标题", "副标题")]` | 在成员上方画标题；`Subtitle`、`HorizontalLine`、`Bold` 生效，`Alignment` **未读取**（始终左对齐） |
+| `[Title("标题", "副标题")]` | 在成员上方画标题；`Subtitle`、`HorizontalLine`、`Bold`、`Alignment` 均生效。`Alignment`：`Left`/`Centered`/`Right` 整体对齐；`Split` = 主标题靠左、副标题同一行靠右（无副标题时退化为 `Left`） |
 
 `InfoBox` / `DetailedInfoBox` 的 `VisibleIfMemberName` **已生效**（`@` 表达式或裸成员名，同 `[ShowIf]`）：条件不满足时整条提示不绘制。`TitleAttribute` 上并没有这个参数，标题始终显示。
 
@@ -658,7 +658,7 @@ public class SerializedScriptableObjectEditor : InspectorEditor { }
 - 表达式**已支持索引器**（`@Items[0]`、`@Map['key']`、`@Child.Items[1]`，调用结果后也能接，如 `@GetScaled(2)[1]`）：覆盖数组 / 字符串 / `List<T>` / `Dictionary<K,V>` 与自定义 `this[...]` 索引器；**越界或键缺失返回 `null`**，不会中断整段绘制。仍不支持位运算与自增自减；
 - 表达式解析会校验收尾：写了一半的表达式（如 `@Items[0`）整体返回 `null`，而不是被静默截断成一个错值；
 - 表达式里的数字字面量一律是 `double`；方法调用（`InvokeRaw`）会先按形参类型显式收窄，因此 **`@Foo(1, 2)` 可以调用 `Foo(int, int)`**，`Foo(SomeEnum)` 也能接收整数字面量。收窄只覆盖数值与枚举形参，其余类型原样交给反射 binder；
-- 已声明但当前**无实现/无效果**的特性与参数（完整清单）：`[HideReferenceObjectPicker]`、`[HideMonoScript]`、`[Searchable]`、`[OnInspectorInit]`、`[HideInTables]`、`[TabGroup]`（降级为垂直组）、`PropertyGroup.AnimateVisibility`、`ShowIf.Animate`、`OnValueChanged.IncludeChildren`、`GUIColorAttribute.MethodName`、`TitleAttribute.Alignment`、`TableListAttribute.ShowPaging`/`ShowItemCount`、`HorizontalGroupAttribute.Width`、`Button.ButtonStyle`/`IconAlignment`、`TableColumnWidth.Resizable`、`DictionaryDrawerSettings` 的多数参数、`ListDrawerSettings` 的多数参数、`FilePath.ParentFolder`、`FolderPath` 的参数、Unity 原生 `[Tooltip]`；
+- 已声明但当前**无实现/无效果**的特性与参数（完整清单）：`[HideReferenceObjectPicker]`、`[HideMonoScript]`、`[Searchable]`、`[OnInspectorInit]`、`[HideInTables]`、`[TabGroup]`（降级为垂直组）、`PropertyGroup.AnimateVisibility`、`ShowIf.Animate`、`OnValueChanged.IncludeChildren`、`GUIColorAttribute.MethodName`、`TableListAttribute.ShowPaging`/`ShowItemCount`、`HorizontalGroupAttribute.Width`、`Button.ButtonStyle`/`IconAlignment`、`TableColumnWidth.Resizable`、`DictionaryDrawerSettings` 的多数参数、`ListDrawerSettings` 的多数参数、`FilePath.ParentFolder`、`FolderPath` 的参数、Unity 原生 `[Tooltip]`；
 - 本包**不提供菜单入口**；也不注册针对 `MonoBehaviour`/`ScriptableObject` 的全局检视器覆盖 —— 唯一的 `[CustomEditor(..., true)]` 只挂在 `SerializedScriptableObject` 上（覆盖它自己的继承族，见第 6 节）。业务类型的入口与登记都在使用方。
 
 ---

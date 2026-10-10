@@ -292,7 +292,7 @@ public int Damage;
 - `VisibleIfMemberName` 是个**可写属性**，所以既能用上面的命名参数写法，也能用位置参数省掉它：`[InfoBox("提示", 条件)]`（`InfoBox` 有 `(message, visibleIfMemberName)` 重载）、`[DetailedInfoBox("摘要", "详情", InfoMessageType.Info, 条件)]`（第 4 个参数）；
 - ⚠️ `[DetailedInfoBox]` **不是"可展开"控件**：引擎画的是一个 `HelpBox`，文本是 `Message + "\n" + Details` 拼起来的，没有折叠/展开交互（名字来自 Odin，行为不是）；要真正的可折叠说明，自己用 `[FoldoutGroup]` + `[InfoBox]` 拼；
 - `[DisplayAsString]` 的 `Alignment`（`TextAlign.Center` / `Right`）**生效**，`Overflow` / `AlignLabel` 未读取；
-- `[Title]` 没有条件参数（始终显示）；`Subtitle`、`HorizontalLine`、`Bold` 生效，**`Alignment` 未读取**（标题始终左对齐）；
+- `[Title]` 没有条件参数（始终显示）；`Subtitle`、`HorizontalLine`、`Bold`、`Alignment` 均生效 —— `Left`/`Centered`/`Right` 整体对齐，`Split` = 主标题靠左、副标题同一行靠右；
 - Unity 自带的 `[Tooltip]` **不读取**，悬停提示请用 `[InfoBox]`，按钮用 `Tooltip = "..."` 命名参数。
 
 ---
@@ -316,7 +316,7 @@ public int Damage;
 | `[VerticalGroup("名字")]` | 垂直排列（一列） | 最常用的"排版容器" |
 | `[HorizontalGroup("名字")]` | 水平排列（一行） | 把几个字段/按钮排一行；⚠️ `Width` **未读取**，而且本包**没有任何宽度控制特性**（没有 `MinWidth`/`Width` 之类的成员特性）—— 一行里的宽度只能靠内置的伸缩行为，要精确列宽请用 `[TableList]` + `[TableColumnWidth]` |
 | `[ButtonGroup("名字")]` | 同组按钮排一行 | 只对按钮有意义（见 5.4） |
-| `[TitleGroup("名字")]` | 带横线的大标题分组 | `Alignment` / `HorizontalLine` / `BoldTitle` 生效，`IndentChildren` 未读取 |
+| `[TitleGroup("名字")]` | 带横线的大标题分组 | `Alignment` / `HorizontalLine` / `BoldTitle` 生效（分组没有副标题，`Split` 退化为 `Left`），`IndentChildren` 未读取 |
 | `[TabGroup("页签名")]` | ⚠️ **降级为垂直组** | 当前实现没有页签，源码注释原话："页签分组暂按垂直组降级" |
 
 ![六种分组容器的样子](images/03-groups.png)

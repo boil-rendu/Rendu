@@ -492,6 +492,18 @@ namespace RD.EditorKit.Tests.Editor
                 "没有箭头的纯文本头在 [HideLabel] 时应整行不画, 而不是留一条什么都不说明的空白带");
         }
 
+        //-------------------------------------- 标题对齐 --------------------------------------
+
+        [Test]
+        public void TitleAnchor_MapsAllFourAlignments()
+        {
+            Assert.AreEqual(TextAnchor.MiddleLeft, Engine.TitleAnchor(TitleAlignments.Left));
+            Assert.AreEqual(TextAnchor.MiddleCenter, Engine.TitleAnchor(TitleAlignments.Centered));
+            Assert.AreEqual(TextAnchor.MiddleRight, Engine.TitleAnchor(TitleAlignments.Right));
+            Assert.AreEqual(TextAnchor.MiddleLeft, Engine.TitleAnchor(TitleAlignments.Split),
+                "Split 的主标题仍靠左 —— 被劈到右侧的是副标题, 没有副标题时 Split 退化为 Left");
+        }
+
         //-------------------------------------- 表格滚动区高度 --------------------------------------
 
         /// <summary>行高与横向滚动条高度的真实取值(测试里固定成常量, 免得依赖 GUI.skin)。</summary>

@@ -57,7 +57,6 @@ namespace RD.EditorKit
         public string Title { get; set; }
         public string Subtitle { get; set; }
         public TitleAlignments Alignment { get; set; }
-        public TitleAlignments TitleAlignment { get; set; }
         public bool HorizontalLine { get; set; }
         public bool Bold { get; set; }
 
@@ -68,7 +67,6 @@ namespace RD.EditorKit
             Title          = title;
             Subtitle       = subtitle;
             Alignment      = alignment;
-            TitleAlignment = alignment;
             HorizontalLine = horizontalLine;
             Bold           = bold;
         }
