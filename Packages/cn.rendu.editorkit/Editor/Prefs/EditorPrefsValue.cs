@@ -12,7 +12,7 @@ namespace RD.EditorKit.Editor
     ///
     /// 用法:
     /// <code>
-    /// private readonly EditorPrefsValue&lt;string&gt; m_Last = new("MyTool_Last", "label", "默认值");
+    /// private readonly EditorPrefsValue&lt;string&gt; m_Last = new("MyTool_Last", "默认值");
     /// string current = m_Last.Value;            // 读
     /// m_Last.Value = "new value";              // 写
     /// </code>
@@ -28,15 +28,11 @@ namespace RD.EditorKit.Editor
         private readonly string m_Key;
         private readonly T m_DefaultValue;
 
-        /// <summary>人类可读标签, 供未来的 Inspector 显示 / 调试用, 当前未消费。</summary>
-        public string Label { get; }
-
-        public EditorPrefsValue(string key, string label = null, T defaultValue = default)
+        public EditorPrefsValue(string key, T defaultValue = default)
         {
             if (string.IsNullOrEmpty(key))
                 throw new ArgumentException("key 不能为空", nameof(key));
             m_Key          = key;
-            Label          = label;
             m_DefaultValue = defaultValue;
         }
 

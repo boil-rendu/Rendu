@@ -202,11 +202,10 @@ namespace RD.EditorKit.Editor
             }
         }
 
-        private static GUIStyle GetItemStyle()
+        /// <summary>菜单项样式工厂: 选中态 = 同一基底 + 选中底纹与白字。</summary>
+        private static GUIStyle CreateItemStyle(bool selected)
         {
-            if (s_ItemStyle != null) return s_ItemStyle;
-
-            s_ItemStyle = new GUIStyle(GUI.skin.label)
+            var style = new GUIStyle(GUI.skin.label)
             {
                 alignment = TextAnchor.MiddleLeft,
                 padding =
@@ -217,27 +216,24 @@ namespace RD.EditorKit.Editor
                     bottom = 1,
                 },
             };
-            return s_ItemStyle;
+
+            if (selected)
+            {
+                style.normal.background = SelectTex;
+                style.normal.textColor  = Color.white;
+            }
+
+            return style;
+        }
+
+        private static GUIStyle GetItemStyle()
+        {
+            return s_ItemStyle ??= CreateItemStyle(false);
         }
 
         private static GUIStyle GetSelectStyle()
         {
-            if (s_SelectStyle != null) return s_SelectStyle;
-
-            s_SelectStyle = new GUIStyle(GUI.skin.label)
-            {
-                alignment = TextAnchor.MiddleLeft,
-                padding =
-                {
-                    left = 4,
-                    right = 4,
-                    top = 1,
-                    bottom = 1,
-                },
-            };
-            s_SelectStyle.normal.background = SelectTex;
-            s_SelectStyle.normal.textColor = Color.white;
-            return s_SelectStyle;
+            return s_SelectStyle ??= CreateItemStyle(true);
         }
 
         //-------------------------------------- 分割条 --------------------------------------

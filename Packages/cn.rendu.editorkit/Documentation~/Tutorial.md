@@ -1171,7 +1171,7 @@ private EditorPrefsValue<float>  m_SavedMenuWidth = new("MyTool_MenuWidth", null
 m_LastSelected.Value = "资源/纹理";
 ```
 
-可用的包装：`EditorPrefsValue<string>` / `EditorPrefsValue<float>` / `EditorPrefsValue<int>` / `EditorPrefsValue<bool>` / `EditorPrefsValue<T>`（背后是 `EditorPrefs`），构造签名统一为 `(key, label = null, defaultValue = default)`。菜单宽度可以这样接：
+可用的包装：`EditorPrefsValue<string>` / `EditorPrefsValue<float>` / `EditorPrefsValue<int>` / `EditorPrefsValue<bool>` / `EditorPrefsValue<T>`（背后是 `EditorPrefs`），构造签名统一为 `(key, defaultValue = default)`。菜单宽度可以这样接：
 
 ```csharp
 protected override void Initialize() => MenuWidth = m_SavedMenuWidth.Value;

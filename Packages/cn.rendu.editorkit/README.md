@@ -591,7 +591,7 @@ public class MyToolWindow : MenuEditorWindow
 | API | 说明 |
 |---|---|
 | `Icons.FromSdf(SdfIconType)` | 把 `SdfIconType` 转成 `Texture`（优先映射 Unity 内置图标，映射不到返回 `null`，按钮退化为纯文本） |
-| `Icons.UnityFolderIcon` / `Folder` / `SettingsCog` | 现成图标（`EditorIcon` 结构，可隐式转 `Texture` / `GUIContent`） |
+| `Icons.Folder` / `SettingsCog` | 现成图标（`EditorIcon` 结构，可隐式转 `Texture` / `GUIContent`） |
 | `EditorPrefsValue<string>` / `EditorPrefsValue<float>` / `EditorPrefsValue<int>` / `EditorPrefsValue<bool>` / `EditorPrefsValue<T>` | `EditorPrefs` 的强类型包装：`new EditorPrefsValue<string>("Key", null, "默认值").Value` |
 | `CollectionExtensions.AddRange<T>(this HashSet<T>, IEnumerable<T>)` | `HashSet` 批量添加（Runtime 侧） |
 | `ExpressionEvaluator.IsExpression(string)` / `Evaluate(...)` / `EvaluateBool(...)` / `Truthy(object)` | 表达式工具，可在业务代码里复用 |

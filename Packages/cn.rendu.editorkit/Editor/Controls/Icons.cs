@@ -31,7 +31,6 @@ namespace RD.EditorKit.Editor
     /// </summary>
     public static class Icons
     {
-        public static EditorIcon UnityFolderIcon = new(FindBuiltinIcon("Folder Icon"));
         public static EditorIcon Folder = new(FindBuiltinIcon("Folder Icon"));
         public static EditorIcon SettingsCog = new(FindBuiltinIcon("Settings Icon", "Settings"));
 
