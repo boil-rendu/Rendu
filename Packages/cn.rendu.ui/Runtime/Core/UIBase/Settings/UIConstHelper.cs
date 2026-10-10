@@ -19,7 +19,7 @@ namespace RD.Client
         /// UI 常量文件路径 本工程 UI 资源集中在 Packages/cn.rendu.gameres/UI (YooAsset UI 收集组的路径)
         /// 必须落在被收集的目录内 否则打包清单里不会有这个资源
         /// </summary>
-        public const string UIConstAssetPath = "Packages/cn.rendu.gameres/UI/UISettings/UIConstAsset.txt";
+        public const string UIConstAssetPath = "Packages/cn.rendu.game/Assets/GameRes/UI/UISettings/UIConstAsset.txt";
 
         private static UIConstAsset m_UIConstAsset;
 

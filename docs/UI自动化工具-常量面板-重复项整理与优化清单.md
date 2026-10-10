@@ -22,7 +22,7 @@
 | 左侧导航来源 | 固定项「发布 / 全局设置」+ 反射收集所有 `[UIAutoMenu]` 类（`ET生成 / 宏设置 / 检查 / 常量 / 系统图标`） |
 | 面板逻辑 | `Packages/cn.rendu.ui/Editor/UIAutoTool/Window/UIConst/UIConstModule.cs` |
 | 数据类 | `Packages/cn.rendu.ui/Runtime/Core/UIBase/Asset/UIConstAsset.cs` — `RD.Client.UIConstAsset`（`partial`，**全仓只有这一个定义，无扩展文件**） |
-| 存档位置 | `Packages/cn.rendu.gameres/UI/UISettings/UIConstAsset.txt` |
+| 存档位置 | `Packages/cn.rendu.game/Assets/GameRes/UI/UISettings/UIConstAsset.txt` |
 | 存档现状 | **内容为 `{}`** — 即面板上显示的值**全部来自代码里的字段初始化器**，没有一条是真实配置数据 |
 | 项数 | `#region 项目配置` 共 **38** 项（原 41 项，删 `UIUIPanelSourceName` / `UIUIViewName` / `UIUIViewParentName` 三处冗余字段）：**27 项 `[ReadOnly]`** + **11 项可编辑** |
 | 标签风格 | 前 15 项有中文 `[LabelText]`；后 23 项没有 → 由 RD.Inspector 按字段名自动分词显示（`UIRootName` → `UI Root Name`），**同一面板中文/英文标签混排** |

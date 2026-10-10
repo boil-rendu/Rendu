@@ -95,7 +95,7 @@ MonoBehaviour:
       AssetTags: 
       ActiveRuleName: EnableGroup
       Collectors:
-      - CollectPath: Packages/cn.rendu.gameres/UI
+      - CollectPath: Packages/cn.rendu.game/Assets/GameRes/UI
         CollectorGUID: bd048e9aec238416e99ddc2930860e2d
         CollectorType: 0
         AddressRuleName: AddressByFileName
