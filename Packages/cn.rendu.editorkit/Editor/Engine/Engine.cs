@@ -1138,8 +1138,7 @@ namespace RD.EditorKit.Editor
             var disabled = readOnly || CheckDisabled(m, target);
 
             var value = GetSafe(target, m);
-            var hideLabel = GetAttr<HideLabelAttribute>(m) != null;
-            var label = hideLabel ? "" : GetLabel(m);
+            var label = LabelOrEmpty(m);
 
             object newValue = null;
             var changed = false;
@@ -1223,8 +1222,7 @@ namespace RD.EditorKit.Editor
             var color = ResolveGUIColor(m);
             if (color != null) GUI.color = color.Value;
 
-            var hideLabel = GetAttr<HideLabelAttribute>(m) != null;
-            var label = hideLabel ? "" : GetLabel(m);
+            var label = LabelOrEmpty(m);
             if (string.IsNullOrEmpty(label))
             {
                 GUILayout.Label(text, style);
@@ -1711,8 +1709,7 @@ namespace RD.EditorKit.Editor
             }
 
             // 嵌套用户对象
-            var hideLabel = GetAttr<HideLabelAttribute>(m) != null;
-            if (hideLabel == false)
+            if (ShouldDrawLabel(m))
             {
                 GUILayout.Label(GetLabel(m), EditorStyles.boldLabel);
             }
@@ -1722,7 +1719,7 @@ namespace RD.EditorKit.Editor
 
         private static void DrawScalarLabelNull(CachedMember m)
         {
-            EditorGUILayout.LabelField(GetLabel(m), "(null)");
+            EditorGUILayout.LabelField(LabelOrEmpty(m), "(null)");
         }
 
         private static void DrawStringSet(object target, CachedMember m, IEnumerable collection)
@@ -1732,7 +1729,11 @@ namespace RD.EditorKit.Editor
 
             var box = GUI.skin.GetStyle("box");
             GUILayout.BeginVertical(box);
-            GUILayout.Label($"{GetLabel(m)} ({count})", EditorStyles.boldLabel);
+            if (ShouldDrawLabel(m))
+            {
+                GUILayout.Label(CountedLabel(m, count), EditorStyles.boldLabel);
+            }
+
             foreach (var item in collection)
             {
                 EditorGUILayout.LabelField(item?.ToString() ?? "null");
@@ -1751,7 +1752,7 @@ namespace RD.EditorKit.Editor
             var expanded = GetExpanded(target, m);
 
             GUILayout.BeginVertical(box);
-            expanded = GUILayout.Toggle(expanded, $"{GetLabel(m)} ({dict.Count})", EditorStyles.foldout);
+            expanded = GUILayout.Toggle(expanded, CountedLabel(m, dict.Count), EditorStyles.foldout);
             SetExpanded(target, m, expanded);
 
             if (expanded)
@@ -1833,7 +1834,10 @@ namespace RD.EditorKit.Editor
             if (list.Count > 0 && list[0] is UnityEngine.Object)
             {
                 GUILayout.BeginVertical(box);
-                GUILayout.Label($"{GetLabel(m)} ({list.Count})", EditorStyles.boldLabel);
+                if (ShouldDrawLabel(m))
+                {
+                    GUILayout.Label(CountedLabel(m, list.Count), EditorStyles.boldLabel);
+                }
                 foreach (var item in list)
                 {
                     if (item is UnityEngine.Object uo)
@@ -1859,7 +1863,7 @@ namespace RD.EditorKit.Editor
             GUILayout.BeginVertical(box);
 
             EditorGUILayout.BeginHorizontal();
-            expanded = GUILayout.Toggle(expanded, $"{GetLabel(m)} ({list.Count})", EditorStyles.foldout);
+            expanded = GUILayout.Toggle(expanded, CountedLabel(m, list.Count), EditorStyles.foldout);
             SetExpanded(target, m, expanded);
             GUILayout.FlexibleSpace();
 
@@ -1954,21 +1958,20 @@ namespace RD.EditorKit.Editor
             var showIndex = table.ShowIndexLabels;
             var showRemove = readOnly == false && table.HideToolbar == false;
             var expanded = table.AlwaysExpanded || GetExpanded(target, m);
-            var label = GetLabel(m);
 
             GUILayout.BeginVertical(GUI.skin.GetStyle("box"));
 
             if (table.AlwaysExpanded)
             {
-                if (GetAttr<HideLabelAttribute>(m) == null && string.IsNullOrEmpty(label) == false)
+                if (ShouldDrawLabel(m))
                 {
-                    GUILayout.Label($"{label} ({list.Count})", EditorStyles.boldLabel);
+                    GUILayout.Label(CountedLabel(m, list.Count), EditorStyles.boldLabel);
                 }
             }
             else
             {
                 EditorGUILayout.BeginHorizontal();
-                expanded = GUILayout.Toggle(expanded, $"{label} ({list.Count})", EditorStyles.foldout);
+                expanded = GUILayout.Toggle(expanded, CountedLabel(m, list.Count), EditorStyles.foldout);
                 SetExpanded(target, m, expanded);
                 GUILayout.FlexibleSpace();
                 if (showRemove && GUILayout.Button("+", GUILayout.Width(TableRemoveColumnWidth)))
@@ -2634,6 +2637,35 @@ namespace RD.EditorKit.Editor
             }
 
             return FriendlyName(m.RawName);
+        }
+
+        /// <summary>
+        /// 成员标签, 但 [HideLabel] 时为空串 —— 值控件(标量/枚举/字符串/对象预览)统一走这里:
+        /// 控件照画, 只是没有名字。
+        /// </summary>
+        internal static string LabelOrEmpty(CachedMember m)
+        {
+            return GetAttr<HideLabelAttribute>(m) != null ? "" : GetLabel(m);
+        }
+
+        /// <summary>
+        /// 容器头部(列表/字典/集合/表格)的"名字 + 计数"文案。
+        /// [HideLabel] 时**只留计数**: 折叠头("▼")必须有一段可点的文字, 整行不画就没法展开了,
+        /// 所以这里不能像纯文本头那样直接省略。
+        /// </summary>
+        internal static string CountedLabel(CachedMember m, int count)
+        {
+            var label = LabelOrEmpty(m);
+            return string.IsNullOrEmpty(label) ? $"({count})" : $"{label} ({count})";
+        }
+
+        /// <summary>
+        /// 非折叠的纯文本头行(只有一行 bold 文字, 没有箭头)该不该画。
+        /// 没有名字就整行不画 —— 否则会留下一条什么都不说明的空白带。
+        /// </summary>
+        internal static bool ShouldDrawLabel(CachedMember m)
+        {
+            return string.IsNullOrEmpty(LabelOrEmpty(m)) == false;
         }
 
         private static string FriendlyName(string name)

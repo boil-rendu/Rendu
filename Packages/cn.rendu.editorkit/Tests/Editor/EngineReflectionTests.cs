@@ -144,6 +144,21 @@ namespace RD.EditorKit.Tests.Editor
             public int PlainField = 0;
         }
 
+        /// <summary>
+        /// 容器头部(列表 / 字典 / 表格)的标签判定。三者共用同一套判定, 且只看成员元数据、不看值,
+        /// 因此能脱离 IMGUI 验证 —— "画什么文字 / 画不画这一行"是纯函数, 剩下的只有 GUILayout 调用本身。
+        /// </summary>
+        private class ContainerSample
+        {
+            public List<int> NamedList = new();
+
+            [HideLabel]
+            public List<int> HiddenList = new();
+
+            [HideLabel]
+            public Dictionary<string, int> HiddenDict = new();
+        }
+
         //-------------------------------------- 辅助 --------------------------------------
 
         private static List<string> MemberNames(Type type)
@@ -170,6 +185,26 @@ namespace RD.EditorKit.Tests.Editor
         private static string LabelOf(string memberName)
         {
             return Engine.GetLabel(FindMember(typeof(LabelSample), memberName));
+        }
+
+        private static Engine.CachedMember ContainerMemberOf(string memberName)
+        {
+            return FindMember(typeof(ContainerSample), memberName);
+        }
+
+        private static string ContainerHeaderOf(string memberName, int count)
+        {
+            return Engine.CountedLabel(ContainerMemberOf(memberName), count);
+        }
+
+        private static string LabelOrEmptyOf(string memberName)
+        {
+            return Engine.LabelOrEmpty(ContainerMemberOf(memberName));
+        }
+
+        private static bool ShouldDrawHeaderOf(string memberName)
+        {
+            return Engine.ShouldDrawLabel(ContainerMemberOf(memberName));
         }
 
         private static Engine.GroupNode BuildGroupTree()
@@ -430,6 +465,31 @@ namespace RD.EditorKit.Tests.Editor
         public void Label_PlainMemberUsesFriendlyName()
         {
             Assert.AreEqual("Plain Field", LabelOf(nameof(LabelSample.PlainField)));
+        }
+
+        //-------------------------------------- 容器头 (列表 / 字典 / 表格) --------------------------------------
+
+        [Test]
+        public void ContainerHeader_NamedContainer_IsNamePlusCount()
+        {
+            Assert.AreEqual("Named List (3)", ContainerHeaderOf("NamedList", 3));
+        }
+
+        [Test]
+        public void ContainerHeader_HideLabel_KeepsOnlyTheCount()
+        {
+            Assert.AreEqual("(3)", ContainerHeaderOf("HiddenList", 3),
+                "折叠头(\"▼\")必须留一段可点的文字, 整行不画就没法展开了");
+            Assert.AreEqual("", LabelOrEmptyOf("HiddenDict"),
+                "字典头与列表头走同一套判定");
+        }
+
+        [Test]
+        public void PlainContainerHeader_HideLabel_IsNotDrawn()
+        {
+            Assert.IsTrue(ShouldDrawHeaderOf("NamedList"));
+            Assert.IsFalse(ShouldDrawHeaderOf("HiddenList"),
+                "没有箭头的纯文本头在 [HideLabel] 时应整行不画, 而不是留一条什么都不说明的空白带");
         }
     }
 }

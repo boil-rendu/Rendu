@@ -1485,7 +1485,7 @@ public class LevelConfigEditor : InspectorEditor { }
 | 我要… | 写法 |
 |---|---|
 | 改显示名 | `[LabelText("…")]` |
-| 不显示标签 | `[HideLabel]` |
+| 不显示标签 | `[HideLabel]`（用在列表/字典/表格上时：折叠头只剩 `▼ (3)`，纯文本头整行不画） |
 | 控制先后 | `[PropertyOrder(n)]` |
 | 让私有字段出现 | `[SerializeField]` / `[ShowInInspector]` / `[InspectorSerialize]` |
 | 只读 | `[ReadOnly]` |

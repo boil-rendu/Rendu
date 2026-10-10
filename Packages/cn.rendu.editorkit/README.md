@@ -243,7 +243,7 @@ public class MyWindow : EditorWindowBase
 | 特性 | 作用目标 | 用法 | 生效情况 |
 |---|---|---|---|
 | `[LabelText("文本")]` | 全部 | 改显示名 | 生效。字段标签按 **成员自身 → 成员类型（只认枚举）→ `FriendlyName`** 三级回退，见 §4.1 表下注；枚举**值**上的用法见 §4.5 |
-| `[HideLabel]` | 全部 | 不画标签 | 生效 |
+| `[HideLabel]` | 全部 | 不画标签 | 生效。容器（列表 / 字典 / 集合 / 表格）另有约定：**折叠头**只保留计数（`▼ (3)` —— 箭头总要一段可点的文字），**非折叠的纯文本头**整行不画（不留空白带） |
 | `[PropertyOrder(double)]` | 全部 | 排序权重 | 生效 |
 | `[ReadOnly]` | 全部 | 只读 | 生效 |
 | `[ShowInInspector]` | 字段/属性（放方法上无效果，方法请用 `[Button]`/`[OnInspectorGUI]`） | 让非序列化成员也参与绘制 | 生效（静态字段靠它显示） |
@@ -803,7 +803,7 @@ public enum Mode { Simple, Advanced }
 |---|---|
 | `ExpressionEvaluatorTests.cs` | `@` 表达式的词法/优先级/求值/真值语义、`$property` 读写、失败路径、解析缓存（重复求值仍读当前值/仍写回）、按形参个数挑重载、被 `new` 隐藏的成员取最派生、自定义索引器 |
 | `SerializationTests.cs` | 标量/字符/枚举/数组/List/Dictionary/HashSet/嵌套 POCO/Unity 值类型（`Vector2`、`Vector4`、`Quaternion`、`Rect`、`LayerMask`）的 JSON 往返、Unity 属性包类型（曲线/渐变）的成员规则与 null 语义、渐变的完整往返（需 Unity）、转义、null 语义、类型强转、`null` 根、环引用的深度剪断、截断 `\uXXXX` 的容错 |
-| `EngineReflectionTests.cs` | 引擎骨架：成员可见性规则、`PropertyOrder` → 收集序排序、`GroupID` 路径 → 分组树（嵌套/类型/同级顺序）、类型级缓存、无参方法解析（重载/仅有带参/被 `new` 隐藏）、标签三级回退（成员 `[LabelText]` → 枚举类型 `[LabelText]` → `FriendlyName`） |
+| `EngineReflectionTests.cs` | 引擎骨架：成员可见性规则、`PropertyOrder` → 收集序排序、`GroupID` 路径 → 分组树（嵌套/类型/同级顺序）、类型级缓存、无参方法解析（重载/仅有带参/被 `new` 隐藏）、标签三级回退（成员 `[LabelText]` → 枚举类型 `[LabelText]` → `FriendlyName`）、容器头部文案与 `[HideLabel]`（名字+计数 / 只剩计数 / 整行不画） |
 | `EngineStateTests.cs` | 折叠状态：默认展开、实例/成员/会话间隔离、宿主对象回收后状态随之释放、`OnStateUpdate` 表达式写回与按名调用 |
 | `EngineConditionTests.cs` | 条件显隐与禁用：`[ShowIf]`/`[HideIf]` 的真值与相等语义（含数值相对容差，`float` 字段 vs `double` 字面量）、`@` 条件表达式、成员名解析（被 `new` 隐藏的成员取最派生）、多条件"与"、`[EnableIf]`/`[DisableIf]`、两种运行模式下的 `[HideInPlayMode]`/`[HideInEditorMode]` |
 | `MenuTreeTests.cs` | 菜单树：路径建树与自动补文件夹、同名就地替换、深度优先遍历、选中与事件 |
@@ -828,7 +828,7 @@ public enum Mode { Simple, Advanced }
 cd "Packages/cn.rendu.editorkit/Tools~/Verify" && dotnet run
 ```
 
-几秒内即可跑完全部纯逻辑断言（表达式、序列化、成员收集、折叠状态、条件显隐、菜单树），无需启动编辑器；依赖 Unity 运行时的用例会被自动跳过（当前 2 个：`Serialize_UnityObjectReferenceIsNotPersisted`、`RoundTrip_Gradient`）。当前规模：**6 个夹具 135 例，脱机 133 通过 / 2 跳过**（`ExpressionEvaluatorTests` 44、`EngineReflectionTests` 26、`EngineConditionTests` 20、`SerializationTests` 19、`MenuTreeTests` 14、`EngineStateTests` 12）。
+几秒内即可跑完全部纯逻辑断言（表达式、序列化、成员收集、折叠状态、条件显隐、菜单树），无需启动编辑器；依赖 Unity 运行时的用例会被自动跳过（当前 2 个：`Serialize_UnityObjectReferenceIsNotPersisted`、`RoundTrip_Gradient`）。当前规模：**6 个夹具 138 例，脱机 136 通过 / 2 跳过**（`ExpressionEvaluatorTests` 44、`EngineReflectionTests` 29、`EngineConditionTests` 20、`SerializationTests` 19、`MenuTreeTests` 14、`EngineStateTests` 12）。
 
 运行器接受一个**夹具名子串**作为可选参数（`Program.Main` 的 `args[0]`，大小写不敏感的 `IndexOf` 匹配），只想跑一块时：
 
@@ -851,7 +851,7 @@ UNITY_MANAGED=/path/to/Managed dotnet run
 - 这些断言固化的是**当前实现的真实行为**，不是"理想行为"。"表达式不短路求值"、"`Truthy(0)` 为真"、"数字字面量一律是 `double`"这类反直觉规则是**故意**钉住的陷阱提示 —— 改实现时先让测试变红，再决定是改断言还是改代码；
 - `Serialize_UnityObjectReferenceIsNotPersisted` 依赖 `ScriptableObject`，`RoundTrip_Gradient` 依赖原生对象（**曲线/渐变在纯 .NET 里 `new` 不出来，直接抛 `SecurityException: ECall methods must be packaged into a system module`**），这两个**只能**在 Test Runner 内跑 —— 跳过名单是 `Tools~/Verify/Program.cs` 里的 `RequiresUnityRuntime`。曲线/渐变其余能脱机验证的部分（成员规则、null 语义）只走反射，因此在纯 .NET 下同样有覆盖；
 - 测试通过 `Editor/AssemblyInfo.cs` 里的 `InternalsVisibleTo` 访问引擎的 internal 元数据与状态存取方法（`CachedMember` / `GroupNode` / `GetMembers` / `GetGroupTree` / `GetExpanded` / `SetExpanded` / `FindMethod` 等），这样不必让测试去反射私有成员；`internal` 在程序集之外依然不可见，不扩大公共 API；
-- 仍然**没有** GUI 层测试：`Engine` 的绘制流程与 `Begin/End` 配平还没有自动化覆盖，改动这些区域依然只能靠 Unity Test Runner 或手工回归（条件显隐规则本身已可脱机验证，见 `EngineConditionTests`）；
+- 仍然**没有** GUI 层测试：`Engine` 的绘制流程与 `Begin/End` 配平还没有自动化覆盖，改动这些区域依然只能靠 Unity Test Runner 或手工回归（条件显隐规则本身已可脱机验证，见 `EngineConditionTests`；同理，「容器头部画什么文字 / 这一行画不画」已从绘制流程里抽成 `LabelOrEmpty` / `CountedLabel` / `ShouldDrawLabel` 三个纯函数并可脱机验证，留在绘制流程里的只剩 `GUILayout.*` 调用本身）；
 - 折叠状态与滚动位置存在 `HostSession`（由宿主持有，`DrawObject` 在绘制期间挂载、退出时还原；未显式传入时用默认会话兜底）：状态的生存期与宿主一致、窗口之间彼此隔离，不再是进程级静态字典；
 - 会话内的成员状态按**宿主对象弱引用分桶**（`ConditionalWeakTable<object, ObjectState>`，桶内再按成员名索引）：对象被回收即整桶消失，不会像早期实现那样留下永不释放的键；分桶判定走"引用相等"，也消除了身份哈希被复用后把状态错给新对象的问题（回归用例 `EngineStateTests.FoldedState_OwnerStateIsReleasedWithTheOwner`）；
 - 分组展开状态并入同一套分桶（桶内键为 `GroupID` 路径）：此前它挂在会话级平铺字典上，而分组路径在同类型的所有实例上是同一个字符串，于是同一窗口里两个同类型对象（例如列表中的两行）会共用一次折叠。现在 `FoldoutGroup` 的展开逐实例独立（回归用例 `EngineStateTests.GroupExpanded_IsolatedPerInstance`）。

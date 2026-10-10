@@ -42,7 +42,7 @@ namespace RD.UI.Editor
         public MacroCurrentData MacroStaticData;
 
         [BoxGroup("自定义宏数据", centerLabel: true)]
-        [LabelText(" ")]
+        [HideLabel]
         [ShowInInspector]
         [ListDrawerSettings(IsReadOnly = true)]
         [HideReferenceObjectPicker]
