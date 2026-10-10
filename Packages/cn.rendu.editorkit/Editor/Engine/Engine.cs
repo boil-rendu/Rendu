@@ -1138,6 +1138,8 @@ namespace RD.EditorKit.Editor
             var prevLabelWidth = EditorGUIUtility.labelWidth;
             if (inTableCell)
             {
+                // 单元格里真正让标签消失的是 LabelForControl 返回的空标签; 这个只是给
+                // 带自有标签的嵌套控件(向量分量之类)少留点位置。
                 EditorGUIUtility.labelWidth = 0f;
             }
             else
@@ -1183,7 +1185,7 @@ namespace RD.EditorKit.Editor
 
             if (GetAttr<DisplayAsStringAttribute>(m) != null)
             {
-                DrawDisplayString(target, m);
+                DrawDisplayString(target, m, inTableCell);
                 return;
             }
 
@@ -1196,7 +1198,7 @@ namespace RD.EditorKit.Editor
             var disabled = readOnly || CheckDisabled(m, target);
 
             var value = GetSafe(target, m);
-            var label = LabelOrEmpty(m);
+            var label = LabelForControl(m, inTableCell);
 
             object newValue = null;
             var changed = false;
@@ -1254,7 +1256,7 @@ namespace RD.EditorKit.Editor
         /// <summary>
         /// 以只读文本形式展示成员(DisplayAsString)。
         /// </summary>
-        private static void DrawDisplayString(object target, CachedMember m)
+        private static void DrawDisplayString(object target, CachedMember m, bool inTableCell = false)
         {
             var attr = GetAttr<DisplayAsStringAttribute>(m);
             if (attr == null) return;
@@ -1272,7 +1274,7 @@ namespace RD.EditorKit.Editor
             var color = ResolveGUIColor(m);
             if (color != null) GUI.color = color.Value;
 
-            var label = LabelOrEmpty(m);
+            var label = LabelForControl(m, inTableCell);
             if (string.IsNullOrEmpty(label))
             {
                 GUILayout.Label(text, style);
@@ -2782,6 +2784,17 @@ namespace RD.EditorKit.Editor
         internal static string LabelOrEmpty(CachedMember m)
         {
             return GetAttr<HideLabelAttribute>(m) != null ? "" : GetLabel(m);
+        }
+
+        /// <summary>
+        /// 值控件实际要用的标签: 表格单元格里**永远为空**。
+        /// 单元格的字段名已经由列名指明了, 再画一遍标签不仅重复, 而且标签会吃掉约一列的宽度 ——
+        /// 控件被挤到自己列之外, 看起来就像"值没刷出来"(截图里列名跑进单元格、CodeType 的下拉
+        /// 挪到"层级"列, 都是这么来的)。
+        /// </summary>
+        internal static string LabelForControl(CachedMember m, bool inTableCell)
+        {
+            return inTableCell ? "" : LabelOrEmpty(m);
         }
 
         /// <summary>

@@ -500,6 +500,24 @@ namespace RD.EditorKit.Tests.Editor
                 "没有箭头的纯文本头在 [HideLabel] 时应整行不画, 而不是留一条什么都不说明的空白带");
         }
 
+        //-------------------------------------- 值控件的标签 (单元格里必须为空) --------------------------------------
+
+        [Test]
+        public void ControlLabel_InTableCell_IsAlwaysEmpty()
+        {
+            var member = FindMember(typeof(LabelSample), nameof(LabelSample.Explicit));
+            Assert.AreEqual("显式标签", Engine.LabelForControl(member, false));
+            Assert.AreEqual("", Engine.LabelForControl(member, true),
+                "单元格里不画标签: 字段名已由列名给出, 再画一遍会吃掉约一列宽度, 控件被挤到隔壁列");
+        }
+
+        [Test]
+        public void ControlLabel_HideLabelOutsideTable_IsAlsoEmpty()
+        {
+            var hidden = FindMember(typeof(ContainerSample), nameof(ContainerSample.HiddenList));
+            Assert.AreEqual("", Engine.LabelForControl(hidden, false), "表格外沿用 [HideLabel] 的语义");
+        }
+
         //-------------------------------------- 标题对齐 --------------------------------------
 
         [Test]
