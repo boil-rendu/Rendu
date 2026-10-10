@@ -77,17 +77,54 @@ namespace RD
 
         private void AddRequiredReferences(List<PortableExecutableReference> references)
         {
-            // 添加 RD.SourceGeneratorAttribute
+            // ---- runtime 核心引用（mscorlib 等价物） ----
+            // .NET 5+ host 里 netstandard.dll 是 facade，不一定出现在
+            // AppDomain.GetAssemblies() 列表里（或 Location 为空被原过滤跳过），
+            // Roslyn 解析不到 System.Attribute 等基元时即报：
+            //   "The type 'Attribute' is defined in an assembly that is not referenced.
+            //    You must add a reference to assembly 'netstandard, Version=2.0.0.0'."
+            // 显式补 typeof(object).Assembly（System.Private.CoreLib）即可。
+            string corePath = typeof(object).Assembly.Location;
+            if (!string.IsNullOrEmpty(corePath) && !ContainsFile(references, corePath))
+            {
+                references.Add(MetadataReference.CreateFromFile(corePath));
+                Console.WriteLine($"[AssemblyCompiler] 添加引用: {corePath} (mscorlib)");
+            }
+
+            // ---- netstandard facade（.NET 5+ 才有，与 mscorlib 同目录） ----
+            if (!string.IsNullOrEmpty(corePath))
+            {
+                string netStdPath = Path.Combine(
+                    Path.GetDirectoryName(corePath) ?? string.Empty, "netstandard.dll");
+                if (File.Exists(netStdPath) && !ContainsFile(references, netStdPath))
+                {
+                    references.Add(MetadataReference.CreateFromFile(netStdPath));
+                    Console.WriteLine($"[AssemblyCompiler] 添加引用: {netStdPath} (netstandard)");
+                }
+            }
+
+            // ---- RD.SourceGeneratorAttribute（原有） ----
             string sourceGenAttrPath = FindAssembly("RD.SourceGeneratorAttribute.dll", solutionPath);
             if (sourceGenAttrPath != null)
             {
-                references.Add(MetadataReference.CreateFromFile(sourceGenAttrPath));
+                if (!ContainsFile(references, sourceGenAttrPath))
+                    references.Add(MetadataReference.CreateFromFile(sourceGenAttrPath));
                 Console.WriteLine($"[AssemblyCompiler] 添加引用: {sourceGenAttrPath}");
             }
             else
             {
                 Console.WriteLine($"[AssemblyCompiler] 警告: 未找到 RD.SourceGeneratorAttribute.dll");
             }
+        }
+
+        private static bool ContainsFile(List<PortableExecutableReference> references, string path)
+        {
+            foreach (PortableExecutableReference r in references)
+            {
+                if (string.Equals(r.FilePath, path, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
         }
 
         private CSharpCompilation CreateCompilation(List<SyntaxTree> syntaxTrees, List<PortableExecutableReference> references)
