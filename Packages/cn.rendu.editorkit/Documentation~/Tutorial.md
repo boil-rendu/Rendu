@@ -1065,7 +1065,7 @@ using UnityEngine;
 // 窗口：只负责建树
 public class MyToolWindow : MenuEditorWindow
 {
-    private StringPrefs m_LastSelected = new("MyTool_LastSelected");
+    private EditorPrefsValue<string> m_LastSelected = new("MyTool_LastSelected");
 
     [MenuItem("Tools/My Tool")]
     private static void OpenWindow() => GetWindow<MyToolWindow>("My Tool").Show();
@@ -1163,14 +1163,14 @@ tree.Selection.SelectionChanged += type => { /* type: ItemAdded / ItemRemoved / 
 ### 10.5 记住上次选中 / 各种持久化
 
 ```csharp
-private StringPrefs m_LastSelected  = new("MyTool_LastSelected", null, "概览");
-private FloatPrefs  m_SavedMenuWidth = new("MyTool_MenuWidth", null, 300f);
+private EditorPrefsValue<string> m_LastSelected  = new("MyTool_LastSelected", null, "概览");
+private EditorPrefsValue<float>  m_SavedMenuWidth = new("MyTool_MenuWidth", null, 300f);
 
 // 读 / 写都走 .Value
 m_LastSelected.Value = "资源/纹理";
 ```
 
-可用的包装：`StringPrefs` / `FloatPrefs` / `IntPrefs` / `BoolPrefs` / `EnumPrefs<T>`（背后是 `EditorPrefs`），构造签名统一为 `(key, label = null, defaultValue = default)`。菜单宽度可以这样接：
+可用的包装：`EditorPrefsValue<string>` / `EditorPrefsValue<float>` / `EditorPrefsValue<int>` / `EditorPrefsValue<bool>` / `EditorPrefsValue<T>`（背后是 `EditorPrefs`），构造签名统一为 `(key, label = null, defaultValue = default)`。菜单宽度可以这样接：
 
 ```csharp
 protected override void Initialize() => MenuWidth = m_SavedMenuWidth.Value;
@@ -1192,7 +1192,7 @@ protected void RebuildMenuTree();   // 清掉缓存并立刻重建
 `Packages/cn.rendu.ui/Editor/UIAutoTool/Window/AutoTool.cs` 是一个成熟用法，值得对照阅读：
 
 - `BuildMenuTree` 里扫描程序集、找带自定义特性的类型，按 `Order` 排序后逐个 `Add`；
-- `OnSelectionChanged` 里：非 `ItemAdded` 直接返回 → 首次进入时读 `StringPrefs` 恢复上次选中 → 之后每次选中写回 prefs；
+- `OnSelectionChanged` 里：非 `ItemAdded` 直接返回 → 首次进入时读 `EditorPrefsValue<string>` 恢复上次选中 → 之后每次选中写回 prefs；
 - 每个菜单项挂一个 `TreeMenuItem<T>` 包装对象，`Value` 是它；右侧画的就是它 —— `TreeMenuItem<T>` 用 `[ShowInInspector] [HideLabel] public T Instance` 把真正的模块对象**内联展开**（`Editor/Base/BaseTreeMenuItem.cs`）。注意它顺手标的 `[HideReferenceObjectPicker]` 是**装饰性**的（本包没有引用选择器，用户类本来就内联展开，见 15.1）——这个"包装一层再内联"的套路可以直接抄：**菜单项挂包装对象，真实模块藏在包装对象的一个属性里**；
 - `OnWindowDestroy` 里逐个通知模块 `OnDestroy()` 做清理。
 
@@ -1513,7 +1513,7 @@ public class LevelConfigEditor : InspectorEditor { }
 | 组件检视器 | 继承 `InspectorEditor` + `[CustomEditor]` |
 | 工具窗口 | 继承 `EditorWindowBase` |
 | 左树右面板工具 | 继承 `MenuEditorWindow` + `BuildMenuTree()` |
-| 持久化上次选项/窗口宽度 | `StringPrefs` / `FloatPrefs` / … |
+| 持久化上次选项/窗口宽度 | `EditorPrefsValue<string>` / `EditorPrefsValue<float>` / … |
 | 图标枚举 → Texture | `Icons.FromSdf(SdfIconType.X)`（只映射少数字形族，其余返回 `null`） |
 
 ---

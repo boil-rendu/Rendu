@@ -50,7 +50,7 @@ namespace RD.UI.Editor
             EditorApplication.ExecuteMenuItem("Assets/Refresh");
         }
 
-        private RD.EditorKit.Editor.FloatPrefs m_MenuWidthPrefs = new("UIAutoTool_MenuWidth", null, 300f);
+        private EditorPrefsValue<float> m_MenuWidthPrefs = new("UIAutoTool_MenuWidth", null, 300f);
 
         public override float MenuWidth
         {
@@ -128,8 +128,8 @@ namespace RD.UI.Editor
         }
 
         private bool m_FirstInit = true;
-        private RD.EditorKit.Editor.StringPrefs m_LastSelectMenuPrefs = new RD.EditorKit.Editor.StringPrefs("UIAutoTool_LastSelectMenu", null, "全局设置");
-        private RD.EditorKit.Editor.StringPrefs m_LastSelectToolModulePathPrefs = new RD.EditorKit.Editor.StringPrefs("UIAutoTool_LastSelectToolModulePath", null, "");
+        private EditorPrefsValue<string> m_LastSelectMenuPrefs = new EditorPrefsValue<string>("UIAutoTool_LastSelectMenu", null, "全局设置");
+        private EditorPrefsValue<string> m_LastSelectToolModulePathPrefs = new EditorPrefsValue<string>("UIAutoTool_LastSelectToolModulePath", null, "");
         private readonly HashSet<MenuTreeItem> m_FirstSelect = new();
         private bool m_RestoringSelection;
 
@@ -355,7 +355,7 @@ namespace RD.UI.Editor
             }
         }
 
-        public static RD.EditorKit.Editor.StringPrefs UserNamePrefs = new RD.EditorKit.Editor.StringPrefs("UIAutoTool_UserName", null, "UI");
+        public static EditorPrefsValue<string> UserNamePrefs = new EditorPrefsValue<string>("UIAutoTool_UserName", null, "UI");
 
         [LabelText("用户名")]
         [Required("请填写用户名")]

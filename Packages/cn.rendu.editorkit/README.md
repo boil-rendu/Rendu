@@ -74,7 +74,7 @@ cn.rendu.editorkit/
 │   ├── HostSession.cs          一次检视会话的编辑期状态（折叠 / 滚动）
 │   ├── Log.cs              统一日志出口（含 WarnOnce 去重）
 │   ├── Icons.cs            内置图标 + SdfIconType → Texture 解析
-│   ├── InspectorPrefs.cs            String/Float/Int/Bool/EnumPrefs（EditorPrefs 包装）
+│   ├── EditorPrefsValue.cs            String/Float/Int/Bool/EnumPrefs（EditorPrefs 包装）
 │   └── SerializedScriptableObjectEditor.cs   为序列化基类整族注册检视器
 └── Tests/Editor/                    EditMode 测试（程序集：RD.EditorKit.Tests.Editor）
 ```
@@ -561,7 +561,7 @@ public class MyToolWindow : MenuEditorWindow
     [MenuItem("Tools/My Tool")]
     public static void OpenWindow() => GetWindow<MyToolWindow>("My Tool").Show();
 
-    private StringPrefs m_LastSelectMenuPrefs = new("MyTool_LastSelectMenu", null, "全局设置");
+    private EditorPrefsValue<string> m_LastSelectMenuPrefs = new("MyTool_LastSelectMenu", null, "全局设置");
 
     protected override MenuTree BuildMenuTree()
     {
@@ -584,7 +584,7 @@ public class MyToolWindow : MenuEditorWindow
 |---|---|
 | `Icons.FromSdf(SdfIconType)` | 把 `SdfIconType` 转成 `Texture`（优先映射 Unity 内置图标，映射不到返回 `null`，按钮退化为纯文本） |
 | `Icons.UnityFolderIcon` / `Folder` / `SettingsCog` | 现成图标（`EditorIcon` 结构，可隐式转 `Texture` / `GUIContent`） |
-| `StringPrefs` / `FloatPrefs` / `IntPrefs` / `BoolPrefs` / `EnumPrefs<T>` | `EditorPrefs` 的强类型包装：`new StringPrefs("Key", null, "默认值").Value` |
+| `EditorPrefsValue<string>` / `EditorPrefsValue<float>` / `EditorPrefsValue<int>` / `EditorPrefsValue<bool>` / `EditorPrefsValue<T>` | `EditorPrefs` 的强类型包装：`new EditorPrefsValue<string>("Key", null, "默认值").Value` |
 | `CollectionExtensions.AddRange<T>(this HashSet<T>, IEnumerable<T>)` | `HashSet` 批量添加（Runtime 侧） |
 | `ExpressionEvaluator.IsExpression(string)` / `Evaluate(...)` / `EvaluateBool(...)` / `Truthy(object)` | 表达式工具，可在业务代码里复用 |
 
@@ -646,7 +646,7 @@ public class SerializedScriptableObjectEditor : InspectorEditor { }
 - 条件里的成员名解析不到（写错名字）时的语义是**视为可见**（宁可不隐藏，也不因一个拼错的名字把成员整片吞掉），并在首次遇到时记一条 `WarnOnce` 点出"哪个类型、哪个名字没解析到" —— 这条路径以前是完全静默的：成员一直显示，谁也想不到是名字写错了；
 - 引擎按类型缓存成员与分组树，**新增成员后需要等域重载**（改动代码本来就会触发编译）；
 - 绘制热路径上的重复工作都有缓存，**稳态零分配**：成员清单、分组树、表格列之外，还包括"每个成员按特性类型筛选出的特性数组"（`CachedMember.GetAttrs<T>`）、"`(类型, 名字, 形参个数) → 无参方法 / 字段 / 属性`"的反射查找结果（引擎与表达式求值器共用同一份解析规则与缓存），以及表达式的 AST 与索引器元数据（见 §5.5）。缓存同样活到域重载，所以上面那条"靠域重载生效"对它们一并适用；
-- 折叠状态、滚动位置是会话内缓存（不写盘；窗口的菜单宽度、上次选中项要持久化请自己用 `*Prefs`，例如 `new FloatPrefs("MyTool_MenuWidth").Value`）；
+- 折叠状态、滚动位置是会话内缓存（不写盘；窗口的菜单宽度、上次选中项要持久化请自己用 `*Prefs`，例如 `new EditorPrefsValue<float>("MyTool_MenuWidth").Value`）；
 - 表达式**已支持索引器**（`@Items[0]`、`@Map['key']`、`@Child.Items[1]`，调用结果后也能接，如 `@GetScaled(2)[1]`）：覆盖数组 / 字符串 / `List<T>` / `Dictionary<K,V>` 与自定义 `this[...]` 索引器；**越界或键缺失返回 `null`**，不会中断整段绘制。仍不支持位运算与自增自减；
 - 表达式解析会校验收尾：写了一半的表达式（如 `@Items[0`）整体返回 `null`，而不是被静默截断成一个错值；
 - 表达式里的数字字面量一律是 `double`；方法调用（`InvokeRaw`）会先按形参类型显式收窄，因此 **`@Foo(1, 2)` 可以调用 `Foo(int, int)`**，`Foo(SomeEnum)` 也能接收整数字面量。收窄只覆盖数值与枚举形参，其余类型原样交给反射 binder；

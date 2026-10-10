@@ -45,7 +45,7 @@ namespace RD.UI.Editor
 
         /// <summary>检查类型的选择记忆（EditorPrefs 持久化）</summary>
         [HideLabel]
-        private RD.EditorKit.Editor.EnumPrefs<ECheckViewType> UICheckViewPrefs = new("UIAutoTool_EUICheckViewType");
+        private EditorPrefsValue<ECheckViewType> UICheckViewPrefs = new("UIAutoTool_EUICheckViewType");
 
         /// <summary>模块加载时恢复上次选择的检查类型</summary>
         public override void Initialize()
