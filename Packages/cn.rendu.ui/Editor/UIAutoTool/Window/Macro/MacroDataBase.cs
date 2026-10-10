@@ -26,7 +26,13 @@ namespace RD.UI.Editor
     [Serializable]
     public class MacroDataBase<T> : MacroDataBase where T : struct
     {
-        [LabelText("宏 枚举")]
+        /// <summary>
+        /// 当前已勾选的宏组合(Flags 枚举)。
+        /// 这里**不要**写 [LabelText]: 本类是所有宏分组共用的泛型基类, 写死标签会让
+        /// N 个分组显示成同一行文字("宏 枚举" × N, 看不出哪行是哪个)。
+        /// 标签交给引擎回退到各自枚举类型上的 [LabelText]
+        /// (EMacroType="RD" / EUIMacroType="UI" / EUIAssetsMacroType="资源加载")。
+        /// </summary>
         [ShowInInspector]
         protected T MacroEnumType;
 

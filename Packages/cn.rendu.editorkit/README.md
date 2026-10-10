@@ -242,7 +242,7 @@ public class MyWindow : EditorWindowBase
 
 | 特性 | 作用目标 | 用法 | 生效情况 |
 |---|---|---|---|
-| `[LabelText("文本")]` | 全部 | 改显示名 | 生效（枚举的**值**上也能用，见 §4.6） |
+| `[LabelText("文本")]` | 全部 | 改显示名 | 生效。字段标签按 **成员自身 → 成员类型（只认枚举）→ `FriendlyName`** 三级回退，见 §4.1 表下注；枚举**值**上的用法见 §4.5 |
 | `[HideLabel]` | 全部 | 不画标签 | 生效 |
 | `[PropertyOrder(double)]` | 全部 | 排序权重 | 生效 |
 | `[ReadOnly]` | 全部 | 只读 | 生效 |
@@ -257,6 +257,8 @@ public class MyWindow : EditorWindowBase
 | `[OnInspectorInit]` | 全部 | Inspector 初始化回调 | **未实现** |
 | `[HideInTables]` | 全部 | 表格内隐藏 | **未实现** |
 
+> 字段标签的解析顺序（`GetLabel`）：**成员自身的 `[LabelText]`** → **成员「类型」上的 `[LabelText]`（只认枚举）** → `FriendlyName`。第二级是给"一个泛型基类承载 N 个枚举"这类场景准备的：那 N 个字段声明的其实是同一个成员、连名字都一样，唯一能区分的只有各自的枚举类型（典型：`cn.rendu.ui` 的 `MacroDataBase<T>`，宏分组行靠它显示成 `RD` / `UI` / `资源加载`，而不是 N 行一样的文字）。类/结构上的 `[LabelText]` **不**参与这一级 —— 它的语义是类型自身的显示名（`[AddComponentMenu]` 那一类），拿来当字段标签会把类引用字段的标签改成组件名。
+>
 > 不写 `[LabelText]` 时的默认标签来自 `FriendlyName`：正则 `(?<!^)([A-Z][a-z0-9])` → ` $1`，即**只在"大写 + 小写/数字"这一对之前插空格，首字符除外**。于是 `AttackSpeed` → `Attack Speed`、`m_AttackSpeed` → `m_ Attack Speed`（**不去前缀**）、而 `MaxHP` / `URL` / `WaveID` 这类**连续大写不会被拆**。私有字段与连续大写的字段建议显式写 `[LabelText]`。
 
 ### 4.2 分组
@@ -334,7 +336,7 @@ public class MyWindow : EditorWindowBase
 | `[LabelWidth(float)]` | 标签宽度 | 生效 |
 | `[GUIColor(r,g,b,a)]` / `[GUIColor("1,0,0,1")]` | 行着色；字符串形式只接受 `"r,g,b[,a]"` 数字串 | 生效；`GUIColorAttribute.MethodName` **未读取**（写"返回 `Color` 的方法名"不会着色，也不会报错） |
 | `[Required("自定义错误")]` | 空 / 默认值时提示 | 生效（`ErrorMessage`、`MessageType` 都读取） |
-| `[EnumToggleButtons]` | 枚举画成按钮组 | 生效（`GUILayout.Toolbar`；不带该特性时是 `EditorGUILayout.Popup`）。补充事实：**枚举值上可以挂 `[LabelText("中文")]` 定制显示文本**（`GetEnumLabel` 会读）；`[Flags]` 枚举目前只能单选一个值（无按位多选界面）；当前值匹配不上任何选项时下拉显示第 0 项但**不改数据** |
+| `[EnumToggleButtons]` | 枚举画成按钮组 | 生效（`GUILayout.Toolbar`；不带该特性时是 `EditorGUILayout.Popup`）。补充事实：**枚举值上可以挂 `[LabelText("中文")]` 定制显示文本**（`GetEnumLabel` 会读）；**枚举「类型」上挂 `[LabelText("中文")]` 则它成为该枚举字段的字段名**（字段自身未写标签时，见 §4.1 表下注）；`[Flags]` 枚举目前只能单选一个值（无按位多选界面）；当前值匹配不上任何选项时下拉显示第 0 项但**不改数据** |
 | `[HideInPlayMode]` / `[HideInEditorMode]` | 运行时 / 编辑时隐藏 | 生效 |
 
 ### 4.6 列表 / 字典 / 表格
@@ -801,7 +803,7 @@ public enum Mode { Simple, Advanced }
 |---|---|
 | `ExpressionEvaluatorTests.cs` | `@` 表达式的词法/优先级/求值/真值语义、`$property` 读写、失败路径、解析缓存（重复求值仍读当前值/仍写回）、按形参个数挑重载、被 `new` 隐藏的成员取最派生、自定义索引器 |
 | `SerializationTests.cs` | 标量/字符/枚举/数组/List/Dictionary/HashSet/嵌套 POCO/Unity 值类型（`Vector2`、`Vector4`、`Quaternion`、`Rect`、`LayerMask`）的 JSON 往返、Unity 属性包类型（曲线/渐变）的成员规则与 null 语义、渐变的完整往返（需 Unity）、转义、null 语义、类型强转、`null` 根、环引用的深度剪断、截断 `\uXXXX` 的容错 |
-| `EngineReflectionTests.cs` | 引擎骨架：成员可见性规则、`PropertyOrder` → 收集序排序、`GroupID` 路径 → 分组树（嵌套/类型/同级顺序）、类型级缓存、无参方法解析（重载/仅有带参/被 `new` 隐藏） |
+| `EngineReflectionTests.cs` | 引擎骨架：成员可见性规则、`PropertyOrder` → 收集序排序、`GroupID` 路径 → 分组树（嵌套/类型/同级顺序）、类型级缓存、无参方法解析（重载/仅有带参/被 `new` 隐藏）、标签三级回退（成员 `[LabelText]` → 枚举类型 `[LabelText]` → `FriendlyName`） |
 | `EngineStateTests.cs` | 折叠状态：默认展开、实例/成员/会话间隔离、宿主对象回收后状态随之释放、`OnStateUpdate` 表达式写回与按名调用 |
 | `EngineConditionTests.cs` | 条件显隐与禁用：`[ShowIf]`/`[HideIf]` 的真值与相等语义（含数值相对容差，`float` 字段 vs `double` 字面量）、`@` 条件表达式、成员名解析（被 `new` 隐藏的成员取最派生）、多条件"与"、`[EnableIf]`/`[DisableIf]`、两种运行模式下的 `[HideInPlayMode]`/`[HideInEditorMode]` |
 | `MenuTreeTests.cs` | 菜单树：路径建树与自动补文件夹、同名就地替换、深度优先遍历、选中与事件 |
@@ -826,7 +828,7 @@ public enum Mode { Simple, Advanced }
 cd "Packages/cn.rendu.editorkit/Tools~/Verify" && dotnet run
 ```
 
-几秒内即可跑完全部纯逻辑断言（表达式、序列化、成员收集、折叠状态、条件显隐、菜单树），无需启动编辑器；依赖 Unity 运行时的用例会被自动跳过（当前 2 个：`Serialize_UnityObjectReferenceIsNotPersisted`、`RoundTrip_Gradient`）。当前规模：**6 个夹具 130 例，脱机 128 通过 / 2 跳过**（`ExpressionEvaluatorTests` 44、`EngineReflectionTests` 21、`EngineConditionTests` 20、`SerializationTests` 19、`MenuTreeTests` 14、`EngineStateTests` 12）。
+几秒内即可跑完全部纯逻辑断言（表达式、序列化、成员收集、折叠状态、条件显隐、菜单树），无需启动编辑器；依赖 Unity 运行时的用例会被自动跳过（当前 2 个：`Serialize_UnityObjectReferenceIsNotPersisted`、`RoundTrip_Gradient`）。当前规模：**6 个夹具 135 例，脱机 133 通过 / 2 跳过**（`ExpressionEvaluatorTests` 44、`EngineReflectionTests` 26、`EngineConditionTests` 20、`SerializationTests` 19、`MenuTreeTests` 14、`EngineStateTests` 12）。
 
 运行器接受一个**夹具名子串**作为可选参数（`Program.Main` 的 `args[0]`，大小写不敏感的 `IndexOf` 匹配），只想跑一块时：
 

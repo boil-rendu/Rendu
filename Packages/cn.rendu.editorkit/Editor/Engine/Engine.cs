@@ -45,6 +45,37 @@ namespace RD.EditorKit.Editor
 
             public string RawName => Info.Name;
 
+            private string m_TypeLabel;
+            private bool m_TypeLabelResolved;
+
+            /// <summary>
+            /// 成员"类型"上的 [LabelText](惰性解析一次后缓存), 没有时为 null。
+            /// 只认枚举: 类是"一个泛型基类承载 N 个枚举"这类场景的主角, 而类/结构上的
+            /// [LabelText] 语义是类型自身的显示名(组件菜单等), 拿它当字段标签会把
+            /// 类引用字段的标签改成组件名。
+            /// </summary>
+            public string TypeLabel
+            {
+                get
+                {
+                    if (m_TypeLabelResolved) return m_TypeLabel;
+                    m_TypeLabelResolved = true;
+
+                    var type = ValueType;
+                    if (type != null && type.IsEnum)
+                    {
+                        var text = (Attribute.GetCustomAttribute(type, typeof(LabelTextAttribute), true)
+                                    as LabelTextAttribute)?.Text;
+                        if (string.IsNullOrEmpty(text) == false)
+                        {
+                            m_TypeLabel = text;
+                        }
+                    }
+
+                    return m_TypeLabel;
+                }
+            }
+
             /// <summary>取该成员上指定类型的全部特性(保持声明顺序), 没有时返回空数组。首次访问后结果被缓存。</summary>
             public T[] GetAttrs<T>() where T : Attribute
             {
@@ -2580,12 +2611,26 @@ namespace RD.EditorKit.Editor
 
         //-------------------------------------- 标签 / 状态 / 颜色 --------------------------------------
 
-        private static string GetLabel(CachedMember m)
+        /// <summary>
+        /// 字段/属性的显示名, 三级回退:
+        ///   1. 成员自身的 [LabelText];
+        ///   2. 成员"类型"上的 [LabelText] —— 仅枚举, 见 <see cref="CachedMember.TypeLabel"/>;
+        ///   3. FriendlyName(成员名)。
+        /// 第 2 级是给"一个泛型基类承载 N 个枚举"用的: 那 N 个字段声明的其实是同一个成员,
+        /// 名字只可能来自各自的枚举类型; 枚举自己又写不了成员名, 类型名是它唯一自然的标签。
+        /// </summary>
+        internal static string GetLabel(CachedMember m)
         {
             var label = GetAttr<LabelTextAttribute>(m);
             if (label != null && string.IsNullOrEmpty(label.Text) == false)
             {
                 return label.Text;
+            }
+
+            var typeLabel = m.TypeLabel;
+            if (string.IsNullOrEmpty(typeLabel) == false)
+            {
+                return typeLabel;
             }
 
             return FriendlyName(m.RawName);

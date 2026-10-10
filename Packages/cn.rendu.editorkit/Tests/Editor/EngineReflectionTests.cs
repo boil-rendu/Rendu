@@ -108,6 +108,42 @@ namespace RD.EditorKit.Tests.Editor
             public new void Ping() { }
         }
 
+        /// <summary>类型上带 [LabelText] 的枚举 —— 泛型基类里 N 个同名字段唯一的区分来源。</summary>
+        [LabelText("带标签的枚举")]
+        private enum TypeLabeledEnum
+        {
+            A,
+            B,
+        }
+
+        private enum UnlabeledEnum
+        {
+            A,
+        }
+
+        /// <summary>类上也带 [LabelText], 但它是"类型的显示名", 不该被当作字段标签。</summary>
+        [LabelText("类上的标签")]
+        private class LabeledClass
+        {
+        }
+
+        private class LabelSample
+        {
+            [LabelText("显式标签")]
+            public int Explicit = 0;
+
+            [LabelText("")]
+            public int EmptyLabel = 0;
+
+            public TypeLabeledEnum FromEnumType = TypeLabeledEnum.A;
+
+            public UnlabeledEnum FromUnlabeledEnumType = UnlabeledEnum.A;
+
+            public LabeledClass FromClassType = new LabeledClass();
+
+            public int PlainField = 0;
+        }
+
         //-------------------------------------- 辅助 --------------------------------------
 
         private static List<string> MemberNames(Type type)
@@ -129,6 +165,11 @@ namespace RD.EditorKit.Tests.Editor
             }
 
             return null;
+        }
+
+        private static string LabelOf(string memberName)
+        {
+            return Engine.GetLabel(FindMember(typeof(LabelSample), memberName));
         }
 
         private static Engine.GroupNode BuildGroupTree()
@@ -352,6 +393,43 @@ namespace RD.EditorKit.Tests.Editor
             Assert.IsTrue(Engine.IsGroupVisible(outer, new NestedVisibleGroupSample { ShowDetail = true }, false));
             Assert.IsFalse(Engine.IsGroupVisible(outer, new NestedVisibleGroupSample { ShowDetail = false }, false),
                 "唯一的子组被 VisibleIf 隐藏后, 父组不应再被当成'还有内容'而画出空框");
+        }
+
+        //-------------------------------------- 标签回退 --------------------------------------
+
+        [Test]
+        public void Label_MemberOwnLabelTextWins()
+        {
+            Assert.AreEqual("显式标签", LabelOf(nameof(LabelSample.Explicit)));
+        }
+
+        [Test]
+        public void Label_EmptyMemberLabelTextIsTreatedAsAbsent()
+        {
+            Assert.AreEqual("Empty Label", LabelOf(nameof(LabelSample.EmptyLabel)),
+                "[LabelText(\"\")] 应等同于没写, 否则标签会变成空白");
+        }
+
+        [Test]
+        public void Label_FallsBackToEnumTypeLabelText()
+        {
+            Assert.AreEqual("带标签的枚举", LabelOf(nameof(LabelSample.FromEnumType)),
+                "枚举类型上的 [LabelText] 是泛型基类里 N 个同名字段唯一能区分的标签来源");
+            Assert.AreEqual("From Unlabeled Enum Type", LabelOf(nameof(LabelSample.FromUnlabeledEnumType)),
+                "枚举类型没写 [LabelText] 时不该猜, 退回 FriendlyName");
+        }
+
+        [Test]
+        public void Label_ClassTypeLabelTextIsNotUsed()
+        {
+            Assert.AreEqual("From Class Type", LabelOf(nameof(LabelSample.FromClassType)),
+                "类上的 [LabelText] 是类型自身的显示名(组件菜单等), 不参与字段标签");
+        }
+
+        [Test]
+        public void Label_PlainMemberUsesFriendlyName()
+        {
+            Assert.AreEqual("Plain Field", LabelOf(nameof(LabelSample.PlainField)));
         }
     }
 }

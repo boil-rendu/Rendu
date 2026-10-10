@@ -157,7 +157,7 @@ Display Name| [                 ]   (字符串输入框)
 - `DisplayName` 是 public 实例字段 → **自动出现**；
 - `m_AttackSpeed` 是 private，靠 `[SerializeField]` 才出现。
 
-**标签从哪来**：没写 `[LabelText]` 时用成员名的"友好化"结果（`FriendlyName`，正则 `(?<!^)([A-Z][a-z0-9])` → ` $1`），规则是**在"大写字母 + 小写字母/数字"这一对之前插一个空格，且首字符除外**：
+**标签从哪来**：按 **成员自身的 `[LabelText]` → 成员「类型」上的 `[LabelText]`（只认枚举）→ `FriendlyName`** 三级回退。最后一级是把成员名"友好化"（`FriendlyName`，正则 `(?<!^)([A-Z][a-z0-9])` → ` $1`），规则是**在"大写字母 + 小写字母/数字"这一对之前插一个空格，且首字符除外**：
 
 | 成员名 | 默认标签 | 说明 |
 |---|---|---|
@@ -170,7 +170,7 @@ Display Name| [                 ]   (字符串输入框)
 
 实践建议：私有字段与连续大写的字段一律配 `[LabelText]`。按钮文字省略时走的是同一套规则（`AddWave` → `Add Wave`，见 5.1）。
 
-`[LabelText]` 只作用于声明它的那个成员 —— 它不像某些框架那样按名字递归覆盖同类字段。
+`[LabelText]` 不会按名字递归覆盖同类字段。唯一跨成员的一级是上面第二级：**枚举类型**上的 `[LabelText]` 会成为该类型**所有**"没自带标签"的字段的标签（`FitMode` / `EMacroType` 这类场合 —— 枚举自己写不了成员名，类型名是它唯一自然的标签）。类/结构上的 `[LabelText]` 不参与这一级，它是类型自身的显示名（`[AddComponentMenu]` 那一类语义）。
 
 ### 1.5 没生效？按这个顺序查
 
@@ -712,11 +712,12 @@ public enum ViewMode
 }
 ```
 
-关于枚举绘制的四条事实（照 `DrawEnum` / `GetEnumLabel`）：
+关于枚举绘制的五条事实（照 `DrawEnum` / `GetEnumLabel`）：
 
 - 默认是 `EditorGUILayout.Popup`，选项顺序 = `Enum.GetValues` 顺序（**没有** Unity 原生那种"按位展开"的 flags 折叠界面）；
 - `[EnumToggleButtons]` 换成 `GUILayout.Toolbar`（一排按钮，选项多会挤在一起，建议 ≤4 个）；
 - **枚举值上可以挂 `[LabelText("中文")]` 定制显示文本** —— 这是做中文界面的正经办法，不用改枚举名；
+- **枚举「类型」上也可以挂 `[LabelText("中文")]`** —— 它不当值用，而是成为该枚举字段的**字段标签**（字段自己没写 `[LabelText]` 时）。典型用途：一个泛型基类承载 N 个枚举，N 个字段声明的是同一个成员、名字都一样，只有枚举类型能区分它们（`cn.rendu.ui` 的 `MacroDataBase<T>` 就这么显示 RD / UI / 资源加载）；
 - ⚠️ `[Flags]` 枚举当前**只能选一个值**（Popup / Toolbar 都是单选），需要多选位请自己拆成多个 bool 字段或用 `[InspectorSerialize]` + 自己的控件；
 - 当前值匹配不上任何选项时（例如运行期被赋了非法值），下拉会**显示第 0 项，但不会改数据**（只影响显示）。
 
