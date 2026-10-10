@@ -67,7 +67,7 @@ namespace RD.Client
             {
                 foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
                 {
-                    var s_ScriptHelperType = assembly.GetType("RD.Core.ScriptHelper");
+                    var s_ScriptHelperType = assembly.GetType("RD.Core.Editor.ScriptHelper");
                     if (s_ScriptHelperType != null)
                     {
                         s_OpenScriptMethod = s_ScriptHelperType.GetMethod("OpenScript", new[] { typeof(string), typeof(string) });
