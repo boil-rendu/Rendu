@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using RD.EditorKit;
 using RD.EditorKit.Editor;
 using UnityEditor;
@@ -116,12 +115,34 @@ namespace RD.UI.Editor
         {
         }
 
-        /// <summary>匹配「UI/模块名/Prefabs」路径的正则</summary>
-        private readonly string m_Pattern = @"UI\\[^\\]*\\Prefabs";
+        /// <summary>
+        /// 路径命中「UI/模块名/Prefabs」时给出模块名, 否则返回 null。
+        /// 分隔符 <c>/</c> 与 <c>\</c> 都认: AssetDatabase 给的是 <c>/</c>, 而 Path.GetFullPath 在 Windows 上给的是 <c>\</c> ——
+        /// 只认其中一种的话, 同一个工程在 Windows 上"有结果"、在 macOS/Linux 上永远零条。
+        /// 段名按整段比较(不再用正则的子串匹配), 于是 MyUI/Lobby/Prefabs 这类不会被误收。
+        /// </summary>
+        internal static string UIPrefabPkgName(string path)
+        {
+            const string rootFolderName   = "UI";
+            const string prefabFolderName = "Prefabs";
+
+            if (string.IsNullOrEmpty(path)) return null;
+
+            var parts = path.Replace('\\', '/').Split('/');
+            for (var i = 0; i + 2 < parts.Length; i++)
+            {
+                if (parts[i].Equals(rootFolderName, StringComparison.OrdinalIgnoreCase) == false) continue;
+                if (parts[i + 2].Equals(prefabFolderName, StringComparison.OrdinalIgnoreCase) == false) continue;
+
+                return parts[i + 1];
+            }
+
+            return null;
+        }
 
         /// <summary>
-        /// 扫描全工程 Prefab，路径命中 m_Pattern 的才纳入检查结果
-        /// （从匹配串里取出模块名，再配合文件名构造数据），最后刷新表格
+        /// 扫描全工程 Prefab，路径落在「UI/模块名/Prefabs」下的才纳入检查结果
+        /// （模块名取自路径、资源名取自文件名），最后刷新表格
         /// </summary>
         private void InitGetAll()
         {
@@ -133,15 +154,10 @@ namespace RD.UI.Editor
                 var guid = allPrefabs[index];
                 var path = AssetDatabase.GUIDToAssetPath(guid);
 
-                var normalizedPath = Path.GetFullPath(path);
-
-                var match = Regex.Match(normalizedPath, m_Pattern, RegexOptions.IgnoreCase);
-
-                if (match.Success)
+                var pkgName = UIPrefabPkgName(path);
+                if (pkgName != null)
                 {
-                    var pkgName     = match.Value.Split('\\')[1];
-                    var fileNameAll = Path.GetFileName(path);
-                    var fileName    = fileNameAll.Split('.')[0];
+                    var fileName = Path.GetFileNameWithoutExtension(path);
                     m_CheckPrefabs.Add(new CheckPrefabData(path, pkgName, fileName));
                     EditorUtility.DisplayProgressBar("同步信息", $"检查 {pkgName},{fileName}", index * 1.0f / allCount);
                 }
