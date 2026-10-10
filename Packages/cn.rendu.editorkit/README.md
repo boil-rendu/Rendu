@@ -69,12 +69,13 @@ cn.rendu.editorkit/
 │   ├── InspectorExpression.cs       `@` 表达式词法 / 语法 / 求值 + 共用的值语义 Value
 │   ├── Serialization.cs    SerializedScriptableObject + JSON 序列化器
 │   ├── InspectorEditor.cs           InspectorEditor：UnityEditor.Editor 宿主
-│   ├── EditorWindowBase.cs    EditorWindowBase / MenuEditorWindow
+│   ├── EditorWindowBase.cs    EditorWindowBase（轻量编辑器窗口基类）
+│   ├── MenuEditorWindow.cs    MenuEditorWindow（左菜单树 + 右内容面板, 继承 EditorWindowBase）
 │   ├── MenuTree.cs         左侧菜单树数据模型
 │   ├── HostSession.cs          一次检视会话的编辑期状态（折叠 / 滚动）
 │   ├── Log.cs              统一日志出口（含 WarnOnce 去重）
 │   ├── Icons.cs            内置图标 + SdfIconType → Texture 解析
-│   ├── EditorPrefsValue.cs            String/Float/Int/Bool/EnumPrefs（EditorPrefs 包装）
+│   ├── EditorPrefsValue.cs            EditorPrefsValue<T>（EditorPrefs 强类型泛型包装, 替代 5 个具类）
 │   └── SerializedScriptableObjectEditor.cs   为序列化基类整族注册检视器
 └── Tests/Editor/                    EditMode 测试（程序集：RD.EditorKit.Tests.Editor）
 ```
@@ -784,7 +785,7 @@ public enum Mode { Simple, Advanced }
 | 统一日志出口（`Debug.*` 保护 + `WarnOnce` 去重） | `Editor/Log.cs`（`Log`、`WarnOnce`） |
 | `UnityEngine.Object` 被写为 null / 深度上限 | `Editor/Serialization.cs`（`WriteValue`、`MaxDepth`） |
 | 检视器宿主与 Undo 处理 | `Editor/InspectorEditor.cs`（`InspectorEditor`、`OnBeforeChange`） |
-| 窗口/菜单树基类 | `Editor/EditorWindowBase.cs`（`EditorWindowBase`、`MenuEditorWindow`） |
+| 窗口/菜单树基类 | `Editor/Window/EditorWindowBase.cs`（`EditorWindowBase`）、`Editor/Window/MenuEditorWindow.cs`（`MenuEditorWindow`） |
 | 菜单树数据模型 | `Editor/MenuTree.cs`（`MenuTreeSelection`、`MenuTree`） |
 | 整族登记范例 | `Editor/SerializedScriptableObjectEditor.cs` |
 
