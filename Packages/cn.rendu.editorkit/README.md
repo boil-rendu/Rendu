@@ -65,18 +65,23 @@ cn.rendu.editorkit/
 │   └── Utilities/CollectionExtensions.cs    HashSet<T>.AddRange
 ├── Editor/
 │   ├── RD.EditorKit.Editor.asmdef   程序集：RD.EditorKit.Editor（Editor 平台）
-│   ├── Engine.cs           核心引擎（反射收集成员 + 绘制），唯一入口 DrawObject
-│   ├── InspectorExpression.cs       `@` 表达式词法 / 语法 / 求值 + 共用的值语义 Value
-│   ├── Serialization.cs    SerializedScriptableObject + JSON 序列化器
-│   ├── InspectorEditor.cs           InspectorEditor：UnityEditor.Editor 宿主
-│   ├── EditorWindowBase.cs    EditorWindowBase（轻量编辑器窗口基类）
-│   ├── MenuEditorWindow.cs    MenuEditorWindow（左菜单树 + 右内容面板, 继承 EditorWindowBase）
-│   ├── MenuTree.cs         左侧菜单树数据模型
-│   ├── HostSession.cs          一次检视会话的编辑期状态（折叠 / 滚动）
-│   ├── Log.cs              统一日志出口（含 WarnOnce 去重）
-│   ├── Icons.cs            内置图标 + SdfIconType → Texture 解析
-│   ├── EditorPrefsValue.cs            EditorPrefsValue<T>（EditorPrefs 强类型泛型包装, 替代 5 个具类）
-│   └── SerializedScriptableObjectEditor.cs   为序列化基类整族注册检视器
+│   ├── Engine/                      引擎层（反射收集成员 + 绘制 + 表达式 + 序列化）
+│   │   ├── Engine.cs                核心引擎，唯一入口 DrawObject
+│   │   ├── Expression.cs            `@` 表达式词法 / 语法 / 求值 + 共用的值语义 Value
+│   │   ├── Serialization.cs         SerializedScriptableObject + JSON 序列化器
+│   │   ├── HostSession.cs           一次检视会话的编辑期状态（折叠 / 滚动）
+│   │   └── Log.cs                   统一日志出口（含 WarnOnce 去重）
+│   ├── Controls/                    控件层
+│   │   ├── MenuTree.cs              左侧菜单树数据模型
+│   │   └── Icons.cs                 内置图标 + SdfIconType → Texture 解析
+│   ├── Inspector/                   检视器宿主
+│   │   ├── InspectorEditor.cs       InspectorEditor：UnityEditor.Editor 宿主
+│   │   └── SerializedScriptableObjectEditor.cs   为序列化基类整族注册检视器
+│   ├── Prefs/
+│   │   └── EditorPrefsValue.cs      EditorPrefsValue<T>（EditorPrefs 强类型泛型包装, 替代 5 个具类）
+│   └── Window/
+│       ├── EditorWindowBase.cs      EditorWindowBase（轻量编辑器窗口基类）
+│       └── MenuEditorWindow.cs      MenuEditorWindow（左菜单树 + 右内容面板, 继承 EditorWindowBase）
 └── Tests/Editor/                    EditMode 测试（程序集：RD.EditorKit.Tests.Editor）
 ```
 
@@ -475,7 +480,7 @@ private IEnumerable GetTeamSelectList()
 
 ### 5.6 值语义只有一份实现（`Value`）
 
-真值 / 数值判定 / 相等这三件事由 `Value`（`Editor/InspectorExpression.cs` 顶部）统一定义，**条件显隐（`[ShowIf]` 等）与表达式求值共用同一套规则**，因此同一个值不会在两处得到相反结论。
+真值 / 数值判定 / 相等这三件事由 `Value`（`Editor/Engine/Expression.cs` 顶部）统一定义，**条件显隐（`[ShowIf]` 等）与表达式求值共用同一套规则**，因此同一个值不会在两处得到相反结论。
 
 数值相等用**随量级放大的相对容差**（`NumericTolerance = 1e-6`），不是 `==` 也不是 `double.Epsilon`：
 
@@ -619,7 +624,7 @@ public class EnemyConfigEditor : InspectorEditor { }
 public class EnemyConfigBaseEditor : InspectorEditor { }
 ```
 
-**一次覆盖整族的范例**（本包自带）：`Editor/SerializedScriptableObjectEditor.cs` 用一行覆盖了 `SerializedScriptableObject` 的全部子类：
+**一次覆盖整族的范例**（本包自带）：`Editor/Inspector/SerializedScriptableObjectEditor.cs` 用一行覆盖了 `SerializedScriptableObject` 的全部子类：
 
 ```csharp
 [CustomEditor(typeof(SerializedScriptableObject), true)]
@@ -756,40 +761,40 @@ public enum Mode { Simple, Advanced }
 
 | 主题 | 文件（符号名） |
 |---|---|
-| 绘制入口 / 变更回调 | `Editor/Engine.cs`（`DrawObject`、`Mutate`） |
-| 有意不实现的特性说明（含原话） | `Editor/Engine.cs`（类首"有意不实现的属性"注释段） |
-| 成员收集与可见性规则 | `Editor/Engine.cs`（`GetMembers`） |
-| 排序算法（`PropertyOrder` → 声明序） | `Editor/Engine.cs`（`GetMembers` 内的比较器） |
-| 分组树构建 / 整组隐藏 | `Editor/Engine.cs`（`GetGroupTree`） |
-| `TabGroup` 降级为垂直组 | `Editor/Engine.cs`（`DescribeGroup`） |
-| 按钮绘制（含图标/Tooltip/高度/背景色还原） | `Editor/Engine.cs`（`DrawButton`） |
-| 每帧状态更新 | `Editor/Engine.cs`（`RunStateUpdates`） |
-| `[InlineEditor]` 内联展开 / 目标判定 | `Editor/Engine.cs`（`DrawInlineEditor`、`IsInlineEditorTarget`） |
-| `Min/MaxValue` → Slider 判定 | `Editor/Engine.cs`（`DrawScalarControl` 内的 `EditorGUILayout.Slider` 分支） |
-| 标量控件（含 `Vector4`/`Quaternion`/`Rect`/`Bounds`/`LayerMask`/曲线/渐变分支） | `Editor/Engine.cs`（`DrawScalarControl`） |
-| 容器判定（曲线/渐变在此被排除，改走专用控件） | `Editor/Engine.cs`（`IsContainerType`） |
-| 表格绘制（工具栏/索引/每页条数） | `Editor/Engine.cs`（`DrawTableList`） |
-| 列表 `CustomAddFunction` | `Editor/Engine.cs`（`AddListElement`） |
-| 提示框 / 运行模式显隐 | `Editor/Engine.cs`（`DrawTitlePrelude`、`CheckVisibility`） |
-| 无参方法查找与缓存 / 字段属性查找与缓存 | `Editor/Engine.cs`（`FindMethod`、`ResolveFieldOrProperty`） |
-| `GUIColor` / `InlineButton` | `Editor/Engine.cs`（`ResolveGUIColor`、`DrawInlineButtons`） |
-| 条件显隐 / 禁用判定 / 成员名解析不到时的告警 | `Editor/Engine.cs`（`CheckVisibility`、`GetMemberValue`） |
-| 折叠状态与滚动位置的会话存取（按对象弱引用分桶） | `Editor/HostSession.cs`（`HostSession`） |
-| 值语义（真值/数值/相等容差，两份实现合并于此） | `Editor/InspectorExpression.cs`（`Value`） |
-| 表达式：AST 缓存与负缓存（上限清空） | `Editor/InspectorExpression.cs`（`AstCacheLimit`、`GetAst`） |
-| 表达式：求值入口 / 索引器元数据缓存 | `Editor/InspectorExpression.cs`（`Evaluate`、`s_IndexerCache`） |
-| 表达式：赋值节点 | `Editor/InspectorExpression.cs`（`SetLeft`、`SetMember`） |
-| 表达式：上下文根解析（`$value`/`$root`/`$property`） | `Editor/InspectorExpression.cs`（`ResolveRoot`） |
-| 菜单树订阅者回调的异常兜底 | `Editor/MenuTree.cs`（`OnSelectionChanged`） |
-| 序列化成员筛选（三条规则：特性 / Unity 值类型 / 属性包） | `Editor/Serialization.cs`（`GetDataMembers`、`AnnotatedMembers`、`IsUnitySerializableValueType`、`IsUnityPropertyBagType`） |
-| 写出与读成员容错（`{}` 告警 / 单成员读失败写 null） | `Editor/Serialization.cs`（`WriteObject`、`ReadMemberSafe`） |
-| 逐成员写回 / 嵌套对象创建（曲线走真实构造函数） | `Editor/Serialization.cs`（`ApplyMembers`、`CreateInstance`） |
-| 统一日志出口（`Debug.*` 保护 + `WarnOnce` 去重） | `Editor/Log.cs`（`Log`、`WarnOnce`） |
-| `UnityEngine.Object` 被写为 null / 深度上限 | `Editor/Serialization.cs`（`WriteValue`、`MaxDepth`） |
-| 检视器宿主与 Undo 处理 | `Editor/InspectorEditor.cs`（`InspectorEditor`、`OnBeforeChange`） |
+| 绘制入口 / 变更回调 | `Editor/Engine/Engine.cs`（`DrawObject`、`Mutate`） |
+| 有意不实现的特性说明（含原话） | `Editor/Engine/Engine.cs`（类首"有意不实现的属性"注释段） |
+| 成员收集与可见性规则 | `Editor/Engine/Engine.cs`（`GetMembers`） |
+| 排序算法（`PropertyOrder` → 声明序） | `Editor/Engine/Engine.cs`（`GetMembers` 内的比较器） |
+| 分组树构建 / 整组隐藏 | `Editor/Engine/Engine.cs`（`GetGroupTree`） |
+| `TabGroup` 降级为垂直组 | `Editor/Engine/Engine.cs`（`DescribeGroup`） |
+| 按钮绘制（含图标/Tooltip/高度/背景色还原） | `Editor/Engine/Engine.cs`（`DrawButton`） |
+| 每帧状态更新 | `Editor/Engine/Engine.cs`（`RunStateUpdates`） |
+| `[InlineEditor]` 内联展开 / 目标判定 | `Editor/Engine/Engine.cs`（`DrawInlineEditor`、`IsInlineEditorTarget`） |
+| `Min/MaxValue` → Slider 判定 | `Editor/Engine/Engine.cs`（`DrawScalarControl` 内的 `EditorGUILayout.Slider` 分支） |
+| 标量控件（含 `Vector4`/`Quaternion`/`Rect`/`Bounds`/`LayerMask`/曲线/渐变分支） | `Editor/Engine/Engine.cs`（`DrawScalarControl`） |
+| 容器判定（曲线/渐变在此被排除，改走专用控件） | `Editor/Engine/Engine.cs`（`IsContainerType`） |
+| 表格绘制（工具栏/索引/每页条数） | `Editor/Engine/Engine.cs`（`DrawTableList`） |
+| 列表 `CustomAddFunction` | `Editor/Engine/Engine.cs`（`AddListElement`） |
+| 提示框 / 运行模式显隐 | `Editor/Engine/Engine.cs`（`DrawTitlePrelude`、`CheckVisibility`） |
+| 无参方法查找与缓存 / 字段属性查找与缓存 | `Editor/Engine/Engine.cs`（`FindMethod`、`ResolveFieldOrProperty`） |
+| `GUIColor` / `InlineButton` | `Editor/Engine/Engine.cs`（`ResolveGUIColor`、`DrawInlineButtons`） |
+| 条件显隐 / 禁用判定 / 成员名解析不到时的告警 | `Editor/Engine/Engine.cs`（`CheckVisibility`、`GetMemberValue`） |
+| 折叠状态与滚动位置的会话存取（按对象弱引用分桶） | `Editor/Engine/HostSession.cs`（`HostSession`） |
+| 值语义（真值/数值/相等容差，两份实现合并于此） | `Editor/Engine/Expression.cs`（`Value`） |
+| 表达式：AST 缓存与负缓存（上限清空） | `Editor/Engine/Expression.cs`（`AstCacheLimit`、`GetAst`） |
+| 表达式：求值入口 / 索引器元数据缓存 | `Editor/Engine/Expression.cs`（`Evaluate`、`s_IndexerCache`） |
+| 表达式：赋值节点 | `Editor/Engine/Expression.cs`（`SetLeft`、`SetMember`） |
+| 表达式：上下文根解析（`$value`/`$root`/`$property`） | `Editor/Engine/Expression.cs`（`ResolveRoot`） |
+| 菜单树订阅者回调的异常兜底 | `Editor/Controls/MenuTree.cs`（`OnSelectionChanged`） |
+| 序列化成员筛选（三条规则：特性 / Unity 值类型 / 属性包） | `Editor/Engine/Serialization.cs`（`GetDataMembers`、`AnnotatedMembers`、`IsUnitySerializableValueType`、`IsUnityPropertyBagType`） |
+| 写出与读成员容错（`{}` 告警 / 单成员读失败写 null） | `Editor/Engine/Serialization.cs`（`WriteObject`、`ReadMemberSafe`） |
+| 逐成员写回 / 嵌套对象创建（曲线走真实构造函数） | `Editor/Engine/Serialization.cs`（`ApplyMembers`、`CreateInstance`） |
+| 统一日志出口（`Debug.*` 保护 + `WarnOnce` 去重） | `Editor/Engine/Log.cs`（`Log`、`WarnOnce`） |
+| `UnityEngine.Object` 被写为 null / 深度上限 | `Editor/Engine/Serialization.cs`（`WriteValue`、`MaxDepth`） |
+| 检视器宿主与 Undo 处理 | `Editor/Inspector/InspectorEditor.cs`（`InspectorEditor`、`OnBeforeChange`） |
 | 窗口/菜单树基类 | `Editor/Window/EditorWindowBase.cs`（`EditorWindowBase`）、`Editor/Window/MenuEditorWindow.cs`（`MenuEditorWindow`） |
-| 菜单树数据模型 | `Editor/MenuTree.cs`（`MenuTreeSelection`、`MenuTree`） |
-| 整族登记范例 | `Editor/SerializedScriptableObjectEditor.cs` |
+| 菜单树数据模型 | `Editor/Controls/MenuTree.cs`（`MenuTreeSelection`、`MenuTree`） |
+| 整族登记范例 | `Editor/Inspector/SerializedScriptableObjectEditor.cs` |
 
 > 本表故意不写行号：行号会随实现漂移，用 IDE 的"转到符号"或全局搜符号名定位即可。符号名不会腐坏，且可机械校验（把表里每个 `` `符号` `` 拿去对应文件 `grep -w` 一遍即可）。
 

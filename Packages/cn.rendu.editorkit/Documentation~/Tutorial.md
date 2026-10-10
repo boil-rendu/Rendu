@@ -88,7 +88,7 @@
 | 命名空间（= 程序集） | 里面有什么 |
 |---|---|
 | `RD.EditorKit`（`RD.EditorKit.asmdef`） | **全部特性**（`Runtime/Attributes/*`）+ `CollectionExtensions` —— 只有这些，没有任何逻辑代码 |
-| `RD.EditorKit.Editor`（`Editor/` 程序集） | `Engine`、`ExpressionEvaluator`、`HostSession`、`Log`、`Icons`、`InspectorPrefs`（`*Prefs`）、`MenuTree`、`InspectorEditor`、`EditorWindowBase`、`MenuEditorWindow`、`Serialization` 与 `SerializedScriptableObject`（含它的 Editor） |
+| `RD.EditorKit.Editor`（`Editor/` 程序集） | `Engine`、`ExpressionEvaluator`、`HostSession`、`Log`、`Icons`、`EditorPrefsValue<T>`（`Prefs/`）、`MenuTree`、`InspectorEditor`、`EditorWindowBase`、`MenuEditorWindow`、`Serialization` 与 `SerializedScriptableObject`（含它的 Editor） |
 
 > 坑：`InspectorEditor` 继承 `UnityEditor.Editor`。因为文件位于 `RD.EditorKit.Editor` 命名空间内，**简单名 `Editor` 会被解析成命名空间 `RD.EditorKit` 下的 `Editor`**，写 `: Editor` 报 CS0118。基类一定写全：`: InspectorEditor`（本包已提供），自己写别的基类时写 `: UnityEditor.Editor`。
 
@@ -182,7 +182,7 @@ Display Name| [                 ]   (字符串输入框)
 
 ### 1.6 为什么私有字段没出来：成员可见性规则（最小版）
 
-引擎按类型缓存成员清单，判定如下（照 `Editor/Engine.cs` 的 `GetMembers` 逐条核对）：
+引擎按类型缓存成员清单，判定如下（照 `Editor/Engine/Engine.cs` 的 `GetMembers` 逐条核对）：
 
 **字段**
 
@@ -899,7 +899,7 @@ public class MyToolConfig : SerializedScriptableObject
 2. 想存/想显示的成员标 `[InspectorSerialize]`；
 3. 在 Project 里右键 `Create > ...`（或 `ScriptableObject.CreateInstance` + `AssetDatabase.CreateAsset`）建一个 `.asset`。
 
-**不需要写检视器**：基类自带 `[CustomEditor(typeof(SerializedScriptableObject), true)]`，覆盖了全部子类（范例源码见 `Editor/SerializedScriptableObjectEditor.cs`，只有一行）。
+**不需要写检视器**：基类自带 `[CustomEditor(typeof(SerializedScriptableObject), true)]`，覆盖了全部子类（范例源码见 `Editor/Inspector/SerializedScriptableObjectEditor.cs`，只有一行）。
 
 ### 8.3 数据存在哪
 
@@ -1562,10 +1562,10 @@ public class LevelConfigEditor : InspectorEditor { }
 ### 16.1 源码地图
 
 - **特性定义**：`Runtime/Attributes/*.cs`（纯数据，加特性先看这里）；
-- **绘制引擎**：`Editor/Engine.cs` —— `GetMembers`（可见性/排序）、`GetGroupTree`（分组）、`DrawValueMemberBody`、`DrawScalarControl`、`DrawTableList`、`CheckVisibility`、`RunStateUpdates`；
-- **表达式**：`Editor/InspectorExpression.cs` —— `Value`（值语义）、`GetAst`（缓存）、`Evaluate`、`SetLeft`；
-- **序列化**：`Editor/Serialization.cs`；
-- **宿主**：`Editor/InspectorEditor.cs`、`Editor/EditorWindowBase.cs`、`Editor/MenuTree.cs`；
+- **绘制引擎**：`Editor/Engine/Engine.cs` —— `GetMembers`（可见性/排序）、`GetGroupTree`（分组）、`DrawValueMemberBody`、`DrawScalarControl`、`DrawTableList`、`CheckVisibility`、`RunStateUpdates`；
+- **表达式**：`Editor/Engine/Expression.cs` —— `Value`（值语义）、`GetAst`（缓存）、`Evaluate`、`SetLeft`；
+- **序列化**：`Editor/Engine/Serialization.cs`；
+- **宿主**：`Editor/Inspector/InspectorEditor.cs`、`Editor/Window/EditorWindowBase.cs`、`Editor/Controls/MenuTree.cs`；
 - **逐符号索引**：`README.md` §12。
 
 ### 16.2 想给引擎加东西时的推荐流程
@@ -1591,7 +1591,7 @@ cd "Packages/cn.rendu.editorkit/Tools~/Verify" && dotnet run -- InspectorExpress
 |---|---|
 | `README.md` | 特性手册：全部特性、参数、逐项生效情况、§12 符号索引、§13 测试说明 |
 | 本文件 | 教程：从接入到自建工具窗口的完整路径 |
-| `Tests/Editor/*.cs` | 六块纯逻辑的行为契约（表达式 44、成员收集 21、条件显隐 20、序列化 19、菜单树 14、折叠状态 12，共 130 例） |
+| `Tests/Editor/*.cs` | 六块纯逻辑的行为契约（表达式 44、成员收集 32、条件显隐 20、序列化 19、菜单树 14、折叠状态 12，共 141 例） |
 | `Tools~/Verify/` | 离线校验工程（纯 .NET 跑同一批用例；脱机 128 通过、2 例需 Test Runner；需 .NET 8 + `UnityEngine.dll`/`UnityEditor.dll`） |
 
 ---
