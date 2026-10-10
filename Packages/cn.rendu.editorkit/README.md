@@ -343,7 +343,7 @@ public class MyWindow : EditorWindowBase
 
 | 特性 | 关键参数 | 生效情况 |
 |---|---|---|
-| `[TableList]` | `DrawScrollView`、`AlwaysExpanded`、`HideToolbar`（隐藏工具栏=隐藏删除/添加）、`ShowIndexLabels`、`NumberOfItemsPerPage`（默认 15，仅配合 `DrawScrollView` 决定滚动视图一次显示几行） | 以上参数**均生效**；`IsReadOnly` 读取（与工具栏联动）；`ShowPaging` / `ShowItemCount` **未读取** |
+| `[TableList]` | `DrawScrollView`、`AlwaysExpanded`、`HideToolbar`（隐藏工具栏=隐藏删除/添加）、`ShowIndexLabels`、`NumberOfItemsPerPage`（默认 15，仅配合 `DrawScrollView` 决定滚动视图一次显示几行；可见行数 = `Clamp(数据条数, 3, NumberOfItemsPerPage)`，**空表也留 3 行**的数据位 —— 只留 1 行时表头 + 横向滚动条一占就只剩一条缝；滚动区高度 = (数据行 + 表头行) × 行高 + 横向滚动条 + 表头分隔线） | 以上参数**均生效**；`IsReadOnly` 读取（与工具栏联动）；`ShowPaging` / `ShowItemCount` **未读取** |
 | `[TableColumnWidth(int width)]` | 表格中该成员的列宽 | `Width` 生效；`Resizable` **未读取**（列不可拖拽调宽） |
 | `[ListDrawerSettings]` | `CustomAddFunction`（自定义"添加"方法名） | 主要只实现 `CustomAddFunction` 与 `IsReadOnly`；`ShowPaging`/`ShowItemCount`/`ShowFoldout`/`DefaultExpandedState`/`ShowIndexLabels`/`HideAddButton`/`HideRemoveButton`/`DraggableItems`/`NumberOfItemsPerPage`/`CustomRemoveIndexFunction`/`CustomRemoveElementFunction`/`OnBeginListElementGUI`/`OnEndListElementGUI`/`OnTitleBarGUI` **当前未读取** |
 | `[DictionaryDrawerSettings(keyLabel, valueLabel)]` | 字典绘制 | 引擎识别该特性；`IsReadOnly` **生效**；`KeyLabel`/`ValueLabel`/`DisplayMode` 当前**未读取** |
@@ -803,7 +803,7 @@ public enum Mode { Simple, Advanced }
 |---|---|
 | `ExpressionEvaluatorTests.cs` | `@` 表达式的词法/优先级/求值/真值语义、`$property` 读写、失败路径、解析缓存（重复求值仍读当前值/仍写回）、按形参个数挑重载、被 `new` 隐藏的成员取最派生、自定义索引器 |
 | `SerializationTests.cs` | 标量/字符/枚举/数组/List/Dictionary/HashSet/嵌套 POCO/Unity 值类型（`Vector2`、`Vector4`、`Quaternion`、`Rect`、`LayerMask`）的 JSON 往返、Unity 属性包类型（曲线/渐变）的成员规则与 null 语义、渐变的完整往返（需 Unity）、转义、null 语义、类型强转、`null` 根、环引用的深度剪断、截断 `\uXXXX` 的容错 |
-| `EngineReflectionTests.cs` | 引擎骨架：成员可见性规则、`PropertyOrder` → 收集序排序、`GroupID` 路径 → 分组树（嵌套/类型/同级顺序）、类型级缓存、无参方法解析（重载/仅有带参/被 `new` 隐藏）、标签三级回退（成员 `[LabelText]` → 枚举类型 `[LabelText]` → `FriendlyName`）、容器头部文案与 `[HideLabel]`（名字+计数 / 只剩计数 / 整行不画） |
+| `EngineReflectionTests.cs` | 引擎骨架：成员可见性规则、`PropertyOrder` → 收集序排序、`GroupID` 路径 → 分组树（嵌套/类型/同级顺序）、类型级缓存、无参方法解析（重载/仅有带参/被 `new` 隐藏）、标签三级回退（成员 `[LabelText]` → 枚举类型 `[LabelText]` → `FriendlyName`）、容器头部文案与 `[HideLabel]`（名字+计数 / 只剩计数 / 整行不画）、表格可见行数与滚动区高度（含"旧公式比内容短几像素"的回归） |
 | `EngineStateTests.cs` | 折叠状态：默认展开、实例/成员/会话间隔离、宿主对象回收后状态随之释放、`OnStateUpdate` 表达式写回与按名调用 |
 | `EngineConditionTests.cs` | 条件显隐与禁用：`[ShowIf]`/`[HideIf]` 的真值与相等语义（含数值相对容差，`float` 字段 vs `double` 字面量）、`@` 条件表达式、成员名解析（被 `new` 隐藏的成员取最派生）、多条件"与"、`[EnableIf]`/`[DisableIf]`、两种运行模式下的 `[HideInPlayMode]`/`[HideInEditorMode]` |
 | `MenuTreeTests.cs` | 菜单树：路径建树与自动补文件夹、同名就地替换、深度优先遍历、选中与事件 |
@@ -828,7 +828,7 @@ public enum Mode { Simple, Advanced }
 cd "Packages/cn.rendu.editorkit/Tools~/Verify" && dotnet run
 ```
 
-几秒内即可跑完全部纯逻辑断言（表达式、序列化、成员收集、折叠状态、条件显隐、菜单树），无需启动编辑器；依赖 Unity 运行时的用例会被自动跳过（当前 2 个：`Serialize_UnityObjectReferenceIsNotPersisted`、`RoundTrip_Gradient`）。当前规模：**6 个夹具 138 例，脱机 136 通过 / 2 跳过**（`ExpressionEvaluatorTests` 44、`EngineReflectionTests` 29、`EngineConditionTests` 20、`SerializationTests` 19、`MenuTreeTests` 14、`EngineStateTests` 12）。
+几秒内即可跑完全部纯逻辑断言（表达式、序列化、成员收集、折叠状态、条件显隐、菜单树），无需启动编辑器；依赖 Unity 运行时的用例会被自动跳过（当前 2 个：`Serialize_UnityObjectReferenceIsNotPersisted`、`RoundTrip_Gradient`）。当前规模：**6 个夹具 141 例，脱机 139 通过 / 2 跳过**（`ExpressionEvaluatorTests` 44、`EngineReflectionTests` 32、`EngineConditionTests` 20、`SerializationTests` 19、`MenuTreeTests` 14、`EngineStateTests` 12）。
 
 运行器接受一个**夹具名子串**作为可选参数（`Program.Main` 的 `args[0]`，大小写不敏感的 `IndexOf` 匹配），只想跑一块时：
 

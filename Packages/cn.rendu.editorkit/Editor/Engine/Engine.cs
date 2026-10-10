@@ -1937,6 +1937,14 @@ namespace RD.EditorKit.Editor
         private const int TableIndexColumnWidth = 34;
         private const int TableRemoveColumnWidth = 24;
 
+        /// <summary>
+        /// 表格至少留几行数据位。空表只留 1 行时, 表头 + 横向滚动条一占就只剩一条缝, 什么也看不清。
+        /// </summary>
+        private const int MinTableVisibleRows = 3;
+
+        /// <summary>表头下那条分隔线的高度(见 <see cref="DrawHorizontalLine"/>)。</summary>
+        private const float TableHeaderLineHeight = 1f;
+
         /// <summary>表格的一列, 来自元素类型的一个成员。</summary>
         private sealed class TableColumn
         {
@@ -1990,8 +1998,9 @@ namespace RD.EditorKit.Editor
                 if (table.DrawScrollView)
                 {
                     // 高度有界, 避免与外层窗口滚动视图互相抢空间
-                    var rows = Mathf.Clamp(list.Count, 1, Mathf.Max(1, table.NumberOfItemsPerPage));
-                    var maxHeight = EditorGUIUtility.singleLineHeight * (rows + 2) + 14f;
+                    var headerRows = HasGroupedColumns(columns) ? 2 : 1;
+                    var maxHeight = TableScrollHeight(list.Count, headerRows, table.NumberOfItemsPerPage,
+                        EditorGUIUtility.singleLineHeight, GUI.skin.horizontalScrollbar.fixedHeight);
                     scroll = GUILayout.BeginScrollView(scroll,
                         GUILayout.MaxHeight(maxHeight), GUILayout.ExpandHeight(false));
                     Session.SetScroll(target, m.RawName, scroll);
@@ -2018,19 +2027,40 @@ namespace RD.EditorKit.Editor
             GUILayout.EndVertical();
         }
 
-        private static void DrawTableHeader(List<TableColumn> columns, bool showIndex, bool showRemove)
+        /// <summary>表格里可见的数据行数: 空表也留 <see cref="MinTableVisibleRows"/> 行, 并封顶到 NumberOfItemsPerPage。</summary>
+        internal static int TableVisibleRows(int itemCount, int itemsPerPage)
         {
-            var grouped = false;
+            return Mathf.Clamp(itemCount, MinTableVisibleRows, Mathf.Max(MinTableVisibleRows, itemsPerPage));
+        }
+
+        /// <summary>
+        /// 表格开 DrawScrollView 时的滚动区高度上限, 逐项算:
+        /// (数据行 + 表头行) × 行高 + 横向滚动条 + 表头分隔线。
+        /// 每一行都按 singleLineHeight 计, 而表头/单元格实际用的是更小的 mini 样式 —— 属于上界,
+        /// 宁可多留几像素: 原来是"数据行 + 2"再硬编码 14px, 恰好比实际内容少几像素,
+        /// 于是横向滚动条压住最后一行、分组表头那条带被裁掉一半。
+        /// </summary>
+        internal static float TableScrollHeight(int itemCount, int headerRows, int itemsPerPage,
+                                                float lineHeight, float scrollbarHeight)
+        {
+            return lineHeight * (TableVisibleRows(itemCount, itemsPerPage) + headerRows)
+                   + scrollbarHeight + TableHeaderLineHeight;
+        }
+
+        /// <summary>列里有没有顶层分组(有则表头是"分组带 + 列名"两行, 高度要多算一行)。</summary>
+        private static bool HasGroupedColumns(List<TableColumn> columns)
+        {
             foreach (var column in columns)
             {
-                if (string.IsNullOrEmpty(column.GroupKey) == false)
-                {
-                    grouped = true;
-                    break;
-                }
+                if (string.IsNullOrEmpty(column.GroupKey) == false) return true;
             }
 
-            if (grouped)
+            return false;
+        }
+
+        private static void DrawTableHeader(List<TableColumn> columns, bool showIndex, bool showRemove)
+        {
+            if (HasGroupedColumns(columns))
             {
                 EditorGUILayout.BeginHorizontal();
                 if (showIndex) GUILayout.Space(TableIndexColumnWidth);

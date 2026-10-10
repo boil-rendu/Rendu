@@ -491,5 +491,52 @@ namespace RD.EditorKit.Tests.Editor
             Assert.IsFalse(ShouldDrawHeaderOf("HiddenList"),
                 "没有箭头的纯文本头在 [HideLabel] 时应整行不画, 而不是留一条什么都不说明的空白带");
         }
+
+        //-------------------------------------- 表格滚动区高度 --------------------------------------
+
+        /// <summary>行高与横向滚动条高度的真实取值(测试里固定成常量, 免得依赖 GUI.skin)。</summary>
+        private const float TestLineHeight = 18f;
+
+        private const float TestScrollbarHeight = 15f;
+
+        [Test]
+        public void TableVisibleRows_EmptyTable_KeepsAMinimum()
+        {
+            Assert.AreEqual(3, Engine.TableVisibleRows(0, 15), "空表也要留几行数据位, 否则表体只剩一条缝");
+            Assert.AreEqual(5, Engine.TableVisibleRows(5, 15), "数据少于每页数时按实际行数留");
+            Assert.AreEqual(15, Engine.TableVisibleRows(100, 15), "封顶到 NumberOfItemsPerPage, 不跟外层滚动视图抢空间");
+        }
+
+        [Test]
+        public void TableScrollHeight_AlwaysCoversHeaderAndScrollbar()
+        {
+            foreach (var itemCount in new[] { 0, 1, 5, 100 })
+            {
+                foreach (var headerRows in new[] { 1, 2 })
+                {
+                    // 内容实打实要占的: 表头 + 至少一行数据 + 分隔线 + 横向滚动条
+                    var needed = TestLineHeight * (headerRows + 1) + TestScrollbarHeight + 1f;
+                    var reserved = Engine.TableScrollHeight(itemCount, headerRows, 15,
+                        TestLineHeight, TestScrollbarHeight);
+
+                    Assert.GreaterOrEqual(reserved, needed,
+                        $"{itemCount} 行数据 / {headerRows} 行表头时预留高度小于内容, 最后一行会被裁");
+                }
+            }
+        }
+
+        [Test]
+        public void TableScrollHeight_EmptyGroupedTable_CoversWhatTheOldFormulaMissed()
+        {
+            // 回归: 旧算法"行高 × (数据行 + 2) + 14"在"空表 + 分组表头"下算出的高度,
+            // 比内容(两行表头 + 分隔线 + 一行 (空) + 横向滚动条)还少几像素 ——
+            // 截图里分组表头被压扁、滚动条压住 (空) 行, 根因就是这个, 不是"主观觉得小"。
+            var needed = TestLineHeight * 2 + 1f + TestLineHeight + TestScrollbarHeight;
+            var oldFormula = TestLineHeight * (1 + 2) + 14f;
+            var reserved = Engine.TableScrollHeight(0, 2, 15, TestLineHeight, TestScrollbarHeight);
+
+            Assert.Less(oldFormula, needed, "旧算法的预留高度确实小于内容");
+            Assert.GreaterOrEqual(reserved, needed);
+        }
     }
 }

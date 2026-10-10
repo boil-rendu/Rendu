@@ -614,7 +614,7 @@ public List<WaveData> Waves = new();
 | `HideToolbar` | 隐藏工具栏（= 隐藏添加/删除按钮） | 生效 |
 | `IsReadOnly` | 只读（与工具栏联动） | 生效 |
 | `ShowIndexLabels` | 显示行号 | 生效 |
-| `NumberOfItemsPerPage` | 默认 15；**仅配合 `DrawScrollView`** 决定滚动视图一次显示几行 | 生效（但这不是"分页"） |
+| `NumberOfItemsPerPage` | 默认 15；**仅配合 `DrawScrollView`** 决定滚动视图一次显示几行。可见行数 = `Clamp(数据条数, 3, NumberOfItemsPerPage)`，**空表也留 3 行** | 生效（但这不是"分页"） |
 | `ShowPaging` / `ShowItemCount` | 想当然的"分页 / 显示条目数" | **未读取**，写了没效果 |
 
 列定义来自**行对象自己的成员**（可见性规则同 1.6），列宽用行成员上的 `[TableColumnWidth(int)]`：
