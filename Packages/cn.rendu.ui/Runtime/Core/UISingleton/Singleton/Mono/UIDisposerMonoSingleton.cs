@@ -1,12 +1,12 @@
 ﻿using System;
 using RD;
-using RD.EditorKit;
+using RD.Panel;
 using UnityEngine;
 using RD.Core;
 
 namespace RD.Client
 {
-    //基类使用 RD.EditorKit 特性 方便做一些显示
+    //基类使用 RD.Panel 特性 方便做一些显示
     //没有的不需要的可以改为UnityEngine.MonoBehaviour
     public abstract class UIDisposerMonoSingleton : MonoBehaviour, IUIManagerAsyncInit
     {

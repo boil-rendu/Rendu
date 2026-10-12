@@ -1,9 +1,7 @@
 ﻿#if UNITY_EDITOR
 
-using RD.EditorKit;
+using RD.Panel;
 
-using RD.Client;
-using RD.Core;
 namespace RD.UI.Editor
 {
     /// <summary>

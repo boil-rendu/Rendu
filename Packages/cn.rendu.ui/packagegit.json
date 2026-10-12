@@ -5,19 +5,19 @@
     "AllowSameLevelAccess": true,
     "ScriptsReferences": {
         "Loader": [
-            "RD.EditorKit"
+            "RD.Inspector"
         ],
         "ModelView": [
             "RD.UI",
             "Unity.TextMeshPro",
             "RD.ReferenceRegistry",
-            "RD.EditorKit"
+            "RD.Inspector"
         ],
         "HotfixView": [
             "RD.UI",
             "Unity.TextMeshPro",
             "RD.ReferenceRegistry",
-            "RD.EditorKit"
+            "RD.Inspector"
         ]
     }
 }

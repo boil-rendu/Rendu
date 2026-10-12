@@ -30,6 +30,14 @@
       "source": "embedded",
       "dependencies": {}
     },
+    "cn.rendu.editorwindow": {
+      "version": "file:cn.rendu.editorwindow",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "cn.rendu.panel": "3.0.0"
+      }
+    },
     "cn.rendu.excel": {
       "version": "file:cn.rendu.excel",
       "depth": 0,
@@ -60,11 +68,21 @@
       "source": "embedded",
       "dependencies": {}
     },
-    "cn.rendu.editorkit": {
-      "version": "file:cn.rendu.editorkit",
+    "cn.rendu.inspector": {
+      "version": "file:cn.rendu.inspector",
       "depth": 0,
       "source": "embedded",
-      "dependencies": {}
+      "dependencies": {
+        "cn.rendu.panel": "3.0.0"
+      }
+    },
+    "cn.rendu.invoke": {
+      "version": "file:cn.rendu.invoke",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "cn.rendu.core": "1.0.0"
+      }
     },
     "cn.rendu.loader": {
       "version": "file:cn.rendu.loader",
@@ -100,6 +118,12 @@
     },
     "cn.rendu.numeric": {
       "version": "file:cn.rendu.numeric",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "cn.rendu.panel": {
+      "version": "file:cn.rendu.panel",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}
@@ -146,15 +170,10 @@
       "source": "embedded",
       "dependencies": {
         "cn.rendu.core": "1.0.0",
-        "cn.rendu.invoke": "4.0.3"
-      }
-    },
-    "cn.rendu.invoke": {
-      "version": "file:cn.rendu.invoke",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {
-        "cn.rendu.core": "1.0.0"
+        "cn.rendu.invoke": "4.0.3",
+        "cn.rendu.panel": "3.0.0",
+        "cn.rendu.inspector": "1.0.0",
+        "cn.rendu.editorwindow": "1.0.0"
       }
     },
     "cn.rendu.unit": {

@@ -1,5 +1,5 @@
 ﻿using System;
-using RD.EditorKit;
+using RD.Panel;
 using RD.Core;
 
 namespace RD.Client

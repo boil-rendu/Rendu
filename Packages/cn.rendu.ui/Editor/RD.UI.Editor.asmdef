@@ -9,8 +9,10 @@
         "Unity.TextMeshPro",
         "Unity.EditorCoroutines.Editor",
         "RD.SourceGeneratorAttribute",
-        "RD.EditorKit",
-        "RD.EditorKit.Editor"
+        "RD.Inspector.Editor",
+        "RD.Panel",
+        "RD.Panel.Editor",
+        "RD.EditorWindow.Editor"
     ],
     "includePlatforms": [
         "Editor"

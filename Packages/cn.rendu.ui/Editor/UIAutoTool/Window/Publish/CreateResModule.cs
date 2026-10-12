@@ -1,6 +1,6 @@
 ﻿#if UNITY_EDITOR
 
-using RD.EditorKit;
+using RD.Panel;
 using UnityEngine;
 
 using RD.Client;

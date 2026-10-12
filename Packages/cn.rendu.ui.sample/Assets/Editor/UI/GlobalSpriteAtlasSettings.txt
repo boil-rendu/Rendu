@@ -1,0 +1,50 @@
+{
+    "SpriteAtlasSettings": {
+        "AtlasType": 0,
+        "IncludeInBuild": true,
+        "BlockOffset": 1,
+        "EnableRotation": false,
+        "EnableTightPacking": false,
+        "Padding": 4,
+        "GenerateMipMaps": false,
+        "Readable": false,
+        "sRGB": true,
+        "FilterMode": 1
+    },
+    "Default": {
+        "PlatformType": 0,
+        "BuildTargetName": "DefaultTexturePlatform",
+        "Overridden": true,
+        "MaxTextureSize": 2048,
+        "CrunchedCompression": true,
+        "compressionQuality": 50,
+        "Format": -1
+    },
+    "PC": {
+        "PlatformType": 1,
+        "BuildTargetName": "Standalone",
+        "Overridden": true,
+        "MaxTextureSize": 2048,
+        "CrunchedCompression": true,
+        "compressionQuality": 50,
+        "Format": 29
+    },
+    "Android": {
+        "PlatformType": 2,
+        "BuildTargetName": "Android",
+        "Overridden": true,
+        "MaxTextureSize": 2048,
+        "CrunchedCompression": true,
+        "compressionQuality": 50,
+        "Format": 50
+    },
+    "iPhone": {
+        "PlatformType": 3,
+        "BuildTargetName": "iPhone",
+        "Overridden": true,
+        "MaxTextureSize": 2048,
+        "CrunchedCompression": true,
+        "compressionQuality": 50,
+        "Format": 48
+    }
+}

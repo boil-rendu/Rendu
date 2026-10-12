@@ -4,8 +4,8 @@
     "references": [
         "RD.Core",
         "Unity.TextMeshPro",
-        "RD.SourceGeneratorAttribute",
-        "RD.EditorKit"
+        "RD.Panel",
+        "RD.SourceGeneratorAttribute"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

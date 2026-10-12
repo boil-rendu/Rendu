@@ -1,7 +1,7 @@
 ﻿#if UNITY_EDITOR
 using System;
 using System.Reflection;
-using RD.EditorKit;
+using RD.Panel;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -427,7 +427,14 @@ namespace RD.Client
 
         private bool ShowIfCDEInspector()
         {
-            return !UIConstHelper.Const.DisplayOldCDEInspector;
+            var useNewCDE = !UIConstHelper.Const.DisplayOldCDEInspector;
+
+            // 三个表组件的显隐跟开关走: 新版 CDE 检视器下隐藏(只通过 [C]/[D]/[E] 页签访问),
+            // 否则同一个表会被页签内联一份、检视器下面再显示一份(两份内容重复); 切回旧版则恢复显示。
+            // 挂在这里是因为引擎没有初始化钩子, 挂在 ShowIf 里才能"首次打开检视器"就生效
+            UICDEHideInInspector();
+
+            return useNewCDE;
         }
 
         private void OnValueChangedCDEInspector()
@@ -450,12 +457,30 @@ namespace RD.Client
 
         private void UICDEHideInInspector()
         {
-            if (ComponentTable != null)
-                ComponentTable.hideFlags = UIConstHelper.Const.DisplayOldCDEInspector ? HideFlags.None : HideFlags.HideInInspector;
-            if (DataTable != null)
-                DataTable.hideFlags = UIConstHelper.Const.DisplayOldCDEInspector ? HideFlags.None : HideFlags.HideInInspector;
-            if (EventTable != null)
-                EventTable.hideFlags = UIConstHelper.Const.DisplayOldCDEInspector ? HideFlags.None : HideFlags.HideInInspector;
+            var flags   = UIConstHelper.Const.DisplayOldCDEInspector ? HideFlags.None : HideFlags.HideInInspector;
+            var changed = SetHideFlags(ComponentTable, flags)
+                        | SetHideFlags(DataTable, flags)
+                        | SetHideFlags(EventTable, flags);
+
+            // 改 hideFlags 不会让检视器重建组件列表(不重新选中对象就看不到效果), 主动重建一次。
+            // 延后到本次绘制之后: 当场重建会在绘制过程中销毁自己的 Editor
+            if (changed)
+            {
+                EditorApplication.delayCall += () =>
+                {
+                    var tracker = ActiveEditorTracker.sharedTracker;
+                    tracker?.ForceRebuild();
+                };
+            }
+        }
+
+        /// <summary>设置隐藏标志, 返回是否真的改动了(没变就不写, 避免每帧把对象弄脏)。</summary>
+        private static bool SetHideFlags(Component table, HideFlags flags)
+        {
+            if (table == null || table.hideFlags == flags) return false;
+
+            table.hideFlags = flags;
+            return true;
         }
 
         [Button("添加组件表", 25)]

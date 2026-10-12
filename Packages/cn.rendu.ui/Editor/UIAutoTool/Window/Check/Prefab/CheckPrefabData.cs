@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using RD.EditorKit;
+using RD.Panel;
 using UnityEditor;
 using UnityEngine;
 
@@ -45,7 +45,7 @@ namespace RD.UI.Editor
         [LabelText("C")]
         [LabelWidth(50)]
         [ReadOnly]
-        [RD.EditorKit.FilePath]
+        [RD.Panel.FilePath]
         public string Component;
 
         /// <summary>自动生成的 ComponentGen 脚本路径</summary>
@@ -55,7 +55,7 @@ namespace RD.UI.Editor
         [LabelText("CGen")]
         [LabelWidth(50)]
         [ReadOnly]
-        [RD.EditorKit.FilePath]
+        [RD.Panel.FilePath]
         public string ComponentGen;
 
         /// <summary>手写 System 脚本路径</summary>
@@ -65,7 +65,7 @@ namespace RD.UI.Editor
         [LabelText("S")]
         [LabelWidth(50)]
         [ReadOnly]
-        [RD.EditorKit.FilePath]
+        [RD.Panel.FilePath]
         public string System;
 
         /// <summary>自动生成的 SystemGen 脚本路径</summary>
@@ -75,7 +75,7 @@ namespace RD.UI.Editor
         [LabelText("SGen")]
         [LabelWidth(50)]
         [ReadOnly]
-        [RD.EditorKit.FilePath]
+        [RD.Panel.FilePath]
         public string SystemGen;
 
         /// <summary>预制体资源路径</summary>
@@ -85,7 +85,7 @@ namespace RD.UI.Editor
         [LabelText("预制")]
         [LabelWidth(50)]
         [ReadOnly]
-        [RD.EditorKit.FilePath]
+        [RD.Panel.FilePath]
         public string PrefabPath;
 
         #endregion

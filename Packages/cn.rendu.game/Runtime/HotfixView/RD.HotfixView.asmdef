@@ -2,7 +2,7 @@
     "name": "RD.HotfixView",
     "rootNamespace": "RD.Client",
     "references": [
-        "RD.EditorKit",
+        "RD.Panel",
         "RD.Core",
         "RD.Hotfix",
         "RD.Init",

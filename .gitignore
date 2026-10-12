@@ -120,6 +120,7 @@ crashlytics-build.properties
 /Packages/**/[Bb]in/
 # Packages 下 DotNet~ 子工程需要入库（工具/导出/源生成器工程）
 !Packages/*/DotNet~/**/*.csproj
+!Packages/*/Tools~/Verify/Verify.csproj
 # HybridCLRData/ 工具链内 bin
 /HybridCLRData/**/[Bb]in/
 # HybridCLRData/ 整体忽略：本地 il2cpp 副本 + 裁剪/热更 dll，由 HybridCLR/Installer 重新生成（约 900MB）
