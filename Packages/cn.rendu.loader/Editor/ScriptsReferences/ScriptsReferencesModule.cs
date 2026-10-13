@@ -16,7 +16,7 @@ namespace RD.Loader.Editor
     public class ScriptsReferencesModule : BaseToolModule
     {
         [LabelText("说明")]
-        [DisplayAsString(TextAlignment.Left, false)]
+        [DisplayAsString(false, 0, TextAlign.Left, false)]
         [ShowInInspector]
         public string InfoText { get; } =
             "脚本引用配置用于管理项目中各个程序集之间的引用关系。\n" +

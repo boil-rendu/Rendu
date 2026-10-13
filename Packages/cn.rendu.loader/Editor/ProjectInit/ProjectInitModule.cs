@@ -41,7 +41,7 @@ namespace RD.Loader.Editor
         public string InitStatus { get; private set; } = "(未加载)";
 
         [LabelText("说明")]
-        [DisplayAsString(TextAlignment.Left, false)]
+        [DisplayAsString(false, 0, TextAlign.Left, false)]
         [ShowInInspector]
         public string InfoText { get; private set; } =
             "初始化项目将执行以下步骤:\n" +
