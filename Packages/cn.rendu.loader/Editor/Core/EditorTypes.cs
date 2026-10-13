@@ -13,9 +13,9 @@ namespace RD.Loader.Editor
 
     public enum DevelopMode
     {
-        正式 = 0,
-        开发 = 1,
-        压测 = 2,
+        Release = 0,
+        Develop = 1,
+        Stress = 2,
     }
 
     /// <summary>

@@ -25,14 +25,12 @@ namespace RD.Game.Editor
             Debug.Log("[3/5] Protocol 导出完成");
             
             Debug.Log("[4/5] 初始化项目...");
-            ProjectInitModel model = new ProjectInitModel
-            {
-                PackageName = "cn.rendu.game",
-                SceneName = "StateSync",
-                IsInited = false
-            };
-            
-            ProjectInitViewModel.InitProjectStatic(model);    
+            new SetSceneNameCommand("StateSync").Execute();
+            new LinkSlnCommand().Execute();
+            new UpdateScriptsReferencesCommand().Execute();
+            new ChangeCodeModeCommand("ClientServer").Execute();
+            new RunInitScriptsCommand().Execute();
+            new EnableDefineCommand("INITED").Execute();
             Debug.Log("[4/5] 项目初始化完成");
             
             Debug.Log("[5/5] 刷新资源数据库...");

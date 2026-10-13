@@ -63,7 +63,7 @@ namespace RD.Panel.Editor
         public Color      Background;
         public bool       HasBackground;
 
-        public static PanelButtonSpec Of(float width = 0f, float height = 0f, bool expandWidth = true,
+        public static PanelButtonSpec Of(float width = 0f, float height = 0f, bool expandWidth = false,
                                          string tooltip = null, Texture icon = null)
         {
             return new PanelButtonSpec

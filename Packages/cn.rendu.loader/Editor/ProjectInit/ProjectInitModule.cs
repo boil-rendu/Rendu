@@ -36,8 +36,8 @@ namespace RD.Loader.Editor
         public string Address { get; private set; } = "(未加载)";
 
         [LabelText("初始化状态")]
-        [ReadOnly]
         [ShowInInspector]
+        [DisplayAsString(false)]
         public string InitStatus { get; private set; } = "(未加载)";
 
         [LabelText("说明")]

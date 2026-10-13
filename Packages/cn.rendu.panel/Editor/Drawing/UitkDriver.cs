@@ -412,9 +412,51 @@ namespace RD.Panel.Editor
 
         public void Label(string text, in PanelTextSpec spec)
         {
+            // emoji 没有字形, 走内联贴图: 一行里文本段用 Label, emoji 段用 Image
+            if (PanelEmoji.Contains(text))
+            {
+                LabelWithEmoji(text, spec);
+                return;
+            }
+
             var label = Take(() => new Label(), null);
             label.text  = text ?? "";
             ApplyTextSpec(label, spec);
+        }
+
+        /// <summary>把"文字 + emoji"切成一段段画在同一行里。</summary>
+        private void LabelWithEmoji(string text, in PanelTextSpec spec)
+        {
+            var row = Take(() => new VisualElement(), null);
+            ResetContainerResidue(row);
+            row.style.flexDirection = FlexDirection.Row;
+            row.style.marginBottom  = RowSpacing;
+            PushAsScope(row);
+
+            var runs = PanelEmoji.Split(text);
+            for (int i = 0; i < runs.Count; i++)
+            {
+                var run = runs[i];
+                if (run.IsEmoji)
+                {
+                    var image = Take(() => new Image(), null);
+                    image.image        = run.Texture;
+                    image.style.width  = PanelEmoji.Size;
+                    image.style.height = PanelEmoji.Size;
+                    image.style.marginRight = 2f;
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(run.Text)) continue;
+
+                    var part = Take(() => new Label(), null);
+                    part.text = run.Text;
+                    ApplyTextSpec(part, spec);
+                    part.style.marginBottom = 0f;   // 行间距由外层 row 给
+                }
+            }
+
+            Pop();
         }
 
         public void KeyValueLabel(string label, string value)
@@ -432,9 +474,36 @@ namespace RD.Panel.Editor
             key.style.overflow   = Overflow.Visible;
             key.style.unityFontStyleAndWeight = FontStyle.Normal;
 
-            var val = Take(() => new Label(), null);
-            val.text  = value ?? "";
-            val.style.flexGrow = 1f;
+            if (PanelEmoji.Contains(value))
+            {
+                var runs = PanelEmoji.Split(value ?? "");
+                for (int i = 0; i < runs.Count; i++)
+                {
+                    var run = runs[i];
+                    if (run.IsEmoji)
+                    {
+                        var emoji = Take(() => new Image(), null);
+                        emoji.image        = run.Texture;
+                        emoji.style.width  = PanelEmoji.Size;
+                        emoji.style.height = PanelEmoji.Size;
+                        emoji.style.marginRight = 2f;
+                    }
+                    else
+                    {
+                        if (string.IsNullOrEmpty(run.Text)) continue;
+
+                        var part = Take(() => new Label(), null);
+                        part.text = run.Text;
+                        part.style.flexGrow = 1f;
+                    }
+                }
+            }
+            else
+            {
+                var val = Take(() => new Label(), null);
+                val.text  = value ?? "";
+                val.style.flexGrow = 1f;
+            }
 
             row.style.marginBottom = RowSpacing;
             Pop();
@@ -545,8 +614,11 @@ namespace RD.Panel.Editor
             if (spec.Align != PanelAlign.Left && spec.Width <= 0f) label.style.flexGrow = 1f;
             else label.style.flexGrow = 0f;
 
-            // mini(表格头/集合计数等次要文字)用更小的字号; UIElements 没有 EditorStyles.miniLabel 的等价物,
-            // 但 richText 没有对应实现 —— IMGUI 那边支持的富文本在这里按纯文本显示。
+            // 开关富文本: 与 IMGUI 后端的 GUISettings.richText 对齐(富文本标记由引擎在 ToTextSpec 里声明)。
+            // 不设的话 <color> / <b> 之类标记会被当成普通字符原样显示出来。
+            label.enableRichText = spec.RichText;
+
+            // mini(表格头/集合计数等次要文字)用更小的字号; UIElements 没有 EditorStyles.miniLabel 的等价物
             if (spec.Mini) label.style.fontSize = MiniFontSize;
             else label.style.fontSize = StyleKeyword.Null;
         }
@@ -568,9 +640,22 @@ namespace RD.Panel.Editor
                 return made;
             }, null);
 
-            button.text = text ?? "";
+            // 按钮里的 emoji 转成图标: 保留图案, 不把豆腐块留在文字里
+            var buttonText = text ?? "";
+            var buttonIcon = spec.Icon;
+            if (buttonIcon == null)
+            {
+                var emoji = PanelEmoji.First(buttonText);
+                if (emoji != null)
+                {
+                    buttonIcon = emoji;
+                    buttonText = PanelEmoji.Strip(buttonText);
+                }
+            }
+
+            button.text = buttonText;
             if (string.IsNullOrEmpty(spec.Tooltip) == false) button.tooltip = spec.Tooltip;
-            SetIcon(button, spec.Icon);
+            SetIcon(button, buttonIcon);
             // 同 Label: 复用的按钮可能带着上一轮的锁宽/锁高(比如别处的定高小按钮), 条件不成立要清掉
             button.style.height = spec.Height > 0f ? spec.Height : StyleKeyword.Null;
             button.style.width  = spec.Width  > 0f ? spec.Width  : StyleKeyword.Null;

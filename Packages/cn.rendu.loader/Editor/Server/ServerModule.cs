@@ -17,24 +17,23 @@ namespace RD.Loader.Editor
     public class ServerModule : BaseToolModule
     {
         private const string StartConfigRoot = "Packages/cn.rendu.excel/Config/Bytes/Server/StartConfig";
+        private const string StatusRunning = "<color=#4CAF50>🟢 运行中</color>";
+        private const string StatusStopped = "<color=#E2696C>🔴 已停止</color>";
 
         [LabelText("游戏服务器")]
-        [ReadOnly]
         [ShowInInspector]
-        [GUIColor(0.9f, 0.4f, 0.4f)]
-        public string GameServerStatus { get; private set; } = "游戏服务器：🔴 已停止";
+        [DisplayAsString(false)]
+        public string GameServerStatus { get; private set; } = StatusStopped;
 
         [LabelText("MongoDB")]
-        [ReadOnly]
         [ShowInInspector]
-        [GUIColor(0.9f, 0.4f, 0.4f)]
-        public string MongoStatus { get; private set; } = "MongoDB：🔴 已停止";
+        [DisplayAsString(false)]
+        public string MongoStatus { get; private set; } = StatusStopped;
 
         [LabelText("文件监听")]
-        [ReadOnly]
         [ShowInInspector]
-        [GUIColor(0.9f, 0.4f, 0.4f)]
-        public string WatcherStatus { get; private set; } = "文件监听：🔴 已停止";
+        [DisplayAsString(false)]
+        public string WatcherStatus { get; private set; } = StatusStopped;
 
         [LabelText("启动配置")]
         [ValueDropdown("StartConfigChoices")]
@@ -48,7 +47,7 @@ namespace RD.Loader.Editor
 
         [LabelText("开发模式")]
         [ShowInInspector]
-        public DevelopMode DevelopMode { get; set; } = DevelopMode.Client;
+        public DevelopMode DevelopMode { get; set; } = DevelopMode.Develop;
 
         private System.Collections.Generic.List<string> StartConfigChoices()
         {
@@ -61,24 +60,27 @@ namespace RD.Loader.Editor
             Debug.Log($"[Server] 启动配置已切换: {StartConfig}");
         }
 
-        [Button("启动服务器", 10)]
+        [ButtonGroup("服务器")]
+        [Button("启动服务器", Tooltip = "按当前启动配置与场景名启动游戏服务器")]
         [GUIColor(0.2f, 0.7f, 0.3f)]
         public void StartServer()
         {
             Debug.Log($"[Server] ========== 启动服务器: Scene={SceneName}, Config={StartConfig} ==========");
             new StartServerCommand(SceneName, 1, StartConfig, true).Execute();
-            GameServerStatus = "游戏服务器：🟢 运行中";
+            GameServerStatus = StatusRunning;
         }
 
-        [Button("停止服务器", 11)]
+        [ButtonGroup("服务器")]
+        [Button("停止服务器")]
         [GUIColor(0.9f, 0.4f, 0.4f)]
         public void StopServer()
         {
             Debug.Log("[Server] ========== 停止服务器 ==========");
-            GameServerStatus = "游戏服务器：🔴 已停止";
+            GameServerStatus = StatusStopped;
         }
 
-        [Button("重启服务器", 12)]
+        [ButtonGroup("服务器")]
+        [Button("重启服务器")]
         public void RestartServer()
         {
             StopServer();
@@ -86,38 +88,42 @@ namespace RD.Loader.Editor
             StartServer();
         }
 
-        [Button("启动 MongoDB", 20)]
+        [ButtonGroup("MongoDB")]
+        [Button("启动 MongoDB")]
         [GUIColor(0.2f, 0.7f, 0.3f)]
         public void StartMongo()
         {
             Debug.Log("[Server] ========== 启动 MongoDB ==========");
             new StartMongoCommand().Execute();
-            MongoStatus = "MongoDB：🟢 运行中";
+            MongoStatus = StatusRunning;
         }
 
-        [Button("停止 MongoDB", 21)]
+        [ButtonGroup("MongoDB")]
+        [Button("停止 MongoDB")]
         [GUIColor(0.9f, 0.4f, 0.4f)]
         public void StopMongo()
         {
             Debug.Log("[Server] ========== 停止 MongoDB ==========");
-            MongoStatus = "MongoDB：🔴 已停止";
+            MongoStatus = StatusStopped;
         }
 
-        [Button("启动文件监听", 30)]
+        [ButtonGroup("文件监听")]
+        [Button("启动文件监听")]
         [GUIColor(0.2f, 0.7f, 0.3f)]
         public void StartWatcher()
         {
             Debug.Log($"[Server] ========== 启动文件监视器: Config={StartConfig} ==========");
             new StartWatcherCommand(StartConfig, true).Execute();
-            WatcherStatus = "文件监听：🟢 运行中";
+            WatcherStatus = StatusRunning;
         }
 
-        [Button("停止文件监听", 31)]
+        [ButtonGroup("文件监听")]
+        [Button("停止文件监听")]
         [GUIColor(0.9f, 0.4f, 0.4f)]
         public void StopWatcher()
         {
             Debug.Log("[Server] ========== 停止文件监视器 ==========");
-            WatcherStatus = "文件监听：🔴 已停止";
+            WatcherStatus = StatusStopped;
         }
 
         public override void Initialize()

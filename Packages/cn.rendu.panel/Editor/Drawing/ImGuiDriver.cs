@@ -233,6 +233,13 @@ namespace RD.Panel.Editor
 
         public void Label(string text, in PanelTextSpec spec)
         {
+            // emoji 没有字形, 走内联贴图: 一行里文本段用 Label, emoji 段用贴图
+            if (PanelEmoji.Contains(text))
+            {
+                LabelWithEmoji(text ?? "", spec);
+                return;
+            }
+
             var style = TextStyle(spec.Bold, spec.Mini, spec.Align, spec.Wrap, spec.RichText);
             var text0 = text ?? "";
 
@@ -256,7 +263,58 @@ namespace RD.Panel.Editor
 
         public void KeyValueLabel(string label, string value)
         {
+            if (PanelEmoji.Contains(value))
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField(label, GUILayout.Width(EditorGUIUtility.labelWidth));
+                LabelWithEmoji(value ?? "", PanelTextSpec.Of());
+                EditorGUILayout.EndHorizontal();
+                return;
+            }
+
             EditorGUILayout.LabelField(label, value);
+        }
+
+        /// <summary>把"文字 + emoji"切成一段段画在同一行里。</summary>
+        private void LabelWithEmoji(string text, in PanelTextSpec spec)
+        {
+            var style = TextStyle(spec.Bold, spec.Mini, spec.Align, spec.Wrap, spec.RichText);
+
+            EditorGUILayout.BeginHorizontal();
+            var runs = PanelEmoji.Split(text);
+            for (int i = 0; i < runs.Count; i++)
+            {
+                var run = runs[i];
+                if (run.IsEmoji)
+                {
+                    GUILayout.Label(new GUIContent(run.Texture), EmojiStyle(),
+                                    GUILayout.Width(PanelEmoji.Size), GUILayout.Height(PanelEmoji.Size));
+                }
+                else if (string.IsNullOrEmpty(run.Text) == false)
+                {
+                    GUILayout.Label(run.Text, style);
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private static GUIStyle s_EmojiStyle;
+
+        private static GUIStyle EmojiStyle()
+        {
+            if (s_EmojiStyle != null) return s_EmojiStyle;
+
+            s_EmojiStyle = new GUIStyle(GUI.skin.label)
+            {
+                alignment   = TextAnchor.MiddleCenter,
+                padding     = new RectOffset(0, 0, 0, 0),
+                margin      = new RectOffset(0, 2, 0, 0),
+                fixedWidth  = PanelEmoji.Size,
+                fixedHeight = PanelEmoji.Size,
+                stretchWidth = false,
+            };
+
+            return s_EmojiStyle;
         }
 
         public void HelpBox(string message, PanelMessageKind kind)
@@ -316,9 +374,22 @@ namespace RD.Panel.Editor
 
         public bool Button(string text, in PanelButtonSpec spec)
         {
+            // 按钮里的 emoji 转成图标: 保留图案, 不把豆腐块留在文字里
+            var buttonText = text ?? "";
+            var buttonIcon = spec.Icon;
+            if (buttonIcon == null)
+            {
+                var emoji = PanelEmoji.First(buttonText);
+                if (emoji != null)
+                {
+                    buttonIcon = emoji;
+                    buttonText = PanelEmoji.Strip(buttonText);
+                }
+            }
+
             var content = m_ReusableContent;
-            content.text    = text;
-            content.image   = spec.Icon;
+            content.text    = buttonText;
+            content.image   = buttonIcon;
             content.tooltip = string.IsNullOrEmpty(spec.Tooltip) ? null : spec.Tooltip;
 
             // 只覆盖本次按钮的背景色并在结束后还原: 直接写回 Color.white 会把外层作用域设的颜色一起吃掉,

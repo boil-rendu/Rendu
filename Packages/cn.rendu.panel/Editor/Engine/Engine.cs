@@ -513,6 +513,12 @@ namespace RD.Panel.Editor
                 {
                     return order.Order;
                 }
+
+                // [Button("名字", 排序号)]: 按钮走同一条排序通道, 没写号时按声明顺序
+                if (attr is ButtonAttribute button)
+                {
+                    return button.Order;
+                }
             }
 
             return 0;

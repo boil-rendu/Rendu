@@ -6,6 +6,8 @@ namespace RD.Panel
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true, Inherited = true)]
     public sealed class ButtonAttribute : Attribute
     {
+        /// <summary>显示排序号(与 [PropertyOrder] 同一排序通道), 未指定时按声明顺序。</summary>
+        public int Order { get; }
         public string ButtonName { get; set; }
         public int ButtonHeight { get; set; }
         public ButtonStyle ButtonStyle { get; set; }
@@ -17,15 +19,16 @@ namespace RD.Panel
         {
         }
 
-        public ButtonAttribute(string buttonName = null, int buttonHeight = 0)
+        public ButtonAttribute(string buttonName = null, int order = 0)
         {
             ButtonName = buttonName;
-            ButtonHeight = buttonHeight;
+            Order      = order;
         }
 
-        public ButtonAttribute(int buttonHeight)
+        /// <summary>只指定排序号的写法: [Button(10)]。</summary>
+        public ButtonAttribute(int order)
         {
-            ButtonHeight = buttonHeight;
+            Order = order;
         }
     }
 
