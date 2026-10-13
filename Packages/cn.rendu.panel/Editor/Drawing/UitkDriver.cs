@@ -519,6 +519,20 @@ namespace RD.Panel.Editor
             box.style.marginBottom = RowSpacing * 2f;
         }
 
+        public void ProgressBar(float value, string title, float height)
+        {
+            var bar = Take(() => new UnityEngine.UIElements.ProgressBar(), null);
+
+            // 高/低值显式钉成 0~1: 各版本 ProgressBar 的默认值并不一致, 写死免得进度对不上
+            bar.lowValue  = 0f;
+            bar.highValue = 1f;
+            bar.value     = Mathf.Clamp01(value);
+            bar.title     = title ?? "";
+
+            if (height > 0f) bar.style.height = height;
+            bar.style.marginBottom = RowSpacing;
+        }
+
         private static HelpBoxMessageType ToHelpBoxType(PanelMessageKind kind)
         {
             switch (kind)
@@ -531,23 +545,44 @@ namespace RD.Panel.Editor
         }
 
         /// <summary>
-        /// 按钮图标: 各版本的 Button 不一定有 iconImage, 这里统一塞一个 Image 子元素并按需增删
-        /// (USS 里它排在文字左侧, 与 IMGUI 的 ImageLeft 观感一致)。非 Texture2D 的资源这里显示不出来,
-        /// 这类图标只在 IMGUI 后端有效。
+        /// 按钮图标: 各版本的 Button 不一定有 iconImage, 这里统一塞一个 Image 子元素并按需增删。
+        /// 注意按钮自绘的文字不认识子元素 —— 布局/绘制都不会给它让位, 直接塞会叠在文字上(穿模);
+        /// 所以图标钉死在左侧一小块留白里, 按钮的 paddingLeft 让出这块区域, 观感与 IMGUI 的 ImageLeft 一致。
+        /// 非 Texture2D 的资源这里显示不出来, 这类图标只在 IMGUI 后端有效。
         /// </summary>
+        private const float ButtonIconSize  = 16f;
+        private const float ButtonIconLeft  = 6f;
+        private const float ButtonIconPadLeft = ButtonIconLeft + ButtonIconSize + 4f;
+
         private static void SetIcon(Button button, Texture icon)
         {
             var image = button.Q<Image>();
             if (icon == null)
             {
-                image?.RemoveFromHierarchy();
+                if (image != null)
+                {
+                    image.RemoveFromHierarchy();
+                    button.style.paddingLeft = StyleKeyword.Null;   // 没图标了, 左留白交还主题
+                }
                 return;
             }
 
             if (image == null)
             {
-                image = new Image();
+                image = new Image
+                {
+                    style =
+                    {
+                        position  = Position.Absolute,      // 不参与布局: 文字不会因它重排
+                        left      = ButtonIconLeft,
+                        top       = Length.Percent(50f),    // 垂直居中: 钉在中线再上移半个自身
+                        translate = new Translate(0f, Length.Percent(-50f)),
+                        width     = ButtonIconSize,
+                        height    = ButtonIconSize,
+                    }
+                };
                 button.Add(image);
+                button.style.paddingLeft = ButtonIconPadLeft;   // 文字区让开图标
             }
 
             if (icon is Texture2D texture) image.image = texture;
@@ -797,6 +832,20 @@ namespace RD.Panel.Editor
             var index = System.Math.Clamp(selected, 0, System.Math.Max(0, field.choices.Count - 1));
             field.SetValueWithoutNotify(index >= 0 && index < field.choices.Count ? field.choices[index] : "");
             return field.index;
+        }
+
+        public Enum EnumFlagsField(string label, Enum value, float width = 0f)
+        {
+            if (value == null) return null;
+
+            // 多选枚举用 UnityEditor.UIElements 的 EnumFlagsField: 它就是 Unity 自己的"位组合多选"控件,
+            // 与 IMGUI 的 EditorGUILayout.EnumFlagsField 是同一套语义
+            // 全限定: EnumFlagsField 在 UnityEditor.UIElements 里(本文件只 using 了 UnityEngine.UIElements)
+            var field = Take(() => new UnityEditor.UIElements.EnumFlagsField(), null);
+
+            ApplyLabelAndWidth(field, label, width);
+            field.SetValueWithoutNotify(value);
+            return field.value;
         }
 
         public int Toolbar(int selected, string[] options, float width = 0f)

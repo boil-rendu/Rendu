@@ -1215,6 +1215,14 @@ namespace RD.Panel.Editor
                 return;
             }
 
+            // [ProgressBar]: 数值成员按进度条显示, 不画输入框(表格单元格里也不画, 免得撑高行)
+            var progress = GetAttr<ProgressBarAttribute>(m);
+            if (progress != null && inTableCell == false)
+            {
+                DrawProgressBar(target, m, progress);
+                return;
+            }
+
             var readOnly = GetAttr<ReadOnlyAttribute>(m) != null;
             if (m.Kind == MemberKind.Property && (m.Info as PropertyInfo)?.SetMethod == null)
             {
@@ -1304,6 +1312,38 @@ namespace RD.Panel.Editor
             Drv.Label(string.IsNullOrEmpty(label) ? text : $"{label}:\n{text}", spec);
 
             if (hasColor) Drv.PopColor();
+        }
+
+        //-------------------------------------- 进度条 ([ProgressBar]) --------------------------------------
+
+        /// <summary>数值成员按进度条显示: 取值按 0~1 归一, 标题优先取特性给的, 再取成员名, 都没有就显示百分比。</summary>
+        private static void DrawProgressBar(object target, CachedMember m, ProgressBarAttribute attr)
+        {
+            var value = GetSafe(target, m);
+
+            float ratio;
+            try
+            {
+                ratio = Convert.ToSingle(value);
+            }
+            catch (Exception)
+            {
+                return;   // 不是数值: 这个特性用错了, 不画(也不该把绘制炸掉)
+            }
+
+            ratio = Mathf.Clamp01(ratio);
+
+            var title = attr.Title;
+            if (string.IsNullOrEmpty(title))
+            {
+                title = GetLabel(m);
+            }
+            if (string.IsNullOrEmpty(title))
+            {
+                title = $"{Mathf.RoundToInt(ratio * 100f)}%";
+            }
+
+            Drv.ProgressBar(ratio, title, attr.Height);
         }
 
         //-------------------------------------- Required 校验 --------------------------------------
@@ -1558,6 +1598,13 @@ namespace RD.Panel.Editor
         {
             var toggle = GetAttr<EnumToggleButtonsAttribute>(m) != null;
             var values = Enum.GetValues(type);
+
+            // [Flags] 枚举按多选画(项目里的程序集定义/引用/代码模式都是位组合), 不能走单选下拉
+            if (toggle == false && type.IsDefined(typeof(FlagsAttribute), false))
+            {
+                var picked = Drv.EnumFlagsField(label, (Enum)(value ?? values.GetValue(0)));
+                return picked ?? value;
+            }
 
             if (toggle)
             {

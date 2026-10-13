@@ -110,6 +110,11 @@ namespace RD.Panel.Editor
         /// <summary>提示框([Required] 校验与 [InfoBox])。</summary>
         void HelpBox(string message, PanelMessageKind kind);
 
+        /// <summary>
+        /// 进度条([ProgressBar]): <paramref name="value"/> 按 0~1 归一, <paramref name="height"/> 为 0 时用默认行高。
+        /// </summary>
+        void ProgressBar(float value, string title, float height);
+
         //-------------------------------------- 控件 --------------------------------------
 
         /// <summary>按钮。返回是否被点击。</summary>
@@ -132,6 +137,9 @@ namespace RD.Panel.Editor
 
         /// <summary>下拉框([ValueDropdown] 与不带 [EnumToggleButtons] 的枚举)。返回选中的下标。</summary>
         int Popup(string label, int selected, string[] options, float width = 0f);
+
+        /// <summary>[Flags] 枚举的多选控件, 返回当前位组合(后端不支持时返回原值)。</summary>
+        Enum EnumFlagsField(string label, Enum value, float width = 0f);
 
         /// <summary>按钮组([EnumToggleButtons] 的枚举)。返回选中的下标。</summary>
         int Toolbar(int selected, string[] options, float width = 0f);

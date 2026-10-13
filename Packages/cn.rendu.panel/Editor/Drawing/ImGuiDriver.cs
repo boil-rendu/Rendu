@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -328,6 +329,13 @@ namespace RD.Panel.Editor
             EditorGUILayout.HelpBox(message, ToMessageType(kind));
         }
 
+        public void ProgressBar(float value, string title, float height)
+        {
+            // 高度用调用方给的, 没给就按一行高(与 Separator 一样先取矩形再画, 不吃 GUILayout 的自动布局)
+            var rect = EditorGUILayout.GetControlRect(false, height > 0f ? height : LineHeight);
+            EditorGUI.ProgressBar(rect, Mathf.Clamp01(value), title ?? "");
+        }
+
         private static MessageType ToMessageType(PanelMessageKind kind)
         {
             switch (kind)
@@ -461,6 +469,14 @@ namespace RD.Panel.Editor
             }
 
             return EditorGUILayout.Popup(content, selected, options, WidthOnly(width));
+        }
+
+        public Enum EnumFlagsField(string label, Enum value, float width = 0f)
+        {
+            if (value == null) return null;
+
+            var content = string.IsNullOrEmpty(label) ? GUIContent.none : new GUIContent(label);
+            return EditorGUILayout.EnumFlagsField(content, value, WidthOnly(width));
         }
 
         public int Toolbar(int selected, string[] options, float width = 0f)
