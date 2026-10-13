@@ -1,3 +1,5 @@
+#if UNITY_EDITOR
+
 using RD.Init.Editor;
 using UnityEditor;
 using UnityEngine;
@@ -5,10 +7,14 @@ using UnityEngine;
 namespace RD.Loader.Editor
 {
     /// <summary>
-    /// Loader 菜单: 7 个工具窗口已迁移到 LoaderTool 的 [UIAutoMenu(Scope="loader")] 模块后,
-    /// Loader 菜单只保留两项 — 编译/热重载快捷键 (F6/F7) 与 Open Loader Tool 入口。
-    /// 原来的"Build Application / Regenerate / Generate / Init Scripts / Update Script Reference"
-    /// 等动作全部收编到对应模块, 不再平铺。
+    /// Loader 顶层菜单 (Rendu/Loader/) — 只保留两个全局热键入口:
+    ///   - Compile _F6     整工程编译 (AssetDatabase.Refresh + AssemblyTool.DoCompile)
+    ///   - Hot Reload _F7  运行时热重载 (走 RD.CodeLoader.Instance.Reload)
+    ///
+    /// 7 个工具窗口的入口 (GlobalConfig / ProjectInit / Build / Server / ProjectFiles / ScriptsReferences / Define)
+    /// 已全部迁移到 LoaderTool.cs:23 的 [MenuItem("Rendu/Loader Tool")], 不再平铺在 Loader 子菜单里;
+    /// 5 个平铺动作 (Build Application / Regenerate / GenerateAssemblyRef / UpdateScriptsRef / InitScripts)
+    /// 也都收编到对应模块的 [Button] 按钮, 不再做菜单项。
     /// </summary>
     internal static class LoaderMenu
     {
@@ -63,3 +69,5 @@ namespace RD.Loader.Editor
         }
     }
 }
+
+#endif

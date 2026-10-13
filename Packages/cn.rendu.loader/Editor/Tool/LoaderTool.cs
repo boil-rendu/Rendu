@@ -1,8 +1,14 @@
 //------------------------------------------------------------
 // 工具窗口: Loader Tool —— 把原来 Loader 菜单里那些平铺的窗口与动作收进一个工具窗。
 // 自身只是 GenericToolWindow 的薄壳 + 接受 "loader" 作用域, 各功能由挂在 [UIAutoMenu(Scope="loader")]
-// 的模块类提供(宏定义等已经迁过来; 后续 GlobalConfig / ProjectInit / Build / Server / ProjectFiles
-// / ScriptsReferences 也会陆续转成模块挂进来)。
+// 的模块类提供:
+//   100  宏定义                (MacroModule)
+//   200  全局配置              (GlobalConfigModule)
+//   300  项目初始化            (ProjectInitModule)
+//   400  项目文件              (ProjectFilesModule)
+//   500  构建                  (BuildModule)
+//   600  服务器                (ServerModule)
+//   700  脚本引用              (ScriptsReferencesModule)
 //------------------------------------------------------------
 
 #if UNITY_EDITOR
@@ -30,12 +36,8 @@ namespace RD.Loader.Editor
             }
         }
 
-        // [MenuItem("Rendu/Loader/Loader Tool", false, 1)]
-        // public static void OpenWindow() { ... }
-        //
-        // ↑ 上面的入口路径通过 MenuDefine.ProjectRootMenu 拼出 ("Rendu/Loader Tool"),
-        //   与原 Loader 菜单("Rendu/Loader/...")并列, 都在 Rendu 一级菜单下,
-        //   不挤占原有 Loader 子菜单(原 Loader 菜单里会保留 F6/F7 快捷键入口, 见 LoaderMenu.cs)。
+        // 菜单路径: "Rendu/Loader Tool" (由 MenuDefine.ProjectRootMenu 拼出),
+        // 与 Rendu/Loader/ 子菜单 (F6/F7 入口) 并列, 都在 Rendu 一级菜单下, 互不挤占。
 
         /// <summary>本窗口只加载 Scope == "loader" 的模块, 与 ui 包的 AutoTool 互不串台。</summary>
         protected override string AcceptScope => "loader";
