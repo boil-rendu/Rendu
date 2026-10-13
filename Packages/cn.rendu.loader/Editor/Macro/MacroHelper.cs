@@ -178,7 +178,7 @@ namespace RD.Loader.Editor
 
             foreach (var valueObj in Enum.GetValues(typeof(T)))
             {
-                var value = (long)valueObj;
+                var value = Convert.ToInt64(valueObj);
                 if (value <= 0)
                 {
                     continue;
@@ -201,7 +201,7 @@ namespace RD.Loader.Editor
 
             foreach (var valueObj in Enum.GetValues(typeof(T)))
             {
-                var value = (long)valueObj;
+                var value = Convert.ToInt64(valueObj);
                 if (value <= 0)
                 {
                     continue;
@@ -229,7 +229,7 @@ namespace RD.Loader.Editor
             {
                 foreach (var valueObj in Enum.GetValues(typeof(T)))
                 {
-                    var value = (long)valueObj;
+                    var value = Convert.ToInt64(valueObj);
                     if (value <= 0)
                     {
                         continue;
@@ -255,7 +255,7 @@ namespace RD.Loader.Editor
             {
                 foreach (var valueObj in Enum.GetValues(enumType))
                 {
-                    var value = (long)valueObj;
+                    var value = Convert.ToInt64(valueObj);
                     if (value <= 0)
                     {
                         continue;

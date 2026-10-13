@@ -841,7 +841,16 @@ namespace RD.Panel.Editor
             // 多选枚举用 UnityEditor.UIElements 的 EnumFlagsField: 它就是 Unity 自己的"位组合多选"控件,
             // 与 IMGUI 的 EditorGUILayout.EnumFlagsField 是同一套语义
             // 全限定: EnumFlagsField 在 UnityEditor.UIElements 里(本文件只 using 了 UnityEngine.UIElements)
-            var field = Take(() => new UnityEditor.UIElements.EnumFlagsField(), null);
+            // 必须把枚举类型传给构造: 无参构造的字段不知道自己是哪个枚举, SetValueWithoutNotify 绑不上,
+            // 会一直显示默认的 "Nothing"(值 0)。IMGUI 那版能从 value 推断类型, UITK 不行。
+            var field = Take(() =>
+            {
+                var made = new UnityEditor.UIElements.EnumFlagsField(value);
+                // 保留模式: 用户改勾选必须靠这个回调进 m_ChangedElements, 引擎才会把新值写回模型;
+                // 少了它, 下一帧 SetValueWithoutNotify 用旧模型值一覆盖, 多选就丢了(与 Toggle/Popup 同一套路)
+                made.RegisterValueChangedCallback(_ => NoteChanged(made));
+                return made;
+            }, null);
 
             ApplyLabelAndWidth(field, label, width);
             field.SetValueWithoutNotify(value);

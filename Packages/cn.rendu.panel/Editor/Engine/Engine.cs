@@ -339,7 +339,7 @@ namespace RD.Panel.Editor
                 // 根对象始终允许绘制: EditorWindow 自绘, 或 Editor 检视组件
                 DrawRecursive(target, host, 0, null, true);
             }
-            catch (Exception e)
+            catch (Exception e) when (!(e is ExitGUIException))
             {
                 Log.Error($"[Inspector] 绘制失败 {target.GetType().Name}\n{e}");
             }
@@ -819,9 +819,9 @@ namespace RD.Panel.Editor
                         RunStateUpdates(target, m);
                         DrawMember(target, m, host, depth);
                     }
-                    catch (Exception e)
+                    catch (Exception e) when (!(e is ExitGUIException))
                     {
-                        Log.Error($"[Inspector] 绘制成员失败 {m.RawName}\n{e}");
+                        Log.Error($"[Panel] 绘制成员失败 {m.RawName}\n{e}");
                     }
                 }
             }
@@ -1140,7 +1140,7 @@ namespace RD.Panel.Editor
                         method.Invoke(target, null);
                     }
                 }
-                catch (Exception e)
+                catch (Exception e) when (!(e is ExitGUIException))
                 {
                     Log.Error($"[Inspector] 方法执行失败 {method.Name}\n{e}");
                 }
@@ -1261,7 +1261,7 @@ namespace RD.Panel.Editor
                     Drv.PopEnabled();
                 }
             }
-            catch (Exception e)
+            catch (Exception e) when (!(e is ExitGUIException))
             {
                 Log.Error($"[Inspector] 绘制成员失败 {m.RawName}\n{e}");
                 return;
@@ -1280,7 +1280,7 @@ namespace RD.Panel.Editor
 
                     Drv.RequestRepaint();
                 }
-                catch (Exception e)
+                catch (Exception e) when (!(e is ExitGUIException))
                 {
                     Log.Error($"[Inspector] 赋值失败 {m.RawName}\n{e}");
                 }
@@ -2372,7 +2372,7 @@ namespace RD.Panel.Editor
                 var instance = Activator.CreateInstance(elemType);
                 Mutate(target, () => list.Add(instance));
             }
-            catch (Exception e)
+            catch (Exception e) when (!(e is ExitGUIException))
             {
                 Log.Warn($"[Inspector] 无法添加列表元素 {elemType.Name}\n{e.Message}");
             }
@@ -2685,7 +2685,7 @@ namespace RD.Panel.Editor
                 var prop = (PropertyInfo)m.Info;
                 return prop.GetValue(prop.GetMethod.IsStatic ? null : target, null);
             }
-            catch (Exception e)
+            catch (Exception e) when (!(e is ExitGUIException))
             {
                 Log.Warn($"[Inspector] 读取失败 {m.RawName}\n{e.Message}");
                 return null;

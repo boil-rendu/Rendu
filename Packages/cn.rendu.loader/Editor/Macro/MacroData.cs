@@ -9,7 +9,7 @@ namespace RD.Loader.Editor
     [Flags]
     [LabelText("RD")]
     [EnumMacro]
-    public enum EMacroType : long
+    public enum EMacroType
     {
         /// <summary>全选</summary>
         [LabelText("所有")]
@@ -32,7 +32,7 @@ namespace RD.Loader.Editor
     [Flags]
     [LabelText("UI")]
     [EnumMacro]
-    public enum EUIMacroType : long
+    public enum EUIMacroType
     {
         /// <summary>全选</summary>
         [LabelText("所有")]
@@ -83,7 +83,7 @@ namespace RD.Loader.Editor
     [Flags]
     [LabelText("资源加载")]
     [EnumMacro]
-    public enum EUIAssetsMacroType : long
+    public enum EUIAssetsMacroType
     {
         /// <summary>全选</summary>
         [LabelText("所有")]
