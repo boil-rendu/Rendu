@@ -222,13 +222,16 @@ namespace RD.Panel.Editor
             element.style.flexDirection = FlexDirection.Column;
             if (boxed)
             {
-                // 对齐 IMGUI box 的呼吸感: 分组之间留空隙, 框内留内边距(默认是零, 分组全贴在一起)
+                // 四边一律取 IMGUI box 的 margin/padding: 主题自带的("unity-box" 的 USS)被显式值覆盖,
+                // 不再出现 UITK 分组比 IMGUI 宽一圈/松一截的观感
                 element.style.marginTop    = BoxOuterSpacing;
                 element.style.marginBottom = BoxOuterSpacing;
+                element.style.marginLeft   = BoxOuterSpacing;
+                element.style.marginRight  = BoxOuterSpacing;
                 element.style.paddingTop    = BoxInnerSpacing;
                 element.style.paddingBottom = BoxInnerSpacing;
-                element.style.paddingLeft   = BoxInnerSpacing * 1.5f;
-                element.style.paddingRight  = BoxInnerSpacing * 1.5f;
+                element.style.paddingLeft   = BoxInnerSpacing;
+                element.style.paddingRight  = BoxInnerSpacing;
             }
 
             if (width > 0f) element.style.width = width;
@@ -323,7 +326,7 @@ namespace RD.Panel.Editor
             element.style.backgroundColor = StyleKeyword.Null;
         }
 
-        private const float IndentWidth = 15f;
+        private const float IndentWidth = PanelMetrics.IndentWidth;
 
         //-------------------------------------- 状态栈 --------------------------------------
 
@@ -550,50 +553,42 @@ namespace RD.Panel.Editor
             if (icon is Texture2D texture) image.image = texture;
         }
 
-        /// <summary>标签列的默认宽度(没有 [LabelWidth] 时的下限)。
-        /// 必须统一锁宽: 各控件 USS 自带的 label min-width 互不相同(Popup 120 / LongField 更宽 / Toggle 按内容),
-        /// 不锁的话控件起点参差不齐, 对不齐 IMGUI 的控件列。</summary>
-        private const float DefaultLabelWidth = 150f;
+        /// <summary>标签列宽的下限(EditorGUIUtility.labelWidth 取不到时用。</summary>
+        private const float DefaultLabelWidth = PanelMetrics.LabelWidthDefault;
 
-        /// <summary>IMGUI 的默认标签宽是按检视器宽度算的比例(实测约 0.35), 不是定值 ——
-        /// 定值在宽窄窗口下都对不上 IMGUI 的控件列位置。</summary>
-        private const float LabelWidthFraction = 0.35f;
+        /// <summary>标签列宽的上限(再宽的面板标签列也不至于拉得太开)。</summary>
+        private const float MaxLabelWidth = PanelMetrics.LabelWidthMax;
 
-        /// <summary>比例标签宽的上限(再宽的面板标签列也不至于拉得太开)。</summary>
-        private const float MaxLabelWidth = 300f;
-
-        /// <summary>输入区统一的文字左留白(Popup/TextField/Toggle 各自 USS 的 padding 不一致, 统一掉)。</summary>
-        private const float InputPaddingLeft = 4f;
+        /// <summary>
+        /// 输入区的文字左留白。按 IMGUI 统一即为 0: EditorGUILayout 的字段紧贴标签列右边缘,
+        /// 加留白反而与 IMGUI 错开。各控件 USS 自带的 padding 不一致由 USS 自己处理。
+        /// </summary>
+        private const float InputPaddingLeft = PanelMetrics.InputPaddingLeft;
 
         /// <summary>
         /// 单行字段的最小高度。正常有标签的字段行高由标签行盒撑起; HideLabel 的字段标签没有内容,
         /// 这条主题下输入区自己不带固有高, 整行会塌成一条薄片(弹窗文字被裁半截)。
         /// 这里给所有字段一个与主题单行控件一致的硬下限兜底, 与旁边正常行同高。
         /// </summary>
-        private const float FieldMinHeight = 20f;
+        // 这几个是现场量 IMGUI 的运行时值: 用属性而非 static readonly, 免得在样式体系就绪前
+        // 就被初始化成兜底值、之后再也不刷新
+        private static float FieldMinHeight => PanelMetrics.FieldMinHeight;
 
         /// <summary>当前标签列宽: [LabelWidth] 优先, 否则按面板宽度取比例; 首帧宽度未知时退回定值。</summary>
-        private float AutoLabelWidth
-        {
-            get
-            {
-                var width = ViewWidth;
-                if (float.IsNaN(width) || width < 200f) return DefaultLabelWidth;
-                return Mathf.Clamp(width * LabelWidthFraction, DefaultLabelWidth, MaxLabelWidth);
-            }
-        }
+        /// <summary>跟随 IMGUI 的标签列宽(EditorGUIUtility.labelWidth), 不自己算比例。</summary>
+        private static float AutoLabelWidth => Mathf.Clamp(PanelMetrics.LabelWidth, DefaultLabelWidth, MaxLabelWidth);
 
         /// <summary>mini 文本的字号(对应 IMGUI 的 miniLabel)。</summary>
-        private const float MiniFontSize = 11f;
+        private static float MiniFontSize => PanelMetrics.MiniFontSize;
 
-        /// <summary>行与行之间的空隙(对齐 IMGUI 的默认 spacing 观感)。</summary>
-        private const float RowSpacing = 2f;
+        /// <summary>行与行之间的空隙(取 IMGUI 的 standardVerticalSpacing)。</summary>
+        private static float RowSpacing => PanelMetrics.RowSpacing;
 
-        /// <summary>box 分组与外界的空隙。</summary>
-        private const float BoxOuterSpacing = 5f;
+        /// <summary>box 分组与外界的空隙(取 IMGUI 的 box 内边距)。</summary>
+        private static float BoxOuterSpacing => PanelMetrics.BoxSpacing;
 
-        /// <summary>box 分组框内的留白。</summary>
-        private const float BoxInnerSpacing = 5f;
+        /// <summary>box 分组框内的留白(取 IMGUI 的 box 内边距)。</summary>
+        private static float BoxInnerSpacing => PanelMetrics.BoxSpacing;
 
         private void ApplyTextSpec(Label label, in PanelTextSpec spec)
         {
@@ -607,7 +602,12 @@ namespace RD.Panel.Editor
             // 不成立时必须显式清回 Null 交还 USS, 否则残留会把这一轮的文字钉在别人的尺寸上
             label.style.width  = spec.Width  > 0f ? spec.Width  : StyleKeyword.Null;
             label.style.height = spec.Height > 0f ? spec.Height : StyleKeyword.Null;
+            // 垂直间距唯一来源是 RowSpacing: 主题给 Label 自带的 margin 全部显式归零,
+            // 否则 IMGUI(standardVerticalSpacing)与 UITK(主题 margin + RowSpacing)行距对不上
+            label.style.marginTop    = 0f;
             label.style.marginBottom = RowSpacing;
+            label.style.marginLeft   = 0f;
+            label.style.marginRight  = 0f;
 
             // 居中/右对齐的标题要跨整行才有"居中"可言: IMGUI 的 GUILayout.Label 占满可用宽,
             // 而这里 Label 宽度默认是内容宽, 不撑开的话 MiddleCenter 只是内容内居中(观感偏左)
@@ -672,6 +672,7 @@ namespace RD.Panel.Editor
                 button.style.flexGrow  = 0f;
             }
 
+            button.style.marginTop    = 0f;   // 主题 margin 归零, 行距唯一来源是 RowSpacing
             button.style.marginBottom = RowSpacing;
 
             // IMGUI: 背景 = 控件纹理 × GUI.color(暗一档), 字 = contentColor × GUI.color(本色, 亮)。
@@ -705,6 +706,7 @@ namespace RD.Panel.Editor
 
             foldout.text = label ?? "";
             foldout.SetValueWithoutNotify(expanded);
+            foldout.style.marginTop    = 0f;   // 主题 margin 归零, 行距唯一来源是 RowSpacing
             foldout.style.marginBottom = RowSpacing;
             return foldout.value;
         }
@@ -803,6 +805,7 @@ namespace RD.Panel.Editor
             // Toolbar 本体也要占满可用宽: 它在横排里 flexGrow 默认 0 会缩成内容宽,
             // 内部 toggle 的 flexGrow=1 就只能平分那一小块
             bar.style.flexGrow     = 1f;
+            bar.style.marginTop    = 0f;   // 主题 margin 归零, 行距唯一来源是 RowSpacing
             bar.style.marginBottom = RowSpacing;
             // 分段式页签: 容器不留内边距, 项与项才能紧贴成一条(IMGUI Toolbar 的样子)
             bar.style.paddingLeft  = 0f;
@@ -1102,6 +1105,8 @@ namespace RD.Panel.Editor
             labelElement.style.flexShrink  = 0f;
             labelElement.style.flexGrow    = 0f;
             labelElement.style.marginLeft  = 0f;
+            labelElement.style.marginTop   = 0f;   // 行高由控件行自己定, 标签元素不带额外 margin
+            labelElement.style.marginBottom = 0f;
             labelElement.style.whiteSpace  = WhiteSpace.NoWrap;
             labelElement.style.overflow    = Overflow.Visible;
 
@@ -1119,7 +1124,11 @@ namespace RD.Panel.Editor
                 field.style.flexGrow = 1f;
             }
 
+            // 同 Label: 主题给 BaseField 自带的 margin 归零, 行距唯一来源是 RowSpacing
+            field.style.marginTop    = 0f;
             field.style.marginBottom = RowSpacing;
+            field.style.marginLeft   = 0f;
+            field.style.marginRight  = 0f;
 
             // 塌行保护: HideLabel 时 Unity 把标签元素从布局里拿掉(no-label 变体), 字段行高就只剩
             // 输入区自己撑 —— 某些主题下输入区不带固有高, 整行塌成薄片、弹窗文字被裁。这里给字段

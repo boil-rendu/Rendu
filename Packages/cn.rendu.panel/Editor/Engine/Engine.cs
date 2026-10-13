@@ -1121,8 +1121,8 @@ namespace RD.Panel.Editor
             }
         }
 
-        /// <summary>[Button] 不指定高度时的默认按钮高度。</summary>
-        private const int DefaultButtonHeight = 24;
+        /// <summary>[Button] 不指定高度时的默认按钮高度 —— 取 IMGUI 侧按钮的实际高度(UITK 跟随)。</summary>
+        private static float DefaultButtonHeight => PanelMetrics.ButtonHeight;
 
         private static void InvokeSafe(object target, MethodInfo method)
         {

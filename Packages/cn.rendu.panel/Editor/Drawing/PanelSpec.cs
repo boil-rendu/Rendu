@@ -63,7 +63,9 @@ namespace RD.Panel.Editor
         public Color      Background;
         public bool       HasBackground;
 
-        public static PanelButtonSpec Of(float width = 0f, float height = 0f, bool expandWidth = false,
+        // expandWidth 默认 true —— 与 IMGUI 的 GUILayout.Button 一致: 按钮默认占满行宽,
+        // 定宽按钮(表格行内的小按钮等)由调用方显式传 false
+        public static PanelButtonSpec Of(float width = 0f, float height = 0f, bool expandWidth = true,
                                          string tooltip = null, Texture icon = null)
         {
             return new PanelButtonSpec

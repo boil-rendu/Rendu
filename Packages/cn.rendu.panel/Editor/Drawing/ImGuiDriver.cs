@@ -44,7 +44,11 @@ namespace RD.Panel.Editor
 
         //-------------------------------------- 生命周期 --------------------------------------
 
-        public void BeginPanel() { }
+        public void BeginPanel()
+        {
+            // 不动 EditorGUIUtility.labelWidth: IMGUI 就用 Unity 自己的值, UI Toolkit 那边也来读同一个值
+            // (见 PanelMetrics.LabelWidth), 两边不再是两套算法。
+        }
 
         public void EndPanel() { }
 
@@ -122,7 +126,7 @@ namespace RD.Panel.Editor
             }
         }
 
-        private const float IndentWidth = 10f;
+        private const float IndentWidth = PanelMetrics.IndentWidth;
 
         private static readonly GUILayoutOption[] s_EmptyOptions = new GUILayoutOption[0];
         private static readonly GUILayoutOption[] s_WidthSlot    = new GUILayoutOption[1];
@@ -147,6 +151,8 @@ namespace RD.Panel.Editor
                 m_ButtonOptions[count++] = GUILayout.Height(spec.Height);
                 m_ButtonOptions[count++] = GUILayout.MinHeight(spec.Height);
             }
+            // 没指定高度就不锁高: 用 GUI.skin.button 自己的高度(这个值就是 PanelMetrics.ButtonHeight
+            // 的来源, UITK 那边按它对齐), 反过来给 IMGUI 塞一个外来高度才是本末倒置
             else if (spec.ExpandWidth == false && count < m_ButtonOptions.Length)
             {
                 m_ButtonOptions[count++] = GUILayout.ExpandWidth(false);
