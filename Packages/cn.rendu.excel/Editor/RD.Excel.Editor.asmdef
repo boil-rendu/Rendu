@@ -6,7 +6,7 @@
         "RD.Init.Editor",
         "RD.Panel",
         "RD.Panel.Editor",
-        "RD.EditorWindow.Editor"
+        "RD.EditTool.Editor"
     ],
     "includePlatforms": [
         "Editor"

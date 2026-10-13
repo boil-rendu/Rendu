@@ -30,8 +30,8 @@
       "source": "embedded",
       "dependencies": {}
     },
-    "cn.rendu.editorwindow": {
-      "version": "file:cn.rendu.editorwindow",
+    "cn.rendu.edittool": {
+      "version": "file:cn.rendu.edittool",
       "depth": 0,
       "source": "embedded",
       "dependencies": {
@@ -173,7 +173,7 @@
         "cn.rendu.invoke": "4.0.3",
         "cn.rendu.panel": "3.0.0",
         "cn.rendu.inspector": "1.0.0",
-        "cn.rendu.editorwindow": "1.0.0"
+        "cn.rendu.edittool": "1.0.0"
       }
     },
     "cn.rendu.unit": {

@@ -3,7 +3,7 @@
     "rootNamespace": "",
     "references": [
         "RD.YooAsset",
-        "RD.Init.Editor",
+        "RD.EditTool.Editor",
         "Unity.ScriptableBuildPipeline",
         "Unity.ScriptableBuildPipeline.Editor"
     ],

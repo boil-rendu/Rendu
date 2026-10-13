@@ -7,7 +7,7 @@
 1. **一套属性特性（Attribute）**（`Runtime/`，纯数据无逻辑）：写在字段 / 属性 / 方法 / 类上，控制编辑器里的显示名、分组、条件显隐、按钮、下拉、表格等；
 2. **一套反射式绘制引擎**（`Editor/`）：唯一入口 `Engine.DrawObject`，把任意对象（`MonoBehaviour` / `ScriptableObject` / 普通 C# 对象 / 窗口自身）画成一张属性面板。引擎把"画什么"通过 `IPanelDriver` 抽象出去，包内自带 **IMGUI** 与 **UI Toolkit** 两套实现，可在两者之间切换（见 §2.4）。
 
-> 宿主按挂载位置分在两个独立包，都只依赖本包：**cn.rendu.inspector**（检视器宿主：`InspectorEditor` / `SerializedScriptableObject`）、**cn.rendu.editorwindow**（工具窗口宿主：`MenuEditorWindow` 等）。本包程序集名是 `RD.Panel` / `RD.Panel.Editor`；检视器宿主包 cn.rendu.inspector 的程序集是 `RD.Inspector.Editor`（命名空间同名，没跟着改）。
+> 宿主按挂载位置分在两个独立包，都只依赖本包：**cn.rendu.inspector**（检视器宿主：`InspectorEditor` / `SerializedScriptableObject`）、**cn.rendu.edittool**（工具窗口宿主：`MenuEditorWindow` 等）。本包程序集名是 `RD.Panel` / `RD.Panel.Editor`；检视器宿主包 cn.rendu.inspector 的程序集是 `RD.Inspector.Editor`（命名空间同名，没跟着改）。
 
 > **第一次使用请先看教程**：[`Documentation~/Tutorial.md`](Documentation~/Tutorial.md) —— 从零接入、到写出自己的工具窗口，按步骤走并有排错手册；本文件是特性手册，适合查阅。
 >
@@ -84,7 +84,7 @@ cn.rendu.panel/
 └── Tests/Editor/                    EditMode 测试（程序集：RD.Panel.Tests.Editor，引擎侧 4 夹具 115 例）
 
 检视器宿主（InspectorEditor / SerializedScriptableObject / Serialization + 19 例测试）
-在 cn.rendu.inspector 包；窗口宿主在 cn.rendu.editorwindow 包。
+在 cn.rendu.inspector 包；窗口宿主在 cn.rendu.edittool 包。
 ```
 
 ### 程序集依赖
@@ -95,7 +95,7 @@ cn.rendu.panel/
 | `RD.Panel.Editor` | `RD.Panel` | **Editor-only**。全包没有任何 `[MenuItem]`，也没有任何 `[CustomEditor]`（检视器宿主在 cn.rendu.inspector 包）：画什么、入口在哪，全部由使用方决定 |
 | `RD.Panel.Tests.Editor` | 前两者 | 仅测试用；通过 `InternalsVisibleTo` 访问引擎的 internal 元数据 |
 
-> 结论：**Runtime 代码只需要引用 `RD.Panel`**（用特性）；**写自定义宿主的 Editor 代码要引用 `RD.Panel.Editor`**（引擎）；现成宿主在两个独立包 —— 检视器宿主 **cn.rendu.inspector**（程序集 `RD.Inspector.Editor`）、工具窗口宿主 **cn.rendu.editorwindow**（`EditorWindowBase` / `MenuEditorWindow` / `MenuTree` / `EditorPrefsValue<T>`），引包即用。
+> 结论：**Runtime 代码只需要引用 `RD.Panel`**（用特性）；**写自定义宿主的 Editor 代码要引用 `RD.Panel.Editor`**（引擎）；现成宿主在两个独立包 —— 检视器宿主 **cn.rendu.inspector**（程序集 `RD.Inspector.Editor`）、工具窗口宿主 **cn.rendu.edittool**（`EditorWindowBase` / `MenuEditorWindow` / `MenuTree` / `EditorPrefsValue<T>`），引包即用。
 > 如果工程用 asmdef 组织代码，Editor 目录可以通过 **Assembly Definition Reference（`.asmref`）** 归并进自己的 Editor 程序集，从而天然拥有这些能力。
 
 ![包结构：三层，业务零耦合](Documentation~/images/06-architecture.png)
@@ -157,7 +157,7 @@ public class MyEditorAsset : SerializedScriptableObject
 
 ### 2.3 编辑器窗口
 
-窗口宿主已迁至独立包 **`cn.rendu.editorwindow`**（程序集 `RD.EditorWindow.Editor`，命名空间 `RD.EditorWindows.Editor`）：`EditorWindowBase`、`MenuEditorWindow`、`MenuTree`、`EditorPrefsValue<T>`。
+窗口宿主已迁至独立包 **`cn.rendu.edittool`**（程序集 `RD.EditTool.Editor`，命名空间 `RD.EditTool.Editor`）：`EditorWindowBase`、`MenuEditorWindow`、`MenuTree`、`EditorPrefsValue<T>`。
 
 - 窗口包引用 `RD.Panel` / `RD.Panel.Editor`，用 `Engine.DrawObject` 绘制窗口自身与右侧面板；
 - 跨程序集宿主各持独立会话的入口：`Engine.CreateHostState()` 创建不透明状态句柄，绘制时传 `DrawObject(target, host, onBeforeChange, onChanged, state)`，各窗口的折叠 / 滚动状态互不串台；
@@ -193,7 +193,7 @@ Drawing.SetDefaultFactory(host => new MyDriver(host));
 
 `UitkDriver` 的宿主协作方式与 IMGUI 不同，接之前要知道：
 
-- **需要重绘时必须重新调用 `DrawObject`**。IMGUI 每帧 `OnGUI` 天然如此；UI Toolkit 是保留模式，数据变了却没有再绘制，界面不会自己更新。窗口宿主用它时要自己排一次重绘；两个宿主的开关都收在各自包内，业务代码不用碰 —— 检视器宿主（cn.rendu.inspector）是菜单 Tools / RD Inspector / UI Toolkit 绘制 或 `InspectorBackend.UseUIToolkit`，窗口宿主（cn.rendu.editorwindow）是菜单 Tools / RD EditorWindow / UI Toolkit 绘制 或 `WindowBackend.UseUIToolkit`，详见各自包的 README。
+- **需要重绘时必须重新调用 `DrawObject`**。IMGUI 每帧 `OnGUI` 天然如此；UI Toolkit 是保留模式，数据变了却没有再绘制，界面不会自己更新。窗口宿主用它时要自己排一次重绘；两个宿主的开关都收在各自包内，业务代码不用碰 —— 检视器宿主（cn.rendu.inspector）是菜单 Tools / RD Inspector / UI Toolkit 绘制 或 `InspectorBackend.UseUIToolkit`，窗口宿主（cn.rendu.edittool）是菜单 Tools / RD EditTool / UI Toolkit 绘制 或 `WindowBackend.UseUIToolkit`，详见各自包的 README。
 - **UI Toolkit 渲染不了的部分会降级**：`Label` 不支持富文本（`[DisplayAsString]` 的 richText 按纯文本显示），按钮图标只支持 `Texture2D`。
 - 元素按**位置**复用（容器内同一位置仍是同类控件就只更新内容与状态），所以折叠 / 条件显隐变化时不会整树重建，正在输入的输入框不丢焦点；反之中间插入不同控件时那一个会被换掉。
 
@@ -512,7 +512,7 @@ private IEnumerable GetTeamSelectList()
 
 ## 7. 编辑器窗口与菜单树（已迁出）
 
-`EditorWindowBase` / `MenuEditorWindow` / `MenuTree` / `EditorPrefsValue<T>` 已迁至独立包 **`cn.rendu.editorwindow`**（命名空间 `RD.EditorWindows.Editor`，详见该包 README）；菜单树建树规则（路径自动补齐、同名就地替换、深度优先遍历、选中事件）的行为契约也随包迁移（`MenuTreeTests`，14 例）。
+`EditorWindowBase` / `MenuEditorWindow` / `MenuTree` / `EditorPrefsValue<T>` 已迁至独立包 **`cn.rendu.edittool`**（命名空间 `RD.EditTool.Editor`，详见该包 README）；菜单树建树规则（路径自动补齐、同名就地替换、深度优先遍历、选中事件）的行为契约也随包迁移（`MenuTreeTests`，14 例）。
 
 引擎侧不变的承诺：`Engine.DrawObject` 仍接受 `EditorWindow host`（传窗口实例表示窗口自绘），窗口包的右侧面板就是用它绘制任意普通 C# 对象 —— **任何 `class` 都能直接当面板内容**，`[Button]` 照常出按钮。
 
@@ -538,7 +538,7 @@ public static void DrawObject(object target,
                               Action<object> onBeforeChange = null,
                               Action<object> onChanged = null);
 
-// 跨程序集宿主(例如 cn.rendu.editorwindow 的窗口)各持独立状态:
+// 跨程序集宿主(例如 cn.rendu.edittool 的窗口)各持独立状态:
 public static HostState CreateHostState();
 public static void DrawObject(object target,
                               EditorWindow host,
@@ -597,7 +597,7 @@ public class SerializedScriptableObjectEditor : InspectorEditor { }
 - 条件里的成员名解析不到（写错名字）时的语义是**视为可见**（宁可不隐藏，也不因一个拼错的名字把成员整片吞掉），并在首次遇到时记一条 `WarnOnce` 点出"哪个类型、哪个名字没解析到" —— 这条路径以前是完全静默的：成员一直显示，谁也想不到是名字写错了；
 - 引擎按类型缓存成员与分组树，**新增成员后需要等域重载**（改动代码本来就会触发编译）；
 - 绘制热路径上的重复工作都有缓存，**稳态零分配**：成员清单、分组树、表格列之外，还包括"每个成员按特性类型筛选出的特性数组"（`CachedMember.GetAttrs<T>`）、标题 / 分组头 / `DisplayAsString` 的 `GUIStyle`（按锚点×加粗分档缓存）、按钮与下拉的 `GUIContent`（立即模式单线程复用）、枚举下拉的标签数组与 toggle 按钮内容（按枚举类型缓存）、"`(类型, 名字, 形参个数) → 无参方法 / 字段 / 属性`"的反射查找结果（引擎与表达式求值器共用同一份解析规则与缓存），以及表达式的 AST 与索引器元数据（见 §5.5）。缓存同样活到域重载，所以上面那条"靠域重载生效"对它们一并适用；
-- 折叠状态、滚动位置是会话内缓存（不写盘；窗口的菜单宽度、上次选中项要持久化请用 cn.rendu.editorwindow 的 `EditorPrefsValue<T>`）；
+- 折叠状态、滚动位置是会话内缓存（不写盘；窗口的菜单宽度、上次选中项要持久化请用 cn.rendu.edittool 的 `EditorPrefsValue<T>`）；
 - 表达式**已支持索引器**（`@Items[0]`、`@Map['key']`、`@Child.Items[1]`，调用结果后也能接，如 `@GetScaled(2)[1]`）：覆盖数组 / 字符串 / `List<T>` / `Dictionary<K,V>` 与自定义 `this[...]` 索引器；**越界或键缺失返回 `null`**，不会中断整段绘制。仍不支持位运算与自增自减；
 - 表达式解析会校验收尾：写了一半的表达式（如 `@Items[0`）整体返回 `null`，而不是被静默截断成一个错值；
 - 表达式里的数字字面量一律是 `double`；方法调用（`InvokeRaw`）会先按形参类型显式收窄，因此 **`@Foo(1, 2)` 可以调用 `Foo(int, int)`**，`Foo(SomeEnum)` 也能接收整数字面量。收窄只覆盖数值与枚举形参，其余类型原样交给反射 binder；
@@ -663,10 +663,10 @@ public class EnemyConfig : MonoBehaviour
 
 ### 11.2 纯工具窗口
 
-> 基类 `EditorWindowBase` 已迁至 **cn.rendu.editorwindow**（命名空间 `RD.EditorWindows.Editor`）；示例里演示的特性与引擎行为不变。
+> 基类 `EditorWindowBase` 已迁至 **cn.rendu.edittool**（命名空间 `RD.EditTool.Editor`）；示例里演示的特性与引擎行为不变。
 
 ```csharp
-using RD.EditorWindows.Editor;          // EditorWindowBase 所在包
+using RD.EditTool.Editor;          // EditorWindowBase 所在包
 
 public class MyToolWindow : EditorWindowBase
 {
@@ -780,7 +780,7 @@ public enum Mode { Simple, Advanced }
 cd "Packages/cn.rendu.panel/Tools~/Verify" && dotnet run
 ```
 
-几秒内即可跑完全部纯逻辑断言（表达式、成员收集、折叠状态、条件显隐），无需启动编辑器，全部可在纯 .NET 进程里跑。当前规模：**4 个夹具 115 例，脱机 115 通过 / 0 跳过**（`ExpressionEvaluatorTests` 44、`EngineReflectionTests` 37、`EngineConditionTests` 20、`EngineStateTests` 14）。序列化 19 例在 cn.rendu.inspector（17 通过 / 2 跳过），菜单树 14 例在 cn.rendu.editorwindow。
+几秒内即可跑完全部纯逻辑断言（表达式、成员收集、折叠状态、条件显隐），无需启动编辑器，全部可在纯 .NET 进程里跑。当前规模：**4 个夹具 115 例，脱机 115 通过 / 0 跳过**（`ExpressionEvaluatorTests` 44、`EngineReflectionTests` 37、`EngineConditionTests` 20、`EngineStateTests` 14）。序列化 19 例在 cn.rendu.inspector（17 通过 / 2 跳过），菜单树 14 例在 cn.rendu.edittool。
 
 运行器接受一个**夹具名子串**作为可选参数（`Program.Main` 的 `args[0]`，大小写不敏感的 `IndexOf` 匹配），只想跑一块时：
 

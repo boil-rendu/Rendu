@@ -2,7 +2,7 @@
 
 服务端热重载加载器（AssemblyLoadContext） + **LoaderTool 工具窗口**（7 个挂在 `[UIAutoMenu(Scope="loader")]` 下的特性面板模块）。包内自带一条从 UPM 包到 `RD.Loader` / `RD.AppHost` 工具链的完整闭环：编译 → 引用补全 → 资源刷新 → 链接 SLN → 启动服务/监视器/MongoDB/构建发布 —— 全部在 **Rendu / Loader Tool** 窗口里。
 
-工具窗口与模块机制本身在 [cn.rendu.editorwindow](../cn.rendu.editorwindow/README.md)；特性与绘制引擎在 [cn.rendu.panel](../cn.rendu.panel/README.md)。本包只承载"loader 域"模块的具体业务。
+工具窗口与模块机制本身在 [cn.rendu.edittool](../cn.rendu.edittool/README.md)；特性与绘制引擎在 [cn.rendu.panel](../cn.rendu.panel/README.md)。本包只承载"loader 域"模块的具体业务。
 
 ## 包结构
 
@@ -86,9 +86,9 @@ cn.rendu.loader/
 | 程序集 | 引用 | 说明 |
 |---|---|---|
 | `RD.Loader` | `RD.YooAsset`、`RD.Init` | 运行时，引擎 + 资源 + 启动引导 |
-| `RD.Loader.Editor` | `RD.Panel`、`RD.Panel.Editor`、`RD.EditorWindow.Editor` | 编辑器扩展，挂特性模块到 LoaderTool |
+| `RD.Loader.Editor` | `RD.Panel`、`RD.Panel.Editor`、`RD.EditTool.Editor` | 编辑器扩展，挂特性模块到 LoaderTool |
 
-> 注：`RD.Loader.Editor` 不引用 `cn.rendu.ui` —— 工具基建已迁到 `cn.rendu.editorwindow`，避免 ui / loader 互相依赖。
+> 注：`RD.Loader.Editor` 不引用 `cn.rendu.ui` —— 工具基建已迁到 `cn.rendu.edittool`，避免 ui / loader 互相依赖。
 
 ## 工具窗口：Loader Tool
 
@@ -117,11 +117,11 @@ cn.rendu.loader/
 
 ## 写一个新模块挂在 LoaderTool 下
 
-`BaseToolModule` 在 `cn.rendu.editorwindow`，`[ShowInInspector] / [Button] / [GUIColor] / [ValueDropdown] / [OnValueChanged]` 等特性在 `cn.rendu.panel`。最简例子：
+`BaseToolModule` 在 `cn.rendu.edittool`，`[ShowInInspector] / [Button] / [GUIColor] / [ValueDropdown] / [OnValueChanged]` 等特性在 `cn.rendu.panel`。最简例子：
 
 ```csharp
 using RD.Panel;
-using RD.EditorWindows.Editor;
+using RD.EditTool.Editor;
 using UnityEngine;
 
 namespace RD.Loader.Editor
@@ -170,7 +170,7 @@ public void Regenerate() => new GenerateAssemblyReferenceCommand(CodeMode.Client
 
 | 包 | 关系 |
 |---|---|
-| `cn.rendu.editorwindow` | LoaderTool 继承它的 `GenericToolWindow`；7 个模块都继承它的 `BaseToolModule` |
+| `cn.rendu.edittool` | LoaderTool 继承它的 `GenericToolWindow`；7 个模块都继承它的 `BaseToolModule` |
 | `cn.rendu.panel` | 提供 `[Button] / [ShowInInspector] / [GUIColor] / [ValueDropdown]` 等特性 + 绘制引擎 |
 | `com.rendu.init` | 提供 `MenuDefine.ProjectRootMenu`（"Rendu"）与 `CommandBase` 基类 |
 | `cn.rendu.core` | 提供 `FileHelper`（ScriptsReferencesCommand 收集引用时用） |

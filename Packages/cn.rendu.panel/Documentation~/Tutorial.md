@@ -39,14 +39,14 @@
 
 ### 0.1 它能画什么：四种宿主
 
-`cn.rendu.panel` = **一套特性**（`Runtime/`，纯数据）+ **一个反射绘制引擎**（`Editor/`，把特性解释成 IMGUI）。引擎的唯一入口是一个静态方法 `Engine.DrawObject`，谁来调它决定了"面板长在哪儿"（检视器宿主在 cn.rendu.inspector 包、窗口宿主在 cn.rendu.editorwindow 包）：
+`cn.rendu.panel` = **一套特性**（`Runtime/`，纯数据）+ **一个反射绘制引擎**（`Editor/`，把特性解释成 IMGUI）。引擎的唯一入口是一个静态方法 `Engine.DrawObject`，谁来调它决定了"面板长在哪儿"（检视器宿主在 cn.rendu.inspector 包、窗口宿主在 cn.rendu.edittool 包）：
 
 | 宿主 | 你会用到的基类 / API | 典型用途 |
 |---|---|---|
 | `MonoBehaviour` / `ScriptableObject` | 继承 `InspectorEditor` + `[CustomEditor]`（**cn.rendu.inspector** 宿主包） | 替换某个组件原生检视器 |
 | 编辑器数据资产 | 继承 `SerializedScriptableObject`（**cn.rendu.inspector** 宿主包） | 带 JSON 落盘的编辑器配置资产 |
-| `EditorWindow` 自身 | 继承 `EditorWindowBase`（**cn.rendu.editorwindow** 包） | 纯工具窗口（不必是 Unity 对象） |
-| **任意普通 C# 对象** | 继承 `MenuEditorWindow`（**cn.rendu.editorwindow** 包），或直接调 `Engine.DrawObject(obj, window)` | 工具窗口右半边的"模块面板" |
+| `EditorWindow` 自身 | 继承 `EditorWindowBase`（**cn.rendu.edittool** 包） | 纯工具窗口（不必是 Unity 对象） |
+| **任意普通 C# 对象** | 继承 `MenuEditorWindow`（**cn.rendu.edittool** 包），或直接调 `Engine.DrawObject(obj, window)` | 工具窗口右半边的"模块面板" |
 
 最后一行是关键差异：**被画的对象不必是 `UnityEngine.Object`**。一个普通 `class LevelModule { [Button("执行")] void Run() {} }` 就能当面板内容，`[Button]` 照常出按钮。这是做编辑器工具时最省事的地方。
 
@@ -70,7 +70,7 @@
 | Runtime 代码（只用特性） | `RD.Panel` |
 | Editor 代码（直接用引擎） | `RD.Panel.Editor`（它已依赖 `RD.Panel`） |
 | 检视器（`InspectorEditor` / `SerializedScriptableObject`） | `RD.Inspector.Editor`（cn.rendu.inspector 包，它已依赖前两者） |
-| 工具窗口（`EditorWindowBase` / `MenuEditorWindow` / `MenuTree` / `EditorPrefsValue<T>`） | `RD.EditorWindow.Editor`（cn.rendu.editorwindow 包，它已依赖特性与引擎） |
+| 工具窗口（`EditorWindowBase` / `MenuEditorWindow` / `MenuTree` / `EditorPrefsValue<T>`） | `RD.EditTool.Editor`（cn.rendu.edittool 包，它已依赖特性与引擎） |
 
 如果工程用 asmdef 组织，Editor 程序集的 `references` 里要加这两项。本仓库里的真实写法是 `Packages/com.rendu.packagemanager/Editor/RD.PackageManager.Editor.asmdef`（只摘录关键字段）：
 
@@ -92,7 +92,7 @@
 | `RD.Panel`（`RD.Panel.asmdef`） | **全部特性**（`Runtime/Attributes/*`）+ `CollectionExtensions` —— 只有这些，没有任何逻辑代码 |
 | `RD.Panel.Editor`（cn.rendu.panel 的引擎程序集） | `Engine`、`ExpressionEvaluator`、`HostState`（`CreateHostState` 发的不透明句柄）、`Log`、`Icons` |
 | `RD.Inspector.Editor`（cn.rendu.inspector 宿主包，程序集 `RD.Inspector.Editor`） | `InspectorEditor`、`Serialization` 与 `SerializedScriptableObject`（含它的 Editor）—— 与引擎同名不同包，别引错 |
-| `RD.EditorWindows.Editor`（cn.rendu.editorwindow 包） | `EditorWindowBase`、`MenuEditorWindow`、`MenuTree`、`EditorPrefsValue<T>` —— 注意是复数 `EditorWindows`：单数 `RD.EditorWindow` 会遮蔽 `UnityEditor.EditorWindow` 类型（坑同下） |
+| `RD.EditTool.Editor`（cn.rendu.edittool 包） | `EditorWindowBase`、`MenuEditorWindow`、`MenuTree`、`EditorPrefsValue<T>` —— 注意是复数 `EditorWindows`：单数 `RD.EditTool` 会遮蔽 `UnityEditor.EditorWindow` 类型（坑同下） |
 
 > 坑：`InspectorEditor` 继承 `UnityEditor.Editor`。因为文件位于 `RD.Inspector.Editor` 命名空间内，**简单名 `Editor` 会被解析成命名空间 `RD.Inspector` 下的 `Editor`**，写 `: Editor` 报 CS0118。基类一定写全：`: InspectorEditor`（本包已提供），自己写别的基类时写 `: UnityEditor.Editor`。
 
@@ -988,18 +988,18 @@ protected override void OnAfterInspectorDeserialize()
 
 ## 第 9 章 工具窗口：`EditorWindowBase`
 
-> **本章与第 10 章的内容已迁至独立包 `cn.rendu.editorwindow`**（程序集 `RD.EditorWindow.Editor`），见该包的 `README.md`。迁移后不变的承诺：
+> **本章与第 10 章的内容已迁至独立包 `cn.rendu.edittool`**（程序集 `RD.EditTool.Editor`），见该包的 `README.md`。迁移后不变的承诺：
 >
 > - 引擎仍接受 `EditorWindow host`（传窗口实例表示窗口自绘）—— 窗口包的基类就是用它画窗口自身与右侧面板；
 > - 跨程序集宿主各持独立会话：`Engine.CreateHostState()` 拿不透明句柄，绘制时传 `DrawObject(target, host, onBeforeChange, onChanged, state)`；
-> - 命名空间是 `RD.EditorWindows.Editor`（**复数**）—— 单数 `RD.EditorWindow` 会遮蔽 `UnityEditor.EditorWindow` 类型：任何 `RD.*` 命名空间里裸写 `EditorWindow` 都会 CS0118（同 0.3 节末尾 `Editor` 的坑）。
+> - 命名空间是 `RD.EditTool.Editor`（**复数**）—— 单数 `RD.EditTool` 会遮蔽 `UnityEditor.EditorWindow` 类型：任何 `RD.*` 命名空间里裸写 `EditorWindow` 都会 CS0118（同 0.3 节末尾 `Editor` 的坑）。
 
 ---
 
 ## 第 10 章 菜单树窗口：做一个真正的工具
 
-> **已迁至 `cn.rendu.editorwindow`**。
-> `MenuEditorWindow` 的"左树 + 右面板"、`MenuTree` 的建树规则（路径自动补齐、同名就地替换、深度优先遍历、选中事件）与 `EditorPrefsValue<T>` 都在 `cn.rendu.editorwindow`，行为契约由随包迁移的 `MenuTreeTests`（14 例）钉住。
+> **已迁至 `cn.rendu.edittool`**。
+> `MenuEditorWindow` 的"左树 + 右面板"、`MenuTree` 的建树规则（路径自动补齐、同名就地替换、深度优先遍历、选中事件）与 `EditorPrefsValue<T>` 都在 `cn.rendu.edittool`，行为契约由随包迁移的 `MenuTreeTests`（14 例）钉住。
 >
 > 本仓库的成熟用法仍可对照阅读：`Packages/cn.rendu.ui/Editor/UITool/Window/UITool.cs`。
 
@@ -1319,9 +1319,9 @@ public class LevelConfigEditor : InspectorEditor { }
 | 提示 / 两段式提示 / 标题 | `[InfoBox]` / `[DetailedInfoBox]`（不是可展开控件，见 2.6）/ `[Title]` |
 | 编辑器数据资产 | 继承 `SerializedScriptableObject` + `[InspectorSerialize]` |
 | 组件检视器 | 继承 `InspectorEditor` + `[CustomEditor]` |
-| 工具窗口 | 继承 `EditorWindowBase`（cn.rendu.editorwindow） |
-| 左树右面板工具 | 继承 `MenuEditorWindow`（cn.rendu.editorwindow）+ `BuildMenuTree()` |
-| 持久化上次选项/窗口宽度 | `EditorPrefsValue<T>`（cn.rendu.editorwindow） |
+| 工具窗口 | 继承 `EditorWindowBase`（cn.rendu.edittool） |
+| 左树右面板工具 | 继承 `MenuEditorWindow`（cn.rendu.edittool）+ `BuildMenuTree()` |
+| 持久化上次选项/窗口宽度 | `EditorPrefsValue<T>`（cn.rendu.edittool） |
 | 图标枚举 → Texture | `Icons.FromSdf(SdfIconType.X)`（只映射少数字形族，其余返回 `null`） |
 
 ---
@@ -1372,7 +1372,7 @@ public class LevelConfigEditor : InspectorEditor { }
 - **绘制引擎**：`Editor/Engine/Engine.cs` —— `GetMembers`（可见性/排序）、`GetGroupTree`（分组）、`DrawValueMemberBody`、`DrawScalarControl`、`DrawTableList`、`CheckVisibility`、`RunStateUpdates`；
 - **表达式**：`Editor/Engine/Expression.cs` —— `Value`（值语义）、`GetAst`（缓存）、`Evaluate`、`SetLeft`；
 - **序列化**：cn.rendu.inspector 包 `Editor/Serialization.cs`；
-- **检视器宿主**：cn.rendu.inspector 包 `Editor/Inspector/InspectorEditor.cs`（窗口宿主已迁至 cn.rendu.editorwindow）；
+- **检视器宿主**：cn.rendu.inspector 包 `Editor/Inspector/InspectorEditor.cs`（窗口宿主已迁至 cn.rendu.edittool）；
 - **逐符号索引**：`README.md` §12。
 
 ### 16.2 想给引擎加东西时的推荐流程
@@ -1398,7 +1398,7 @@ cd "Packages/cn.rendu.panel/Tools~/Verify" && dotnet run -- InspectorExpression 
 |---|---|
 | `README.md` | 特性手册：全部特性、参数、逐项生效情况、§12 符号索引、§13 测试说明 |
 | 本文件 | 教程：从接入到自建工具窗口的完整路径 |
-| `Tests/Editor/*.cs` | 四块纯逻辑的行为契约（表达式 44、成员收集 37、条件显隐 20、折叠状态 14，共 115 例；序列化 19 例随宿主迁至 cn.rendu.inspector，菜单树 14 例在 cn.rendu.editorwindow） |
+| `Tests/Editor/*.cs` | 四块纯逻辑的行为契约（表达式 44、成员收集 37、条件显隐 20、折叠状态 14，共 115 例；序列化 19 例随宿主迁至 cn.rendu.inspector，菜单树 14 例在 cn.rendu.edittool） |
 | `Tools~/Verify/` | 离线校验工程（纯 .NET 跑同一批用例；脱机 128 通过、2 例需 Test Runner；需 .NET 8 + `UnityEngine.dll`/`UnityEditor.dll`） |
 
 ---

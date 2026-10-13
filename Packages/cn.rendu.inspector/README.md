@@ -84,4 +84,4 @@ cd "Packages/cn.rendu.inspector/Tools~/Verify" && dotnet run
 |---|---|
 | `cn.rendu.panel` | 特性 + 绘制引擎：任意对象 → 属性面板 |
 | `cn.rendu.inspector`（本包） | 检视器宿主：面板挂到 `UnityEditor.Editor` / 编辑器资产 |
-| `cn.rendu.editorwindow` | 窗口宿主：左菜单树 + 右面板的工具窗口 |
+| `cn.rendu.edittool` | 窗口宿主：左菜单树 + 右面板的工具窗口 |

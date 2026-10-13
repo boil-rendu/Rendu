@@ -9,7 +9,7 @@
 using System.Collections.Generic;
 using RD.Panel;
 using RD.Panel.Editor;
-using RD.EditorWindows.Editor;
+using RD.EditTool.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -28,7 +28,7 @@ namespace RD.UI.Editor
         {
             // 停靠到 WindowsDefine 登记的同组窗口旁: 与 Excel View / Loader Tool 等菜单窗口
             // 合为同一个窗口下的不同页签, 不再各自飘独立窗口
-            var window = GetWindow<UITool>("UI", true, RD.Init.Editor.WindowsDefine.DockedWindowTypes);
+            var window = GetWindow<UITool>("UI", true, RD.EditTool.Editor.WindowsDefine.DockedWindowTypes);
             if (window != null)
             {
                 window.Show();

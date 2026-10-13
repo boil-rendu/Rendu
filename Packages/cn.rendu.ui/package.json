@@ -20,7 +20,7 @@
     "cn.rendu.invoke": "4.0.3",
     "cn.rendu.panel": "3.0.0",
     "cn.rendu.inspector": "1.0.0",
-    "cn.rendu.editorwindow": "1.0.0"
+    "cn.rendu.edittool": "1.0.0"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/@RD-Packages"

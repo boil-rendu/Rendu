@@ -13,7 +13,7 @@
 
 #if UNITY_EDITOR
 
-using RD.EditorWindows.Editor;
+using RD.EditTool.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -31,7 +31,7 @@ namespace RD.Loader.Editor
         {
             // 停靠到 WindowsDefine 登记的同组窗口旁: Loader 工具与 Excel View / 批量导出导航网格 /
             // Protocol / PackageManager 等菜单窗口合为同一个窗口下的不同页签, 不再各自飘独立窗口
-            var window = GetWindow<LoaderTool>("Loader", true, RD.Init.Editor.WindowsDefine.DockedWindowTypes);
+            var window = GetWindow<LoaderTool>("Loader", true, RD.EditTool.Editor.WindowsDefine.DockedWindowTypes);
             if (window != null)
             {
                 window.Show();

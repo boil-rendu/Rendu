@@ -7,7 +7,7 @@
 
 #if UNITY_EDITOR
 
-using RD.EditorWindows.Editor;
+using RD.EditTool.Editor;
 using UnityEditor;
 
 namespace RD.Excel.Editor
@@ -22,7 +22,7 @@ namespace RD.Excel.Editor
         public static void OpenWindow()
         {
             // 停靠到 WindowsDefine 登记的同组窗口旁: 与 Loader Tool / UI Tool 等合为同一个窗口下的页签
-            var window = GetWindow<ExcelTool>("Excel", true, RD.Init.Editor.WindowsDefine.DockedWindowTypes);
+            var window = GetWindow<ExcelTool>("Excel", true, RD.EditTool.Editor.WindowsDefine.DockedWindowTypes);
             if (window != null)
             {
                 window.Show();

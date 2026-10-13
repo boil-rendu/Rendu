@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using RD.Init.Editor;
+using RD.EditTool.Editor;
 
 namespace RD.Loader.Editor
 {

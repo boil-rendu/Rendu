@@ -12,7 +12,7 @@ namespace RD.Panel.Editor
     /// 为什么要 WarnOnce: 条件显隐、表达式求值都是每帧重算的, 一个拼错的名字/表达式若每帧各报一条,
     /// 控制台会被刷爆, 用户反而看不到第一条。只报一次既留下线索, 也不至于淹掉日志。
     ///
-    /// 注: 窗口宿主(cn.rendu.editorwindow)里的日志直接走 Debug.* —— 那些回调只可能在编辑器里跑, 没有第二套宿主。
+    /// 注: 窗口宿主(cn.rendu.edittool)里的日志直接走 Debug.* —— 那些回调只可能在编辑器里跑, 没有第二套宿主。
     /// </summary>
     public static class Log
     {

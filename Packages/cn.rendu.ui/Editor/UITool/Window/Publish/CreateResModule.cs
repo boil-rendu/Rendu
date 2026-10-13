@@ -1,7 +1,7 @@
 ﻿#if UNITY_EDITOR
 
 using RD.Panel;
-using RD.EditorWindows.Editor;
+using RD.EditTool.Editor;
 using UnityEngine;
 
 using RD.Client;

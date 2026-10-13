@@ -6,7 +6,7 @@
 
 #if UNITY_EDITOR
 
-using RD.EditorWindows.Editor;
+using RD.EditTool.Editor;
 using UnityEditor;
 
 namespace RD.Protocol.Editor
@@ -20,7 +20,7 @@ namespace RD.Protocol.Editor
         public static void OpenWindow()
         {
             // 停靠到 WindowsDefine 登记的同组窗口旁: 与其它 Rendu 工具窗口合成同一窗口下的页签
-            var window = GetWindow<ProtocolTool>("Protocol", true, RD.Init.Editor.WindowsDefine.DockedWindowTypes);
+            var window = GetWindow<ProtocolTool>("Protocol", true, RD.EditTool.Editor.WindowsDefine.DockedWindowTypes);
             if (window != null)
             {
                 window.Show();
