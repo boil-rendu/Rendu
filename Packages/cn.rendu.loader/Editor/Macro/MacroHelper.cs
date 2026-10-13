@@ -1,16 +1,15 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEngine;
 using UnityEditor.Build;
 
-using RD.Client;
-using RD.Core;
-namespace RD.UI.Editor
+namespace RD.Loader.Editor
 {
     /// <summary>
-    /// 宏助手
+    /// 宏助手: 提供编译符号的增删查接口。所有 [EnumMacro] 枚举宏工具模块都用这一份底层 API。
+    /// 之所以放在 loader 包: 编译符号属编译域, 跟随 loader 的编译/程序集工具一起管理;
+    /// 旧版在 ui 包的 MacroModule 是功能重复(写同一份 Scripting Define Symbols), 现已统一。
     /// </summary>
     public static class MacroHelper
     {

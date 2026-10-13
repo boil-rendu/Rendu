@@ -1,12 +1,9 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using RD.Panel;
-using UnityEngine;
 
-using RD.Client;
-using RD.Core;
-namespace RD.UI.Editor
+namespace RD.Loader.Editor
 {
     [HideLabel]
     [Serializable]

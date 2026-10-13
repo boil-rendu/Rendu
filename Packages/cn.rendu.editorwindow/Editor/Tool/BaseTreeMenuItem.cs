@@ -1,35 +1,31 @@
-﻿#if UNITY_EDITOR
 using RD.Panel;
 using RD.Panel.Editor;
-using RD.EditorWindows.Editor;
 using UnityEngine;
 
-using RD.Client;
-using RD.Core;
-namespace RD.UI.Editor
+namespace RD.EditorWindows.Editor
 {
     /// <summary>
-    /// 工具树菜单项基类：定义「被选中 → 先初始化一次 → 再执行子类 Select」的模板流程
-    /// 子类只需实现 Select（以及可选的 Initialize）
+    /// 工具树菜单项基类：定义「被选中 → 先初始化一次 → 再执行子类 Select」的模板流程。
+    /// 子类只需实现 Select(以及可选的 Initialize)。
     /// </summary>
     [HideReferenceObjectPicker]
     public abstract class BaseTreeMenuItem : BaseToolModule
     {
         private bool m_InitEnd;
 
-        /// <summary>空构造（供序列化使用）</summary>
+        /// <summary>空构造(供序列化使用)</summary>
         public BaseTreeMenuItem()
         {
         }
 
-        /// <summary>构造：绑定宿主窗口与菜单树</summary>
+        /// <summary>构造: 绑定宿主窗口与菜单树</summary>
         protected BaseTreeMenuItem(MenuEditorWindow autoTool, MenuTree tree)
         {
             Window = autoTool;
             Tree     = tree;
         }
 
-        /// <summary>菜单被选中：保证初始化只执行一次，然后交由子类 Select</summary>
+        /// <summary>菜单被选中: 保证初始化只执行一次, 然后交由子类 Select</summary>
         public override void SelectionMenu()
         {
             Init();
@@ -49,8 +45,8 @@ namespace RD.UI.Editor
     }
 
     /// <summary>
-    /// 绑定具体模块类型 T 的菜单项泛型封装
-    /// 构造时把自身注册进菜单树并记录模块名，Initialize 时创建并初始化 T 的实例
+    /// 绑定具体模块类型 T 的菜单项泛型封装。
+    /// 构造时把自身注册进菜单树并记录模块名, Initialize 时创建并初始化 T 的实例。
     /// </summary>
     [HideReferenceObjectPicker]
     public class TreeMenuItem<T> : BaseTreeMenuItem where T : BaseToolModule, new()
@@ -61,7 +57,7 @@ namespace RD.UI.Editor
         [HideReferenceObjectPicker]
         public T Instance { get; internal set; }
 
-        /// <summary>空构造（供序列化使用）</summary>
+        /// <summary>空构造(供序列化使用)</summary>
         public TreeMenuItem()
         {
         }
@@ -90,7 +86,7 @@ namespace RD.UI.Editor
             ModuleName = menuName;
         }
 
-        /// <summary>创建 T 实例并回填窗口 / 菜单树 / 模块名与自定义数据，随后执行其 Initialize</summary>
+        /// <summary>创建 T 实例并回填窗口 / 菜单树 / 模块名与自定义数据, 随后执行其 Initialize</summary>
         public override void Initialize()
         {
             Instance = new T
@@ -116,4 +112,3 @@ namespace RD.UI.Editor
         }
     }
 }
-#endif

@@ -1,11 +1,11 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 
 using System;
 using RD.Panel;
 
-namespace RD.UI.Editor
+namespace RD.Loader.Editor
 {
-    /// <summary>框架自身的宏开关（RD 段）</summary>
+    /// <summary>框架自身的宏开关(RD 段)</summary>
     [Flags]
     [LabelText("RD")]
     [EnumMacro]
@@ -18,7 +18,7 @@ namespace RD.UI.Editor
         /// <summary>都不选</summary>
         [LabelText("无")]
         NONE = 0,
-        
+
         /// <summary>已初始化</summary>
         [LabelText("已初始化")]
         INITED = 1 << 1,
@@ -28,7 +28,7 @@ namespace RD.UI.Editor
         ENABLE_VIEW = 1 << 2,
     }
 
-    /// <summary>UI 框架的宏开关（UI 段）</summary>
+    /// <summary>UI 框架的宏开关(UI 段)</summary>
     [Flags]
     [LabelText("UI")]
     [EnumMacro]
@@ -66,7 +66,7 @@ namespace RD.UI.Editor
         [LabelText("红点堆栈收集")]
         UIMACRO_REDDOT_STACK = 1 << 5,
 
-        /// <summary>绑定使用反射（打包后若也走反射则开启）</summary>
+        /// <summary>绑定使用反射(打包后若也走反射则开启)</summary>
         [LabelText("绑定使用反射")]
         UIMACRO_BIND_REFLECTION = 1 << 6, //打包后你也想用反射加载绑定信息的 打开这个
 
@@ -74,7 +74,7 @@ namespace RD.UI.Editor
         [LabelText("绑定使用反射 编辑器时使用 DLL")]
         UIMACRO_BIND_BYETDLL = 1 << 7, //使用反射时 有2种方式 1.使用DLL 2.使用Unity的程序集(Unity编译的)
 
-        /// <summary>反射时扫描 AppDomain 下全部程序集（默认只找 RD.ModelView）</summary>
+        /// <summary>反射时扫描 AppDomain 下全部程序集(默认只找 RD.ModelView)</summary>
         [LabelText("绑定使用反射 运行时使用AppDomain程序集 全部")]
         UIMACRO_BIND_BYUNITYDLL_ALL = 1 << 8, //默认只找RD.ModelView 开了这个会找全部的程序集
     }

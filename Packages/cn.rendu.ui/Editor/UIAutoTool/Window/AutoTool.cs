@@ -6,23 +6,22 @@
 
 #if UNITY_EDITOR
 
-using System;
 using System.Collections.Generic;
 using RD.Panel;
 using RD.Panel.Editor;
 using RD.EditorWindows.Editor;
 using UnityEditor;
 using UnityEngine;
-using Type = System.Type;
 
 using RD.Client;
 using RD.Core;
 namespace RD.UI.Editor
 {
     /// <summary>
-    /// UI 自动化工具
+    /// UI 自动化工具：通用工具窗口(GenericToolWindow)的 UI 包薄壳, 头部加"发布"根,
+    /// 尾部加"全局设置"根, 中间交给基类反射扫描所有带 [UIAutoMenu] 的模块。
     /// </summary>
-    public class AutoTool : MenuEditorWindow
+    public class AutoTool : GenericToolWindow
     {
         [MenuItem("Rendu/UI 自动化工具")]
         public static void OpenWindow()
@@ -51,309 +50,19 @@ namespace RD.UI.Editor
             EditorApplication.ExecuteMenuItem("Assets/Refresh");
         }
 
-        private EditorPrefsValue<float> m_MenuWidthPrefs = new("UIAutoTool_MenuWidth", 300f);
-
-        public override float MenuWidth
+        /// <summary>把 GenericToolWindow 的 BuildMenuTree 钩子挂上: 头部加"发布", 中间扫描, 尾部加"全局设置"</summary>
+        protected override MenuTree BuildToolMenuTree(MenuTree tree)
         {
-            get { return m_MenuWidth; }
-            set { m_MenuWidth = value; }
-        }
+            // 头部: 手动挂第一个根节点(它有动态子菜单逻辑, 不能走 [UIAutoMenu] 反射)
+            m_AllMenuItem.Add(new TreeMenuItem<PublishModule>(this, tree, PublishModule.m_PublishName, Icons.Folder));
 
-        private MenuTree m_MenuTree;
-        private List<BaseTreeMenuItem> m_AllMenuItem = new List<BaseTreeMenuItem>();
+            // 中间: 反射扫描所有 [UIAutoMenu] 模块
+            base.BuildToolMenuTree(tree);
 
-        protected override MenuTree BuildMenuTree()
-        {
-            m_MenuTree = new MenuTree();
-            m_MenuTree.Selection.SelectionChanged += OnSelectionChanged;
+            // 尾部: 全局设置根(值是 this, 选中时绘制自身 [ShowInInspector] 字段)
+            tree.Add("全局设置", this, Icons.SettingsCog);
 
-            m_AllMenuItem.Clear();
-
-            m_AllMenuItem.Add(new TreeMenuItem<PublishModule>(this, m_MenuTree, PublishModule.m_PublishName, Icons.Folder));
-
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            var allAutoMenus = new List<UIAutoMenuData>();
-
-            foreach (var assembly in assemblies)
-            {
-                var types = assembly.GetTypes();
-
-                foreach (Type type in types)
-                {
-                    if (type.IsDefined(typeof(UIAutoMenuAttribute), false))
-                    {
-                        UIAutoMenuAttribute attribute = (UIAutoMenuAttribute)Attribute.GetCustomAttribute(type, typeof(UIAutoMenuAttribute));
-                        allAutoMenus.Add(new UIAutoMenuData
-                        {
-                            Type = type,
-                            MenuName = attribute.MenuName,
-                            Order = attribute.Order
-                        });
-                    }
-                }
-            }
-
-            allAutoMenus.Sort((a, b) => a.Order.CompareTo(b.Order));
-
-            foreach (var attribute in allAutoMenus)
-            {
-                m_AllMenuItem.Add(NewTreeMenuItem(attribute.Type, attribute.MenuName));
-            }
-
-            m_MenuTree.Add("全局设置", this, Icons.SettingsCog);
-
-            return m_MenuTree;
-        }
-
-        private BaseTreeMenuItem NewTreeMenuItem(Type moduleType, string moduleName)
-        {
-            var treeMenuItemType = typeof(TreeMenuItem<>);
-
-            var specificTreeMenuItemType = treeMenuItemType.MakeGenericType(moduleType);
-
-            var constructor = specificTreeMenuItemType.GetConstructor(new Type[]
-            {
-                typeof(MenuEditorWindow),
-                typeof(MenuTree),
-                typeof(string)
-            });
-
-            object treeMenuItem = constructor.Invoke(new object[]
-            {
-                this,
-                m_MenuTree,
-                moduleName
-            });
-
-            return (BaseTreeMenuItem)treeMenuItem;
-        }
-
-        private bool m_FirstInit = true;
-        private EditorPrefsValue<string> m_LastSelectMenuPrefs = new EditorPrefsValue<string>("UIAutoTool_LastSelectMenu", "全局设置");
-        private EditorPrefsValue<string> m_LastSelectToolModulePathPrefs = new EditorPrefsValue<string>("UIAutoTool_LastSelectToolModulePath", "");
-        private readonly HashSet<MenuTreeItem> m_FirstSelect = new();
-        private bool m_RestoringSelection;
-
-        private void OnSelectionChanged(SelectionChangedType obj)
-        {
-            if (m_RestoringSelection)
-            {
-                return;
-            }
-
-            if (obj != SelectionChangedType.ItemAdded)
-            {
-                return;
-            }
-
-            if (m_FirstInit)
-            {
-                m_FirstInit = false;
-
-                if (!string.IsNullOrEmpty(m_LastSelectToolModulePathPrefs.Value))
-                {
-                    m_RestoringSelection = true;
-                    var restored = SelectChainByPath(m_LastSelectToolModulePathPrefs.Value);
-                    m_RestoringSelection = false;
-                    if (restored != null)
-                    {
-                        return;
-                    }
-                }
-
-                foreach (var menu in m_MenuTree.MenuItems)
-                {
-                    if (menu.Name != m_LastSelectMenuPrefs.Value) continue;
-                    menu.Select();
-                    menu.Toggled = true;
-                    break;
-                }
-
-                return;
-            }
-
-            if (m_MenuTree.Selection.Count > 1)
-            {
-                Debug.LogError($"不可能同时选多个: {m_MenuTree.Selection.Count}");
-                return;
-            }
-
-            var selectedMenuItem = m_MenuTree.Selection[0];
-
-            if (selectedMenuItem.Value is BaseTreeMenuItem menuItem)
-            {
-                menuItem.SelectionMenu();
-                m_LastSelectToolModulePathPrefs.Value = menuItem.ModuleName;
-            }
-            else if (selectedMenuItem.Value is BaseToolModule module)
-            {
-                module.SelectionMenu();
-                m_LastSelectToolModulePathPrefs.Value = module.ModuleName;
-            }
-
-            if (m_FirstSelect.Add(selectedMenuItem))
-            {
-                selectedMenuItem.Toggled = true;
-            }
-            else
-            {
-                selectedMenuItem.Toggled = !selectedMenuItem.Toggled;
-            }
-
-            foreach (var menu in m_MenuTree.MenuItems)
-            {
-                if (!menu.IsSelected) continue;
-                m_LastSelectMenuPrefs.Value = menu.Name;
-                break;
-            }
-
-            var root = selectedMenuItem;
-            while (root.Parent != null)
-            {
-                root = root.Parent;
-            }
-
-            m_LastSelectMenuPrefs.Value = root.Name;
-        }
-
-        private MenuTreeItem FindMenuItemByModulePath(string modulePath)
-        {
-            foreach (var root in m_MenuTree.MenuItems)
-            {
-                var result = FindRecursive(root, modulePath);
-                if (result != null)
-                {
-                    return result;
-                }
-            }
-
-            return null;
-        }
-
-        private MenuTreeItem FindRecursive(MenuTreeItem item, string modulePath)
-        {
-            if (item.Value is BaseTreeMenuItem bt && bt.ModuleName == modulePath) return item;
-            if (item.Value is BaseToolModule bm && bm.ModuleName == modulePath) return item;
-            foreach (var child in item.ChildMenuItems)
-            {
-                var res = FindRecursive(child, modulePath);
-                if (res != null) return res;
-            }
-
-            return null;
-        }
-
-        private void ExpandParents(MenuTreeItem item)
-        {
-            var cur = item.Parent;
-            while (cur != null)
-            {
-                cur.Toggled = true;
-                cur = cur.Parent;
-            }
-
-            item.Toggled = true;
-        }
-
-        private MenuTreeItem SelectChainByPath(string modulePath)
-        {
-            if (string.IsNullOrEmpty(modulePath))
-            {
-                return null;
-            }
-
-            var segments = modulePath.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-
-            if (segments.Length == 0)
-            {
-                return null;
-            }
-
-            MenuTreeItem current = null;
-
-            foreach (var root in m_MenuTree.MenuItems)
-            {
-                if (root.Name == segments[0])
-                {
-                    current = root;
-                    break;
-                }
-            }
-
-            if (current == null)
-            {
-                return null;
-            }
-
-            SelectAndInit(current);
-            ExpandParents(current);
-
-            for (int i = 1; i < segments.Length; i++)
-            {
-                var nextName = segments[i];
-                MenuTreeItem next = null;
-                foreach (var child in current.ChildMenuItems)
-                {
-                    if (child.Name == nextName)
-                    {
-                        next = child;
-                        break;
-                    }
-                }
-
-                if (next == null)
-                {
-                    SelectAndInit(current);
-                    foreach (var child in current.ChildMenuItems)
-                    {
-                        if (child.Name == nextName)
-                        {
-                            next = child;
-                            break;
-                        }
-                    }
-                }
-
-                if (next == null)
-                {
-                    return null;
-                }
-
-                current = next;
-                SelectAndInit(current);
-                ExpandParents(current);
-            }
-
-            return current;
-        }
-
-        public void SelectModule(string moduleName)
-        {
-            if (m_MenuTree == null) return;
-
-            foreach (var root in m_MenuTree.MenuItems)
-            {
-                if (root.Name == moduleName)
-                {
-                    SelectAndInit(root);
-                    ExpandParents(root);
-                    break;
-                }
-            }
-        }
-
-        private void SelectAndInit(MenuTreeItem item)
-        {
-            item.Select();
-            item.Toggled = true;
-            if (item.Value is BaseTreeMenuItem bt)
-            {
-                bt.SelectionMenu();
-            }
-            else if (item.Value is BaseToolModule bm)
-            {
-                bm.SelectionMenu();
-            }
+            return tree;
         }
 
         public static EditorPrefsValue<string> UserNamePrefs = new EditorPrefsValue<string>("UIAutoTool_UserName", "UI");
@@ -389,9 +98,8 @@ namespace RD.UI.Editor
         [ShowInInspector]
         internal OtherModule OtherModule;
 
-        protected override void Initialize()
+        protected override void OnToolInitialize()
         {
-            base.Initialize();
             m_UIBaseModule = new CreateBaseModule();
             AtlasModule = new();
             OtherModule = new();
@@ -399,22 +107,14 @@ namespace RD.UI.Editor
             m_UIBaseModule?.Initialize();
             AtlasModule?.Initialize();
             OtherModule?.Initialize();
-            m_MenuWidth = MathF.Max(m_MenuWidthPrefs.Value, 200f);
         }
 
-        protected override void OnWindowDestroy()
+        protected override void OnToolDestroy()
         {
-            base.OnWindowDestroy();
             UserNamePrefs.Value = Author;
             m_UIBaseModule?.OnDestroy();
             AtlasModule?.OnDestroy();
             OtherModule?.OnDestroy();
-            m_MenuWidthPrefs.Value = MathF.Min(MathF.Max(m_MenuWidth, 200f), position.width - 100f);
-
-            foreach (var menuItem in m_AllMenuItem)
-            {
-                menuItem.OnDestroy();
-            }
         }
     }
 }

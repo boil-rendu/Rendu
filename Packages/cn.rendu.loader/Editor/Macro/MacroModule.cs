@@ -1,21 +1,23 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using RD.Panel;
+using RD.EditorWindows.Editor;
 using UnityEditor;
 using UnityEngine;
 
-using RD.Client;
-using RD.Core;
-namespace RD.UI.Editor
+namespace RD.Loader.Editor
 {
     using Object = UnityEngine.Object;
     /// <summary>
-    ///  宏
+    /// 编译宏管理模块: 按平台切换、增删单个宏、用 [EnumMacro] 标注的 Flags 枚举宏预设。
+    /// 旧版在 cn.rendu.ui (Rendu/UI 自动化工具 → 宏设置); 现按"编译符号属编译域"归到 loader,
+    /// 在 LoaderTool 里以"宏定义"出现。底层读写 PlayerSettings.ScriptingDefineSymbols,
+    /// 与 ui 旧版写同一份(loader 旧的 DefineWindow 只管 Standalone 一组, 已废弃被本模块替代)。
     /// </summary>
-    [UIAutoMenu("宏设置", 200100)]
+    [UIAutoMenu("宏定义", 100, Scope = "loader")]
     public class MacroModule : BaseToolModule
     {
         [Button("文档", 30)]
@@ -51,8 +53,6 @@ namespace RD.UI.Editor
         [Button("更新自定义宏", 50), GUIColor(0.53f, 0.95f, 0.72f)]
         public void Refresh()
         {
-            if (!UIOperationHelper.CheckUIOperation()) return;
-
             var allRemove = new List<string>();
             var allSelect = new List<string>();
             foreach (var macroData in AllMacroData)
@@ -63,7 +63,9 @@ namespace RD.UI.Editor
 
             MacroHelper.ChangeSymbols(allRemove, allSelect, BuildTargetGroup);
 
-            AutoTool.CloseWindowRefresh();
+            // 写完编译符号后刷一下资源, 让下一次编译带上新宏; 不关任何窗口(loader 包的 Macro 不该去关 ui 包的 AutoTool)
+            AssetDatabase.SaveAssets();
+            EditorApplication.ExecuteMenuItem("Assets/Refresh");
         }
 
         public override void Initialize()
@@ -78,9 +80,16 @@ namespace RD.UI.Editor
 
             AllMacroData = new List<MacroDataBase>();
 
-            var assembly = RD.Client.AssemblyHelper.GetAssembly("RD.UI.Editor");
-
-            var allMacroEnum = RD.Client.AssemblyHelper.GetClassesWithAttribute<EnumMacroAttribute>(assembly);
+            // 扫描本程序集中带 [EnumMacro] 的枚举, 装成 MacroDataBase<T> 实例
+            // (按包归位后, 框架与 UI / 资源宏都在 loader 自己的程序集里, 不必跨包反射)
+            var allMacroEnum = new List<Type>();
+            foreach (var type in typeof(MacroModule).Assembly.GetTypes())
+            {
+                if (type.IsDefined(typeof(EnumMacroAttribute), false))
+                {
+                    allMacroEnum.Add(type);
+                }
+            }
 
             Type macroDataBaseType = typeof(MacroDataBase<>);
 

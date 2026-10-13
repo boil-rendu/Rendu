@@ -6,7 +6,10 @@
         "RD.Init.Editor",
         "RD.Core",
         "RD.Loader",
-        "RD.YooAsset"
+        "RD.YooAsset",
+        "RD.Panel",
+        "RD.Panel.Editor",
+        "RD.EditorWindow.Editor"
     ],
     "includePlatforms": [
         "Editor"
