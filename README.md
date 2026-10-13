@@ -58,7 +58,7 @@ gameres → game → packagemanager      // 资源 / 主入口 / 工具
 | `cn.rendu.invoke` | Invoke 源生成器与运行时 |
 | `cn.rendu.yooasset` | YooAsset 资源系统封装 |
 | `cn.rendu.hybridclr` | HybridCLR 集成 |
-| `cn.rendu.loader` | 服务端热重载加载器（AssemblyLoadContext） |
+| `cn.rendu.loader` | 服务端热重载加载器（AssemblyLoadContext）+ **Loader Tool 工具窗口**（7 个模块：宏定义 / 全局配置 / 项目初始化 / 项目文件 / 构建 / 服务器 / 脚本引用，菜单 `Rendu/Loader Tool`，详见 [README](Packages/cn.rendu.loader/README.md)） |
 | `cn.rendu.recast` | Recast / Detour 寻路 |
 | `cn.rendu.excel` / `cn.rendu.protocol` | Excel 配置导出 / 协议导出工具 |
 | `cn.rendu.game` | 游戏主包：定义四个共享热更程序集与入口 |
