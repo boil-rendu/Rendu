@@ -187,7 +187,7 @@ Drawing.SetDefaultFactory(host => new MyDriver(host));
 
 `UitkDriver` 的宿主协作方式与 IMGUI 不同，接之前要知道：
 
-- **需要重绘时必须重新调用 `DrawObject`**。IMGUI 每帧 `OnGUI` 天然如此；UI Toolkit 是保留模式，数据变了却没有再绘制，界面不会自己更新。窗口宿主用它时要自己排一次重绘；检视器宿主（cn.rendu.inspector）的切换收在包内 —— 菜单 Tools / RD Inspector / UI Toolkit 绘制 或 `InspectorBackend.UseUIToolkit`，见该包 README。
+- **需要重绘时必须重新调用 `DrawObject`**。IMGUI 每帧 `OnGUI` 天然如此；UI Toolkit 是保留模式，数据变了却没有再绘制，界面不会自己更新。窗口宿主用它时要自己排一次重绘；两个宿主的开关都收在各自包内，业务代码不用碰 —— 检视器宿主（cn.rendu.inspector）是菜单 Tools / RD Inspector / UI Toolkit 绘制 或 `InspectorBackend.UseUIToolkit`，窗口宿主（cn.rendu.editorwindow）是菜单 Tools / RD EditorWindow / UI Toolkit 绘制 或 `WindowBackend.UseUIToolkit`，详见各自包的 README。
 - **UI Toolkit 渲染不了的部分会降级**：`Label` 不支持富文本（`[DisplayAsString]` 的 richText 按纯文本显示），按钮图标只支持 `Texture2D`。
 - 元素按**位置**复用（容器内同一位置仍是同类控件就只更新内容与状态），所以折叠 / 条件显隐变化时不会整树重建，正在输入的输入框不丢焦点；反之中间插入不同控件时那一个会被换掉。
 

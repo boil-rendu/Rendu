@@ -1,6 +1,6 @@
 # RD.EditorWindow
 
-编辑器窗口宿主（IMGUI）：把窗口"长什么样"从业务里摘出来 —— 左菜单树 + 右内容面板的骨架、滚动、分割条、选中持久化都在这里。绘制引擎与全部特性在 [`cn.rendu.panel`](../cn.rendu.panel/README.md)。
+编辑器窗口宿主：把窗口"长什么样"从业务里摘出来 —— 左菜单树 + 右内容面板的骨架、滚动、分割条、选中持久化都在这里。绘制引擎与全部特性在 [`cn.rendu.panel`](../cn.rendu.panel/README.md)；绘制后端可在 IMGUI / UI Toolkit 之间切换（见下）。
 
 ## 包结构
 
@@ -10,7 +10,8 @@ cn.rendu.editorwindow/
 │   ├── RD.EditorWindow.Editor.asmdef   程序集：RD.EditorWindow.Editor（Editor 平台）
 │   ├── Window/
 │   │   ├── EditorWindowBase.cs         轻量编辑器窗口基类（自绘 + 滚动）
-│   │   └── MenuEditorWindow.cs         左菜单树 + 可拖拽分割条 + 右内容面板
+│   │   ├── MenuEditorWindow.cs         左菜单树 + 可拖拽分割条 + 右内容面板
+│   │   └── WindowBackend.cs            绘制后端开关（IMGUI / UI Toolkit，含菜单项）
 │   ├── Controls/
 │   │   └── MenuTree.cs                 菜单树数据模型（MenuTree / MenuTreeItem / MenuTreeSelection）
 │   └── Prefs/
@@ -22,7 +23,7 @@ cn.rendu.editorwindow/
 
 | 程序集 | 引用 | 说明 |
 |---|---|---|
-| `RD.EditorWindow.Editor` | `RD.Inspector`、`RD.Inspector.Editor` | 用 `Engine.DrawObject` 绘制窗口自身与右侧面板 |
+| `RD.EditorWindow.Editor` | `RD.Panel`、`RD.Panel.Editor` | 用 `Engine.DrawObject` 绘制窗口自身与右侧面板 |
 | `RD.EditorWindow.Tests.Editor` | `RD.EditorWindow.Editor` | 仅测试用 |
 
 ## 命名空间为什么是 `RD.EditorWindows.Editor`（复数）
@@ -34,7 +35,7 @@ cn.rendu.editorwindow/
 普通窗口；`OnGUI` 里自动用引擎绘制**窗口自身**的成员：
 
 ```csharp
-using RD.Inspector;
+using RD.Panel;
 using RD.EditorWindows.Editor;
 using UnityEditor;
 
@@ -83,6 +84,30 @@ public class MyToolWindow : MenuEditorWindow
     }
 }
 ```
+
+## 绘制后端：IMGUI / UI Toolkit 切换
+
+窗口后端收在包内，业务代码零改动 —— 所有继承 `EditorWindowBase` 的窗口一起跟着开关走：
+
+- 菜单 **Tools / RD EditorWindow / UI Toolkit 绘制**（带勾选态）；
+- 或任意编辑器代码里 `WindowBackend.UseUIToolkit = true`。
+
+选择持久化在 EditorPrefs，重启后保持；切换后已打开的窗口在下一帧自己重建 / 拆掉那棵 UI Toolkit 树，不必关掉重开。与检视器侧的 `InspectorBackend` 是**各自独立**的开关。
+
+| 后端 | 绘制方式 |
+|---|---|
+| IMGUI（默认） | `OnGUI` 逐帧绘制，与改造前完全一致 |
+| UI Toolkit | 内容画进 `rootVisualElement` 的一棵 `VisualElement` 树（`UitkDriver`，按位置复用元素），重绘由绘制回调驱动 |
+
+两种窗口在 UI Toolkit 模式下的分工：
+
+- **普通窗口**（只用 `DrawObjectPanel()` / `DrawTargetObject()` 画引擎内容）：整窗一个滚动区，引擎内容画进去；
+- **`MenuEditorWindow`**：左侧菜单树仍是 IMGUI 绘制（放进 `IMGUIContainer`，观感与交互跟 IMGUI 模式一致），分割条与右侧内容改由 UIElements 排布 —— 右侧字段控件是 UI Toolkit 控件。
+
+写自定义窗口时注意两点：
+
+- UI Toolkit 模式下**基类接管 `rootVisualElement`**（切回 IMGUI 时会 `Clear()`）。要加自己的东西，请重写 `BuildToolkitUI(VisualElement root)`，并用 `CreateToolkitContent(parent, draw, scroll)` 把引擎内容摆进自己的布局；
+- 子类重写的 `OnGUI` 里那段 IMGUI 内容在 UI Toolkit 模式下不会被执行 —— 用 `UseToolkitBackend` 判断当前模式，必要时自行跳过。
 
 ## MenuTree（菜单树数据模型）
 

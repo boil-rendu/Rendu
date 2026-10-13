@@ -63,6 +63,12 @@ namespace RD.Panel.Editor
             m_Root = root ?? throw new ArgumentNullException(nameof(root),
                 "UI Toolkit 后端必须挂在一棵真实的 VisualElement 树上; 没有宿主窗口的场合请继续用 ImGuiDriver。");
             m_RedrawAction = requestRedraw;
+
+            // 首帧 m_Root 还没走完布局, resolvedStyle.width 读不到 (0);
+            // 排一次"布局完成后"重绘, 首次画出来的就是 m_Root 自己的真实宽度, 而不是按祖先宽度猜。
+            // 检视器宿主里 m_Root 就是面板根, 窗口宿主里 m_Root 是右半列(嵌在 ScrollView 里),
+            // 靠祖先宽度猜在窗口里会拿到整窗宽度(包含左菜单区), 把右列的字段列宽算错。
+            m_Root.RegisterCallback<GeometryChangedEvent>(OnFirstGeometry);
         }
 
         /// <summary>重绘动作。</summary>
@@ -94,8 +100,9 @@ namespace RD.Panel.Editor
         /// 当前视图宽度。容器自己可能还没走完布局(读到 0), 这时**不能**顺手退回定值:
         /// 同一份面板会变成"首帧用定值、之后某次重绘(比如点了一次页签)又用比例值",
         /// 上方那一整段(标签列宽 / 控件起点 / 行距观感)就会整体挪一次。
-        /// 因此往上找已经布局过的祖先, 让首帧就拿到和后续一致的值; 取**最上层**那一个而不是最近的,
-        /// 来源统一 —— 面板自己布局完之后宽度会与祖先略有出入, 换来换去同样算不出同一个列宽。
+        /// 因此往上找已经布局过的祖先(见 <see cref="ResolveWidth"/>)。首帧 m_Root 还没布局时取
+        /// 到的可能是祖先的宽度(窗口宿主里 rootVisualElement 是整窗宽), 这时 <see cref="OnFirstGeometry"/>
+        /// 会在 m_Root 真正布局完后补一次重绘, 下次就走 m_Root 自己的宽度了。
         /// </summary>
         public float ViewWidth
         {
@@ -109,21 +116,38 @@ namespace RD.Panel.Editor
                     return width;
                 }
 
-                return m_LastKnownWidth;   // 整条链都没布局(第一个绘制调用): 沿用上次的值, 没有则 0
+                return m_LastKnownWidth;   // 整条链都没布局(例如面板被隐藏): 沿用上次的值, 没有则 0
             }
         }
 
-        /// <summary>沿父链找最上层的有效宽度; 都没布局过时返回 0。</summary>
+        /// <summary>
+        /// 沿父链取**最近的**有效宽度: m_Root 自己 > 父 > 爷..., 遇到第一个就停。
+        ///
+        /// 不能用"最上层"(取循环最后一个): 检视器宿主里 m_Root ≈ 面板根, 二者几乎一样, 取最上层
+        /// 是为了让首帧和后续帧来源统一(面板与根的宽度差几像素会导致标签列挪一下); **窗口宿主里
+        /// m_Root 是右半列, 嵌在 ScrollView 里, rootVisualElement 是整窗宽度(含左菜单)**, 取最上层
+        /// 就会把右列字段宽度算成"0.35 × 整窗", 标签列吃掉大半, 弹窗/按钮被裁。
+        ///
+        /// 取最近的: 布局完成后 m_Root 自己的 resolvedStyle.width 就是它所在的那一列的真实宽度, 检视器
+        /// 和窗口都对。首帧 m_Root 还没布局(width=0)就往上一层找一个落地了的祖先当兜底, 随后
+        /// <see cref="OnFirstGeometry"/> 触发一次重绘, 下次就是 m_Root 自己的宽度。
+        /// </summary>
         private float ResolveWidth()
         {
-            var width = 0f;
             for (var element = m_Root; element != null; element = element.parent)
             {
                 var candidate = element.resolvedStyle.width;
-                if (float.IsNaN(candidate) == false && candidate >= MinUsableWidth) width = candidate;
+                if (float.IsNaN(candidate) == false && candidate >= MinUsableWidth) return candidate;
             }
 
-            return width;
+            return 0f;
+        }
+
+        /// <summary>首帧布局完成后触发一次重绘, 让 m_Root 自己的真实宽度生效。一次性, 触发完就摘。</summary>
+        private void OnFirstGeometry(GeometryChangedEvent evt)
+        {
+            m_Root.UnregisterCallback<GeometryChangedEvent>(OnFirstGeometry);
+            RequestRepaint();
         }
 
         //-------------------------------------- 生命周期 --------------------------------------
@@ -158,9 +182,10 @@ namespace RD.Panel.Editor
             // 否则下次会被误判成"被改动"而写值
             m_ChangedElements.Clear();
 
-            // 这一轮全程没读到宽度 = 调用时布局还没完成(见 ViewWidth): 补排一次重绘, 让面板在用户动手
-            // 之前就用真实宽度重算一遍。每段"没宽度"只补一次 —— 根元素量不到尺寸(面板被隐藏之类)时
-            // 一直自排队会把重绘排成死循环; 拿到宽度后计数归零。
+            // 这一轮全程没读到宽度 = 调用时整个面板链都没布局(例如窗口被隐藏、根元素被折叠之类,
+            // 不是常见的"首帧还没布局"那种 —— 那种走 <see cref="OnFirstGeometry"/>):
+            // 补排一次重绘, 避免面板永远卡在拿不到宽度的状态。每段只补一次, 免得一直量不到尺寸的根
+            // 元素把重绘排成死循环; 拿到宽度后计数归零。
             if (m_WidthWasUsable)
             {
                 m_WidthRetry = 0;
@@ -193,6 +218,7 @@ namespace RD.Panel.Editor
         {
             // Box 与纯 VisualElement 分别取: 混在一个 Func<VisualElement> 里就无法按精确类型复用
             var element = boxed ? Take(() => new Box(), null) : Take(() => new VisualElement(), null);
+            ResetContainerResidue(element);
             element.style.flexDirection = FlexDirection.Column;
             if (boxed)
             {
@@ -206,6 +232,7 @@ namespace RD.Panel.Editor
             }
 
             if (width > 0f) element.style.width = width;
+            else element.style.width = StyleKeyword.Null;   // 上一轮画过带锁宽的分组, 残留会把这组钉死在旧宽上
             PushAsScope(element);
         }
 
@@ -214,6 +241,7 @@ namespace RD.Panel.Editor
         public void BeginHorizontal(bool boxed = false)
         {
             var element = Take(() => new VisualElement(), null);
+            ResetContainerResidue(element);
             element.style.flexDirection = FlexDirection.Row;
             element.style.flexGrow      = 1f;
             PushAsScope(element);
@@ -224,6 +252,7 @@ namespace RD.Panel.Editor
         public void BeginIndent()
         {
             var element = Take(() => new VisualElement(), null);
+            ResetContainerResidue(element);
             element.style.flexDirection = FlexDirection.Column;
             element.style.paddingLeft   = IndentWidth;
             PushAsScope(element);
@@ -247,21 +276,51 @@ namespace RD.Panel.Editor
 
         public void Space(float pixels)
         {
-            Take(() => new VisualElement(), null).style.height = pixels;
+            var spacer = Take(() => new VisualElement(), null);
+            ResetContainerResidue(spacer);
+            spacer.style.height = pixels;
         }
 
         public void FlexibleSpace()
         {
             var spacer = Take(() => new VisualElement(), null);
+            ResetContainerResidue(spacer);
             spacer.style.flexGrow = 1f;
         }
 
         public void Separator(float thickness, Color color)
         {
             var line = Take(() => new VisualElement(), null);
+            ResetContainerResidue(line);
             line.style.height          = thickness;
             line.style.backgroundColor = color;
             line.style.flexShrink      = 0f;
+        }
+
+        /// <summary>
+        /// 容器/占位元素复用前清掉其他角色留下的残留样式。
+        ///
+        /// 元素按"位置 + 类型"复用, 同一个位置切页签(或切模块)前后可能是完全不同的东西:
+        /// 上一轮的 Space(定高)/Separator(定高+底色)/FlexibleSpace(伸展)/Indent(左内边距)/
+        /// 带锁宽的纵向分组, 这一轮作为行或分组复用, 这些值若不清掉, 行就被钉死在别人的尺寸上
+        /// —— 定高的行装不下 20px 的字段, 内容溢出来叠到下一行, 切几次页签面板越来越烂。
+        /// 各 Begin*/占位方法在调用它之后马上写入自己需要的值, 这里只负责清场。
+        /// </summary>
+        private static void ResetContainerResidue(VisualElement element)
+        {
+            element.style.width           = StyleKeyword.Null;
+            element.style.height          = StyleKeyword.Null;
+            element.style.maxHeight       = StyleKeyword.Null;
+            element.style.flexGrow        = StyleKeyword.Null;
+            element.style.flexShrink      = StyleKeyword.Null;
+            element.style.alignSelf       = StyleKeyword.Null;
+            element.style.marginLeft      = StyleKeyword.Null;
+            element.style.marginRight     = StyleKeyword.Null;
+            element.style.paddingLeft     = StyleKeyword.Null;
+            element.style.paddingRight    = StyleKeyword.Null;
+            element.style.paddingTop      = StyleKeyword.Null;
+            element.style.paddingBottom   = StyleKeyword.Null;
+            element.style.backgroundColor = StyleKeyword.Null;
         }
 
         private const float IndentWidth = 15f;
@@ -361,6 +420,7 @@ namespace RD.Panel.Editor
         public void KeyValueLabel(string label, string value)
         {
             var row = Take(() => new VisualElement(), null);
+            ResetContainerResidue(row);
             row.style.flexDirection = FlexDirection.Row;
             PushAsScope(row);
 
@@ -436,6 +496,13 @@ namespace RD.Panel.Editor
         /// <summary>输入区统一的文字左留白(Popup/TextField/Toggle 各自 USS 的 padding 不一致, 统一掉)。</summary>
         private const float InputPaddingLeft = 4f;
 
+        /// <summary>
+        /// 单行字段的最小高度。正常有标签的字段行高由标签行盒撑起; HideLabel 的字段标签没有内容,
+        /// 这条主题下输入区自己不带固有高, 整行会塌成一条薄片(弹窗文字被裁半截)。
+        /// 这里给所有字段一个与主题单行控件一致的硬下限兜底, 与旁边正常行同高。
+        /// </summary>
+        private const float FieldMinHeight = 20f;
+
         /// <summary>当前标签列宽: [LabelWidth] 优先, 否则按面板宽度取比例; 首帧宽度未知时退回定值。</summary>
         private float AutoLabelWidth
         {
@@ -467,8 +534,10 @@ namespace RD.Panel.Editor
 
             label.style.unityFontStyleAndWeight = spec.Bold ? FontStyle.Bold : FontStyle.Normal;
             label.style.whiteSpace              = spec.Wrap ? WhiteSpace.Normal : WhiteSpace.NoWrap;
-            if (spec.Width > 0f) label.style.width = spec.Width;
-            if (spec.Height > 0f) label.style.height = spec.Height;
+            // 元素按位置复用: 同一位置上一轮可能画过带锁宽/锁高的别的文字(表格头/定高标题), 条件
+            // 不成立时必须显式清回 Null 交还 USS, 否则残留会把这一轮的文字钉在别人的尺寸上
+            label.style.width  = spec.Width  > 0f ? spec.Width  : StyleKeyword.Null;
+            label.style.height = spec.Height > 0f ? spec.Height : StyleKeyword.Null;
             label.style.marginBottom = RowSpacing;
 
             // 居中/右对齐的标题要跨整行才有"居中"可言: IMGUI 的 GUILayout.Label 占满可用宽,
@@ -502,8 +571,9 @@ namespace RD.Panel.Editor
             button.text = text ?? "";
             if (string.IsNullOrEmpty(spec.Tooltip) == false) button.tooltip = spec.Tooltip;
             SetIcon(button, spec.Icon);
-            if (spec.Height > 0f) button.style.height = spec.Height;
-            if (spec.Width > 0f) button.style.width = spec.Width;
+            // 同 Label: 复用的按钮可能带着上一轮的锁宽/锁高(比如别处的定高小按钮), 条件不成立要清掉
+            button.style.height = spec.Height > 0f ? spec.Height : StyleKeyword.Null;
+            button.style.width  = spec.Width  > 0f ? spec.Width  : StyleKeyword.Null;
 
             // 对齐 IMGUI: ExpandWidth(默认 true) → 占满可用宽(横排时平分), 否则缩回内容宽
             if (spec.ExpandWidth && spec.Width <= 0f)
@@ -523,6 +593,7 @@ namespace RD.Panel.Editor
             // 显式背景(spec.HasBackground)与色栈都要过 TextureTinted 压暗, 直接铺原色会亮得刺眼
             if (spec.HasBackground) button.style.backgroundColor = TextureTinted(spec.Background);
             else if (m_Colors.Count > 0) button.style.backgroundColor = TextureTinted(m_Colors.Peek());
+            else button.style.backgroundColor = StyleKeyword.Null;   // 复用残留: 别处的绿/蓝按钮色要清掉
 
             if (m_Colors.Count > 0) button.style.color = m_Colors.Peek();
 
@@ -906,6 +977,9 @@ namespace RD.Panel.Editor
                     // 只锁标签宽对不齐输入区起点: 这里归零 + 统一文字左留白, 把起点钉死
                     input.style.marginLeft  = 0f;
                     input.style.paddingLeft = InputPaddingLeft;
+
+                    // 塌行保护: 输入区高度给下限(见 FieldMinHeight), HideLabel 字段不再塌成薄片
+                    input.style.minHeight = FieldMinHeight;
                 }
 
                 // 标签文字保持默认字色, 不跟着色栈走: 只有输入区染色的观感才和原来一致,
@@ -913,10 +987,15 @@ namespace RD.Panel.Editor
                 var fieldLabel = element.Q<Label>(null, BaseField<string>.labelUssClassName);
                 if (fieldLabel != null) fieldLabel.style.color = StyleKeyword.Null;
             }
-            else if (m_LabelWidth.HasValue)
+            else
             {
+                // 普通元素里的第一个 Label(标题/表格头/HelpBox 文字等): 有压栈列宽就对齐它,
+                // 没有则清掉 —— 同一位置上一轮可能画过带列宽的别的文字, 残留会把标题钉歪
                 var label = element.Q<Label>();
-                if (label != null) label.style.minWidth = m_LabelWidth.Value;
+                if (label != null)
+                {
+                    label.style.minWidth = m_LabelWidth.HasValue ? m_LabelWidth.Value : StyleKeyword.Null;
+                }
             }
 
             if (m_Enabled.Count > 0) element.SetEnabled(m_Enabled.Peek());
@@ -924,14 +1003,17 @@ namespace RD.Panel.Editor
 
         private void ApplyLabelAndWidth<T>(BaseField<T> field, string label, float width)
         {
+            // 空串触发 Unity 的 no-label 变体(标签元素从布局里拿掉, 控件占满整行)—— 与 IMGUI 的
+            // GUIContent.none 同义; 直接把 label 透传过去, 不要手动 display/塞空格干扰它。
             field.label = label ?? "";
 
             // 标签列走类型化的 labelElement 属性(必然生效), 不经 Q 按类名查找 —— 查不到就整列对不齐。
             // 这里只锁"下限": 短标签统一成列宽(各行控件列对齐), 长标签按内容把列撑开 —— 后面的控件框
             // 相应变短, 文字完整单行显示(与 IMGUI 一致: IMGUI 也是长标签占宽、控件变短, 不截断也不折行)
+            // HideLabel 走的是 no-label 变体, labelElement 已经被拿掉, 下面的样式写到不存在的元素上没影响。
             var labelElement = field.labelElement;
             labelElement.style.minWidth    = m_LabelWidth ?? AutoLabelWidth;
-            labelElement.style.width       = StyleKeyword.Null;   // 清掉可能残留的锁宽, 允许按内容增长
+            labelElement.style.width       = StyleKeyword.Null;   // 清掉可能残留的锁宽
             labelElement.style.flexShrink  = 0f;
             labelElement.style.flexGrow    = 0f;
             labelElement.style.marginLeft  = 0f;
@@ -947,10 +1029,17 @@ namespace RD.Panel.Editor
             }
             else
             {
+                // 复用的字段可能带着上一轮别的控件留下的锁宽: 不清掉就被钉死在旧宽上, 弹窗文字被裁
+                field.style.width    = StyleKeyword.Null;
                 field.style.flexGrow = 1f;
             }
 
             field.style.marginBottom = RowSpacing;
+
+            // 塌行保护: HideLabel 时 Unity 把标签元素从布局里拿掉(no-label 变体), 字段行高就只剩
+            // 输入区自己撑 —— 某些主题下输入区不带固有高, 整行塌成薄片、弹窗文字被裁。这里给字段
+            // 本身一个与单行控件一致的硬下限, 无论塌陷在哪一层都能兜住
+            field.style.minHeight = FieldMinHeight;
         }
 
         private void PushAsScope(VisualElement container)

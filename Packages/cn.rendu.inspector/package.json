@@ -6,18 +6,16 @@
   "category": "Editor",
   "description": "检视器宿主: InspectorEditor(挂到 UnityEditor.Editor) / SerializedScriptableObject(JSON 落盘的编辑器资产) / Serialization。绘制引擎与全部特性在 cn.rendu.panel",
   "author": {
-    "name": "tanghai",
-    "url": "https://github.com/egametang/RD"
+    "name": "Boil",
+    "email": "rendu-core@outlook.com",
+    "url": "https://github.com/RenduPackages"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/egametang/RD"
-  },
+  "repository": {},
   "relatedPackages": {},
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/@RenduPackages"
+  },
   "dependencies": {
     "cn.rendu.panel": "3.0.0"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/@RD-Packages"
   }
 }
