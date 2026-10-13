@@ -5,94 +5,28 @@ using UnityEngine;
 namespace RD.Loader.Editor
 {
     /// <summary>
-    /// Loader 菜单管理器
-    /// 提供统一的菜单入口和快捷键管理
-    ///
+    /// Loader 菜单: 7 个工具窗口已迁移到 LoaderTool 的 [UIAutoMenu(Scope="loader")] 模块后,
+    /// Loader 菜单只保留两项 — 编译/热重载快捷键 (F6/F7) 与 Open Loader Tool 入口。
+    /// 原来的"Build Application / Regenerate / Generate / Init Scripts / Update Script Reference"
+    /// 等动作全部收编到对应模块, 不再平铺。
     /// </summary>
-    ///
-    
-    
-    
     internal static class LoaderMenu
     {
         const string RootMenu = MenuDefine.ProjectRootMenu + "/Loader";
-        const  int RootMenuPriority = 1040;
-        
-        const string GlobalConfigMenu = RootMenu +"/Global Config";
-        const string ProjectInitMenu = RootMenu +"/Project Init";
-        const string BuildPackageMenu = RootMenu +"/Build Package";
-        const string ServerManagerMenu = RootMenu +"/Server Manager";
-        const string ProjectFilesManagerMenu = RootMenu +"/Project Files Manager";
-        const string ScriptReferenceManagerMenu = RootMenu +"/Script Reference Manager";
-        const string MacroDefinitionManagerMenu = RootMenu +"/Macro Definition Manager";
-        
-        const string CompileMenu = RootMenu +"/Compile _F6";
-        const string HotReloadMenu = RootMenu +"/Hot Reload _F7";
-        
-        
-        const string BuildApplicationMenu = RootMenu +"/Build Application";
-        const string RegenerateProjectFilesMenu = RootMenu +"/Regenerate Project Files";
-        const string GenerateAssemblyReferenceMenu = RootMenu +"/Generate Assembly Reference";
-        const string InitScriptsMenu = RootMenu +"/Init Scripts";
-        const string UpdateScriptReferenceMenu = RootMenu +"/Update Script Reference";
-        
-        
-        #region 项目配置管理窗口 
+        // [MenuItem] 的 priority 参数是 attribute 实参, 必须是常量表达式;
+        // const int + 字面量在 Roslyn (.NET 8 verifier) 不算常量, 用字面量更稳。
 
-        [MenuItem(GlobalConfigMenu, false, RootMenuPriority)]
-        public static void OpenGlobalConfig()
-        {
-            GlobalConfigWindow.ShowWindow();
-        }
+        const string CompileMenu  = RootMenu + "/Compile _F6";
+        const string HotReloadMenu = RootMenu + "/Hot Reload _F7";
 
-        [MenuItem(ProjectInitMenu, false, RootMenuPriority+1)]
-        public static void OpenRootMenuPriority()
-        {
-            ProjectInitWindow.ShowWindow();
-        }
-
-        [MenuItem(BuildPackageMenu, false, RootMenuPriority+2)]
-        public static void OpenBuildPackage()
-        {
-            BuildWindow.ShowWindow();
-        }
-
-        [MenuItem(ServerManagerMenu, false, RootMenuPriority+3)]
-        public static void OpenServerManager()
-        {
-            ServerWindow.ShowWindow();
-        }
-
-        [MenuItem(ProjectFilesManagerMenu, false, RootMenuPriority+4)]
-        public static void OpenProjectFilesManager()
-        {
-            ProjectFilesWindow.ShowWindow();
-        }
-
-        [MenuItem(ScriptReferenceManagerMenu, false, RootMenuPriority+5)]
-        public static void OpenScriptsReferencesManager()
-        {
-            ScriptsReferencesWindow.ShowWindow();
-        }
-
-        [MenuItem(MacroDefinitionManagerMenu, false, RootMenuPriority+6)]
-        public static void OpenMacroDefineManager()
-        {
-            DefineWindow.ShowWindow();
-        }
-
-        #endregion
-
-        #region 快速操作 
-
-        [MenuItem(CompileMenu, false)]
+        [MenuItem(CompileMenu, false, 1040)]
         public static void Compile()
         {
             AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
             AssemblyTool.DoCompile();
         }
 
-        [MenuItem(HotReloadMenu, false)]
+        [MenuItem(HotReloadMenu, false, 1041)]
         public static void Reload()
         {
             if (!Application.isPlaying)
@@ -127,72 +61,5 @@ namespace RD.Loader.Editor
                 EditorUtility.DisplayDialog("错误", $"热重载失败！\n{ex.Message}", "确定");
             }
         }
-
-        #endregion
-
-        #region 构建工具 
-
-        [MenuItem(BuildApplicationMenu, false,RootMenuPriority+6)]
-        public static void BuildApplication()
-        {
-            // 根据当前构建平台确定 PlatformType
-            PlatformType platformType = GetPlatformType(EditorUserBuildSettings.activeBuildTarget);
-
-            // 使用默认构建选项
-            new BuildApplicationCommand(platformType, BuildOptions.None).Execute();
-        }
-
-        private static PlatformType GetPlatformType(BuildTarget buildTarget)
-        {
-            switch (buildTarget)
-            {
-                case BuildTarget.StandaloneWindows:
-                case BuildTarget.StandaloneWindows64:
-                    return PlatformType.Windows;
-                case BuildTarget.StandaloneOSX:
-                    return PlatformType.MacOS;
-                case BuildTarget.StandaloneLinux64:
-                    return PlatformType.Linux;
-                case BuildTarget.Android:
-                    return PlatformType.Android;
-                case BuildTarget.iOS:
-                    return PlatformType.IOS;
-                case BuildTarget.WebGL:
-                    return PlatformType.WebGL;
-                default:
-                    return PlatformType.None;
-            }
-        }
-
-        [MenuItem(RegenerateProjectFilesMenu, false, RootMenuPriority+7)]
-        public static void RegenerateProjectFiles()
-        {
-            new RegenerateProjectFilesCommand().Execute();
-        }
-
-        #endregion
-
-        #region 开发工具
-
-        [MenuItem(GenerateAssemblyReferenceMenu, false, RootMenuPriority+8)]
-        public static void GenerateAssemblyReference()
-        {
-            // 使用默认的 Client 模式生成程序集引用
-            new GenerateAssemblyReferenceCommand(CodeMode.Client).Execute();
-        }
-
-        [MenuItem(InitScriptsMenu, false)]
-        public static void RunInitScripts()
-        {
-            new RunInitScriptsCommand().Execute();
-        }
-
-        [MenuItem(UpdateScriptReferenceMenu, false, RootMenuPriority+9)]
-        public static void UpdateScriptsReferences()
-        {
-            new UpdateScriptsReferencesCommand().Execute();
-        }
-
-        #endregion
     }
 }
