@@ -7,20 +7,21 @@
 ```
 cn.rendu.inspector/
 ├── Editor/
-│   ├── RD.Inspector.Host.asmdef        程序集：RD.Inspector.Host（Editor 平台）
+│   ├── RD.Inspector.Editor.asmdef     程序集：RD.Inspector.Editor（Editor 平台）
+│   ├── AssemblyInfo.cs                开放 Serialization 的 internal 给测试程序集（不扩公共 API）
 │   ├── Inspector/
 │   │   ├── InspectorEditor.cs          InspectorEditor：挂到 UnityEditor.Editor 的检视器基类
 │   │   ├── InspectorBackend.cs         绘制后端开关（IMGUI / UI Toolkit，含菜单项）
 │   │   └── SerializedScriptableObjectEditor.cs   为序列化基类整族注册检视器
 │   └── Serialization.cs                SerializedScriptableObject + Serialization(JSON 读写规则)
-└── Tests/Editor/                       EditMode 测试（RD.Inspector.Host.Tests，19 例）
+└── Tests/Editor/                       EditMode 测试（RD.Inspector.Tests，19 例）
 ```
 
 ## 依赖
 
 | 程序集 | 引用 | 说明 |
 |---|---|---|
-| `RD.Inspector.Host` | `RD.Inspector`、`RD.Inspector.Editor` | 引擎与特性都在 cn.rendu.panel |
+| `RD.Inspector.Editor` | `RD.Panel`、`RD.Panel.Editor` | 引擎与特性都在 cn.rendu.panel |
 
 ## 给 MonoBehaviour / ScriptableObject 接检视器
 

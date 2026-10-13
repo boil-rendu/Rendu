@@ -153,11 +153,14 @@ cd "Packages/cn.rendu.editorwindow/Tools~/Verify" && dotnet run
 
 ## 与引擎的接口
 
-窗口跨程序集持有独立会话的方式（各窗口折叠 / 滚动状态互不串台）：
+`EditorWindowBase` 内部已经持有一份 `HostState`（折叠 / 滚动状态各窗口独立、不串台）并在两条绘制分支里把它传到 `Engine.DrawObject`，子类不需要直接管 session：
 
-```csharp
-var state = Engine.CreateHostState();     // 窗口各持一份, 生命周期与窗口一致
-Engine.DrawObject(target, this, null, null, state);
-```
+| 子类会调用的入口 | 说明 |
+|---|---|
+| `protected override void OnGUI()` | 默认实现：画窗口自身的成员；一般不需要重写 |
+| `protected void DrawObjectPanel()` | 以本窗口的会话绘制窗口自身（重写 `OnGUI` 时手动调它） |
+| `protected void DrawTargetObject(object target)` | 以本窗口的会话绘制任意对象（`MenuEditorWindow` 右侧用它画选中菜单项的值） |
+| `protected override void BuildToolkitUI(VisualElement root)` | UI Toolkit 模式的外壳入口；默认整窗一个滚动区，自己有外壳（如菜单 + 分割条）的窗口重写它 |
+| `protected VisualElement CreateToolkitContent(VisualElement parent, Action draw, bool scroll = true)` | 在自定义外壳里"开一块引擎内容区"并接上重绘链（`scroll=false` 不带滚动） |
 
-`Engine` 侧说明见 [cn.rendu.panel README §8](../cn.rendu.panel/README.md#8-辅助-api)。
+要直接调 `Engine.DrawObject`（例如在 `EditorWindow` 体系外自己造一个宿主）走 `Engine.CreateHostState()` + 带 `HostState` 的重载 —— 那是 cn.rendu.panel 的事，详见 [cn.rendu.panel README §8](../cn.rendu.panel/README.md#8-辅助-api)。

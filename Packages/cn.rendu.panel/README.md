@@ -5,7 +5,7 @@
 它提供两样东西：
 
 1. **一套属性特性（Attribute）**（`Runtime/`，纯数据无逻辑）：写在字段 / 属性 / 方法 / 类上，控制编辑器里的显示名、分组、条件显隐、按钮、下拉、表格等；
-2. **一套反射式绘制引擎**（`Editor/`，现为 IMGUI）：唯一入口 `Engine.DrawObject`，把任意对象（`MonoBehaviour` / `ScriptableObject` / 普通 C# 对象 / 窗口自身）画成一张属性面板。
+2. **一套反射式绘制引擎**（`Editor/`）：唯一入口 `Engine.DrawObject`，把任意对象（`MonoBehaviour` / `ScriptableObject` / 普通 C# 对象 / 窗口自身）画成一张属性面板。引擎把"画什么"通过 `IPanelDriver` 抽象出去，包内自带 **IMGUI** 与 **UI Toolkit** 两套实现，可在两者之间切换（见 §2.4）。
 
 > 宿主按挂载位置分在两个独立包，都只依赖本包：**cn.rendu.inspector**（检视器宿主：`InspectorEditor` / `SerializedScriptableObject`）、**cn.rendu.editorwindow**（工具窗口宿主：`MenuEditorWindow` 等）。本包程序集名是 `RD.Panel` / `RD.Panel.Editor`；检视器宿主包 cn.rendu.inspector 的程序集是 `RD.Inspector.Editor`（命名空间同名，没跟着改）。
 
@@ -73,6 +73,12 @@ cn.rendu.panel/
 │   │   ├── HostSession.cs           一次检视会话的编辑期状态（折叠 / 滚动）
 │   │   ├── HostState.cs             跨程序集宿主持有的不透明状态句柄
 │   │   └── Log.cs                   统一日志出口（含 WarnOnce 去重）
+│   ├── Drawing/                     绘制后端层（IPanelDriver 契约 + 两套实现）
+│   │   ├── IPanelDriver.cs          立即模式契约：把"画什么"的决策翻译成本地 UI 的一次次调用
+│   │   ├── ImGuiDriver.cs           IMGUI 实现（EditorGUILayout）
+│   │   ├── UitkDriver.cs            UI Toolkit 实现（按位置复用 VisualElement）
+│   │   ├── Drawing.cs               后端选择 / 切换的全局门面（UseIMGUI / UseUIToolkit / SetDefaultFactory）
+│   │   └── PanelSpec.cs             控件描述符（PanelTextSpec / PanelButtonSpec 等，跨后端复用）
 │   └── Controls/                    控件层
 │       └── Icons.cs                 内置图标 + SdfIconType → Texture 解析
 └── Tests/Editor/                    EditMode 测试（程序集：RD.Panel.Tests.Editor，引擎侧 4 夹具 115 例）
@@ -516,6 +522,8 @@ private IEnumerable GetTeamSelectList()
 
 | API | 说明 |
 |---|---|
+| `Drawing.UseIMGUI()` / `Drawing.UseUIToolkit()` | 全局切换默认后端（持久到进程内，跨窗口生效；检视器宿主有自己的开关，不受全局影响） |
+| `Drawing.SetDefaultFactory(Func<EditorWindow, IPanelDriver>)` | 自己实现 `IPanelDriver` 并注册到全局，不用改引擎就能接别的 UI 系统 |
 | `Icons.FromSdf(SdfIconType)` | 把 `SdfIconType` 转成 `Texture`（优先映射 Unity 内置图标，映射不到返回 `null`，按钮退化为纯文本） |
 | `Icons.Folder` / `SettingsCog` | 现成图标（`EditorIcon` 结构，可隐式转 `Texture` / `GUIContent`） |
 | `CollectionExtensions.AddRange<T>(this HashSet<T>, IEnumerable<T>)` | `HashSet` 批量添加（Runtime 侧） |
@@ -701,6 +709,11 @@ public enum Mode { Simple, Advanced }
 | 主题 | 文件（符号名） |
 |---|---|
 | 绘制入口 / 变更回调 | `Editor/Engine/Engine.cs`（`DrawObject`、`Mutate`） |
+| 绘制后端契约（立即模式：Begin/End 配平、值返回语义） | `Editor/Drawing/IPanelDriver.cs` |
+| IMGUI 后端实现 | `Editor/Drawing/ImGuiDriver.cs` |
+| UI Toolkit 后端实现（按位置复用元素 / 样式残留处理 / 首帧几何 retry） | `Editor/Drawing/UitkDriver.cs` |
+| 后端选择 / 切换的全局门面 | `Editor/Drawing/Drawing.cs` |
+| 跨后端复用的控件描述符（`PanelTextSpec` / `PanelButtonSpec` 等） | `Editor/Drawing/PanelSpec.cs` |
 | 有意不实现的特性说明（含原话） | `Editor/Engine/Engine.cs`（类首"有意不实现的属性"注释段） |
 | 成员收集与可见性规则 | `Editor/Engine/Engine.cs`（`GetMembers`） |
 | 排序算法（`PropertyOrder` → 声明序） | `Editor/Engine/Engine.cs`（`GetMembers` 内的比较器） |
