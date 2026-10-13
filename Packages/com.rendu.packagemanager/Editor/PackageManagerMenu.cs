@@ -19,7 +19,7 @@ namespace RD.PackageManager.Editor
         [MenuItem(CreatePackageMenu, false, CreatePackagePriority)]
         public static void CreateNewPackage()
         {
-            ToolTabRegistry.OpenTab(PackageCreateContent.TabName);
+            PackageManagerTool.OpenWindow();
         }
 
         #endregion

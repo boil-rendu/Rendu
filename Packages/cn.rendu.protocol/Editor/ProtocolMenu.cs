@@ -19,7 +19,7 @@ namespace RD.Protocol.Editor
         [MenuItem(ExportMenu, false, ExportPriority)]
         public static void OpenProtoWindow()
         {
-            ToolTabRegistry.OpenTab(ProtoViewContent.TabName);
+            ProtocolTool.OpenWindow();
         }
 
         #endregion

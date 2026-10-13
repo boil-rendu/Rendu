@@ -19,8 +19,8 @@ namespace RD.PackageManager.Editor
         {
             try
             {
-                // 注册为 Rendu 工具窗口的一个页签(不再单独开窗口)
-                ToolTabRegistry.Register(PackageCreateContent.TabName, 1000, PackageCreateContent.CreateContent);
+                // PackageManager 已改用声明式模块(PackageCreateModule) + PackageManagerTool 宿主绘制
+                WindowsDefine.RegisterWindowType(typeof(PackageManagerTool));
             }
             catch (Exception e)
             {

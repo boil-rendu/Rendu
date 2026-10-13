@@ -8,7 +8,7 @@ using UnityEngine;
 namespace RD.Excel.Editor
 {
     /// <summary>
-    /// Excel 工具模块: 与原 ExcelViewContent(UXML 自绘)等价的界面, 但改成声明式 ——
+    /// Excel 工具模块: 声明式界面(原 ExcelViewWindow 是 UXML 自绘窗口, 已移除) ——
     /// 不写 UXML、不手写 Q&lt;T&gt;() 取控件、不手绑事件, 界面全靠特性描述, 由 cn.rendu.panel 引擎绘制。
     ///
     /// 挂 [UIAutoMenu(Scope = "excel")] 后被 <see cref="ExcelTool"/> 反射收进左侧工具树,

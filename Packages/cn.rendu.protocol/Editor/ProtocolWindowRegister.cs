@@ -19,8 +19,8 @@ namespace RD.Protocol.Editor
         {
             try
             {
-                // 注册为 Rendu 工具窗口的一个页签(不再单独开窗口)
-                ToolTabRegistry.Register(ProtoViewContent.TabName, 1030, ProtoViewContent.CreateContent);
+                // Protocol 已改用声明式模块(ProtoListModule / ProtoEditModule) + ProtocolTool 宿主绘制
+                WindowsDefine.RegisterWindowType(typeof(ProtocolTool));
             }
             catch (Exception e)
             {

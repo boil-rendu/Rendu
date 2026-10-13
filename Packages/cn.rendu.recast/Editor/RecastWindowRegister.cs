@@ -19,8 +19,8 @@ namespace RD.Recast.Editor
         {
             try
             {
-                // 注册为 Rendu 工具窗口的一个页签(不再单独开窗口)
-                ToolTabRegistry.Register(BatchNavMeshExportContent.TabName, 1010, BatchNavMeshExportContent.CreateContent);
+                // Recast 已改用声明式模块(NavMeshExportModule) + RecastTool 宿主绘制; 这里只登记宿主窗口
+                WindowsDefine.RegisterWindowType(typeof(RecastTool));
             }
             catch (System.Exception e)
             {

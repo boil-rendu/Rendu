@@ -3,7 +3,10 @@
     "references": [
         "RD.Recast",
         "RD.Init.Editor",
-        "Unity.Mathematics"
+        "Unity.Mathematics",
+        "RD.Panel",
+        "RD.Panel.Editor",
+        "RD.EditorWindow.Editor"
     ],
     "includePlatforms": [
         "Editor"

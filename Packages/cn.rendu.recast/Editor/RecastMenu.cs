@@ -19,7 +19,7 @@ namespace RD.Recast.Editor
         [MenuItem(ExportMenu, false, ExportPriority)]
         public static void BatchExport()
         {
-            ToolTabRegistry.OpenTab(BatchNavMeshExportContent.TabName);
+            RecastTool.OpenWindow();
         }
 
         #endregion
