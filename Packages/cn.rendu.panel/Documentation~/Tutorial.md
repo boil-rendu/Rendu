@@ -1001,7 +1001,7 @@ protected override void OnAfterInspectorDeserialize()
 > **已迁至 `cn.rendu.editorwindow`**。
 > `MenuEditorWindow` 的"左树 + 右面板"、`MenuTree` 的建树规则（路径自动补齐、同名就地替换、深度优先遍历、选中事件）与 `EditorPrefsValue<T>` 都在 `cn.rendu.editorwindow`，行为契约由随包迁移的 `MenuTreeTests`（14 例）钉住。
 >
-> 本仓库的成熟用法仍可对照阅读：`Packages/cn.rendu.ui/Editor/UIAutoTool/Window/AutoTool.cs`。
+> 本仓库的成熟用法仍可对照阅读：`Packages/cn.rendu.ui/Editor/UITool/Window/UITool.cs`。
 
 ---
 

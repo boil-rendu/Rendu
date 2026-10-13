@@ -19,12 +19,12 @@ namespace RD.Protocol.Editor
         {
             try
             {
-                // 注册 Protocol 包中的窗口类型
-                WindowsDefine.RegisterWindowType(typeof(ProtoViewWindow));
+                // 注册为 Rendu 工具窗口的一个页签(不再单独开窗口)
+                ToolTabRegistry.Register(ProtoViewContent.TabName, 1030, ProtoViewContent.CreateContent);
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError($"[ProtocolWindowRegister] 注册窗口类型失败: {e.Message}");
+                UnityEngine.Debug.LogError($"[ProtocolWindowRegister] 注册工具页签失败: {e.Message}");
             }
         }
     }

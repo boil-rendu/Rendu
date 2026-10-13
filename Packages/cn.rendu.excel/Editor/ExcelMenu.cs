@@ -10,17 +10,16 @@ namespace RD.Excel.Editor
     /// </summary>
     internal static class ExcelMenu
     {
-        const string RootMenu = MenuDefine.ProjectRootMenu + "/Excel";
-        const  int RootMenuPriority = 1020;
-        
-        const string ExportMenu = RootMenu +"/Export";
-        
+        // 一级菜单项(与 Loader Tool / UI Tool 同风格); 打开 Excel 工具窗口(声明式模块宿主)
+        const string ExportMenu = MenuDefine.ProjectRootMenu + "/Excel Tool";
+        const  int ExportPriority = 1020;
+
         #region Excel 工具
 
-        [MenuItem(ExportMenu, false, RootMenuPriority)]
+        [MenuItem(ExportMenu, false, ExportPriority)]
         public static void OpenExcelWindow()
         {
-            ExcelViewWindow.Init();
+            ExcelTool.OpenWindow();
         }
 
         #endregion

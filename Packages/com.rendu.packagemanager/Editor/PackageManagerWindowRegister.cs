@@ -19,12 +19,12 @@ namespace RD.PackageManager.Editor
         {
             try
             {
-                // 注册 PackageManager 包中的窗口类型
-                WindowsDefine.RegisterWindowType(typeof(PackageCreateView));
+                // 注册为 Rendu 工具窗口的一个页签(不再单独开窗口)
+                ToolTabRegistry.Register(PackageCreateContent.TabName, 1000, PackageCreateContent.CreateContent);
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError($"[PackageManagerWindowRegister] 注册窗口类型失败: {e.Message}");
+                UnityEngine.Debug.LogError($"[PackageManagerWindowRegister] 注册工具页签失败: {e.Message}");
             }
         }
     }

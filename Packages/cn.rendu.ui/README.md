@@ -1,14 +1,14 @@
 # RD.UI
 
-UI 框架（Panel / Bind 源生成 / 事件，详见飞书 wiki）与 **UI 自动化工具窗口**（`Rendu/UI 自动化工具` —— `AutoTool` —— 头部"发布" + 中间反射模块 + 尾部"全局设置"）。本 README 不重复 UI 框架本身（飞书 wiki 已有），只讲**本包当前在仓库里承担的两件事**：
+UI 框架（Panel / Bind 源生成 / 事件，详见飞书 wiki）与 **UI 工具窗口**（`Rendu/UI Tool` —— `UITool` —— 头部"发布" + 中间反射模块 + 尾部"全局设置"）。本 README 不重复 UI 框架本身（飞书 wiki 已有），只讲**本包当前在仓库里承担的两件事**：
 
 1. **Runtime** —— UI 业务代码（`RD.UI` 程序集，运行时）
-2. **Editor / UIAutoTool** —— 工具窗口与 13 个工具模块（`RD.UI.Editor` 程序集，只在 Editor 平台）
+2. **Editor / UITool** —— 工具窗口与 13 个工具模块（`RD.UI.Editor` 程序集，只在 Editor 平台）
 3. **DotNet~/RD.UI.BindSourceGenerator** —— 数据绑定字段/事件表的 Roslyn 源生成器（`netstandard2.0` 硬约束，详见根 [README §重要约束](../../README.md#重要约束)）
 
 工具窗口与模块机制本身在 [cn.rendu.editorwindow](../cn.rendu.editorwindow/README.md)；特性与绘制引擎在 [cn.rendu.panel](../cn.rendu.panel/README.md)；检视器宿主在 [cn.rendu.inspector](../cn.rendu.inspector/README.md)。
 
-> 重要：**Phase 1-2 后，本包不再承载"工具窗口基建"**。`BaseToolModule` / `BaseTreeMenuItem` / `BaseCreateModule` / `UIAutoMenuAttribute` 等都已迁到 [cn.rendu.editorwindow](../cn.rendu.editorwindow/README.md) 命名空间 `RD.EditorWindows.Editor`。本包只剩"UI 域"的具体模块与 AutoTool 容器。
+> 重要：**Phase 1-2 后，本包不再承载"工具窗口基建"**。`BaseToolModule` / `BaseTreeMenuItem` / `BaseCreateModule` / `UIAutoMenuAttribute` 等都已迁到 [cn.rendu.editorwindow](../cn.rendu.editorwindow/README.md) 命名空间 `RD.EditorWindows.Editor`。本包只剩"UI 域"的具体模块与 UITool 容器。
 
 ## 包结构
 
@@ -21,8 +21,8 @@ cn.rendu.ui/
 │       └── UIBind/                       数据绑定 (Source Generators 编到这里)
 │
 ├── Editor/                               RD.UI.Editor（Editor 程序集）
-│   ├── UIAutoTool/                       AutoTool 容器 + 13 个工具模块
-│   │   ├── Window/AutoTool.cs            工具窗口：头部"发布" + 中间反射 [UIAutoMenu] + 尾部"全局设置"
+│   ├── UITool/                       UITool 容器 + 13 个工具模块
+│   │   ├── Window/UITool.cs            工具窗口：头部"发布" + 中间反射 [UIAutoMenu] + 尾部"全局设置"
 │   │   │
 │   │   ├── Window/Base/                  Create 模块的 base（2 文件）
 │   │   │   ├── CreateBaseModule.cs       继承 BaseCreateModule, 写"创建 UI 模块"通用配置
@@ -31,9 +31,9 @@ cn.rendu.ui/
 │   │   ├── Window/Check/                 "检查"模块（Prefabs / Script 预制体/脚本批量检查）
 │   │   ├── Window/Const/                 "常量"模块
 │   │   ├── Window/Create/                "创建"模块（7 个 CreateXxxCode + CreateModule 协调）
-│   │   ├── Window/Publish/               "发布"模块（AutoTool 头部根；不是 [UIAutoMenu]，手动挂）
+│   │   ├── Window/Publish/               "发布"模块（UITool 头部根；不是 [UIAutoMenu]，手动挂）
 │   │   ├── Window/Script/                "代码生成"模块
-│   │   ├── Window/Setting/               "全局设置"（AutoTool 尾部根的子模块：Atlas / Other）
+│   │   ├── Window/Setting/               "全局设置"（UITool 尾部根的子模块：Atlas / Other）
 │   │   ├── Window/UnityIcons/            "系统图标"模块（打开 UnityIconsWindow 子窗）
 │   │   │
 │   │   ├── EditorBase/                   3 个 Create 模块用到的辅助工具（命名误导，不是基类）
@@ -65,14 +65,14 @@ cn.rendu.ui/
 └── .Template/
 ```
 
-## 工具窗口：UI 自动化工具
+## 工具窗口：UI Tool
 
-菜单 **Rendu / UI 自动化工具**（定义在 `Editor/UIAutoTool/Window/AutoTool.cs:26`）。
+菜单 **Rendu / UI Tool**（定义在 `Editor/UITool/Window/UITool.cs:26`）。
 
 打开后左侧菜单树（由 `BuildToolMenuTree` 拼装）：
 
 ```
-┌─ AutoTool ─────────────────────────────────────────────┐
+┌─ UITool ─────────────────────────────────────────────┐
 │  ▼ 发布         ← 头部根: PublishModule (手动挂)        │
 │      UI 文档                                                │
 │      整体发布 / 整体发布图集 / 创建模块(子面板)            │
@@ -96,24 +96,24 @@ cn.rendu.ui/
 
 | 位置 | 模块 | Order | 来源 |
 |---|---|---|---|
-| 头部根 | 发布 (PublishModule) | — | AutoTool.cs:57 手动挂，**不**走 [UIAutoMenu] |
+| 头部根 | 发布 (PublishModule) | — | UITool.cs:57 手动挂，**不**走 [UIAutoMenu] |
 | 中间 | 代码生成 (ScriptModule) | 200000 | [UIAutoMenu] 反射 |
 | 中间 | 检查 (CheckModule) | int.MaxValue | [UIAutoMenu] 反射 |
 | 中间 | 常量 (ConstModule) | int.MaxValue | [UIAutoMenu] 反射 |
 | 中间 | 系统图标 (UnityIconsModule) | int.MaxValue | [UIAutoMenu] 反射 |
-| 尾部根 | 全局设置 | — | AutoTool.cs:63 手动挂，值为 AutoTool 自身 |
-| 尾部 | 模板基础模块 (CreateBaseModule) | — | AutoTool.m_UIBaseModule（内嵌在尾部） |
-| 尾部 | 全局图集设置 (AtlasModule) | — | AutoTool.AtlasModule（内嵌） |
-| 尾部 | 其他设置 (OtherModule) | — | AutoTool.OtherModule（内嵌） |
+| 尾部根 | 全局设置 | — | UITool.cs:63 手动挂，值为 UITool 自身 |
+| 尾部 | 模板基础模块 (CreateBaseModule) | — | UITool.m_UIBaseModule（内嵌在尾部） |
+| 尾部 | 全局图集设置 (AtlasModule) | — | UITool.AtlasModule（内嵌） |
+| 尾部 | 其他设置 (OtherModule) | — | UITool.OtherModule（内嵌） |
 
-> 尾部 3 个内嵌的 `BaseCreateModule` 不走菜单树选中 —— 它们的字段直接画在 AutoTool 自身尾部"全局设置"页面里。
+> 尾部 3 个内嵌的 `BaseCreateModule` 不走菜单树选中 —— 它们的字段直接画在 UITool 自身尾部"全局设置"页面里。
 
-### AutoTool 的两个 [MenuItem]
+### UITool 的两个 [MenuItem]
 
 | 项 | 路径 | 用途 |
 |---|---|---|
-| 打开 | `Rendu/UI 自动化工具` | 正常打开工具窗口 |
-| 关闭 | `Rendu/关闭 UI 自动化工具`（注释中，正常菜单不显示） | 工具窗口坏掉时手动用脚本/类名关闭 |
+| 打开 | `Rendu/UI Tool` | 正常打开工具窗口 |
+| 关闭 | `Rendu/关闭 UI 工具`（注释中，正常菜单不显示） | 工具窗口坏掉时手动用脚本/类名关闭 |
 
 ## 依赖
 
@@ -132,4 +132,4 @@ cn.rendu.ui/
 | `cn.rendu.panel` | 特性 + 绘制引擎（`[Button] / [ShowInInspector] / [GUIColor]` 等） |
 | `cn.rendu.inspector` | InspectorEditor，UI 资产检视 |
 | `cn.rendu.editorwindow` | GenericToolWindow + BaseToolModule（**Phase 1-2 后由本包迁出**） |
-| `cn.rendu.loader` | **不依赖**。`AutoTool` 与 `LoaderTool` 是两个独立的工具窗口实例，凭 `AcceptScope=null` / `="loader"` 互不串台 |
+| `cn.rendu.loader` | **不依赖**。`UITool` 与 `LoaderTool` 是两个独立的工具窗口实例，凭 `AcceptScope=null` / `="loader"` 互不串台 |

@@ -4,6 +4,8 @@
     "references": [
         "RD.Core",
         "RD.Core.Editor",
+        "RD.Init",
+        "RD.Init.Editor",
         "RD.UI",
         "RD.Loader",
         "Unity.TextMeshPro",

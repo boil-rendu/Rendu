@@ -174,7 +174,7 @@ public void Regenerate() => new GenerateAssemblyReferenceCommand(CodeMode.Client
 | `cn.rendu.panel` | 提供 `[Button] / [ShowInInspector] / [GUIColor] / [ValueDropdown]` 等特性 + 绘制引擎 |
 | `com.rendu.init` | 提供 `MenuDefine.ProjectRootMenu`（"Rendu"）与 `CommandBase` 基类 |
 | `cn.rendu.core` | 提供 `FileHelper`（ScriptsReferencesCommand 收集引用时用） |
-| `cn.rendu.ui` | **不依赖**。Phase 1-2 后，工具基建已迁到 editorwindow；cn.rendu.ui 只剩 UI 业务 + AutoTool 薄壳 |
+| `cn.rendu.ui` | **不依赖**。Phase 1-2 后，工具基建已迁到 editorwindow；cn.rendu.ui 只剩 UI 业务 + UITool 薄壳 |
 | `cn.rendu.yooasset` | 运行时，资源系统 |
 | `DotNet~/RD.Loader` | 服务端热重载工程，编译产物 `Bin/RD.Loader.dll`（= `RD.Loader.StartWatcherCommand` 启动的那个 DLL） |
 | `DotNet~/RD.AppHost` | 服务端 Exe 宿主（详见顶层 README） |

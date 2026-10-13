@@ -83,7 +83,7 @@ namespace RD.Client
             {
                 if (!m_FirstGetEventType)
                 {
-                    m_UITaskEventTypeTemp = new EnumPrefs<EUITaskEventType>("UIAutoTool_OtherModule_TaskEventType", null, EUITaskEventType.Async)
+                    m_UITaskEventTypeTemp = new EnumPrefs<EUITaskEventType>("UITool_OtherModule_TaskEventType", null, EUITaskEventType.Async)
                             .Value;
                     m_FirstGetEventType = true;
                 }

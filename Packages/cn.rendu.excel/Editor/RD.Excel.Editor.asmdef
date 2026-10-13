@@ -3,7 +3,10 @@
     "rootNamespace": "RD.Excel.Editor",
     "references": [
         "RD.Init",
-        "RD.Init.Editor"
+        "RD.Init.Editor",
+        "RD.Panel",
+        "RD.Panel.Editor",
+        "RD.EditorWindow.Editor"
     ],
     "includePlatforms": [
         "Editor"

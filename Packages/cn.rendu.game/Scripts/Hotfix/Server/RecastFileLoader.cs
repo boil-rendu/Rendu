@@ -17,7 +17,7 @@ namespace RD.Server
             if (!File.Exists(recastPath))
             {
                 throw new FileNotFoundException(
-                    $"NavMesh file not found: {fileName}（${recastPath}）. Please generate it using Rendu/Recast/Export");
+                    $"NavMesh file not found: {fileName}（${recastPath}）. Please generate it using Rendu/Recast Export");
             }
 
             Log.Debug($"寻路 | 加载导航网格：{recastPath}");

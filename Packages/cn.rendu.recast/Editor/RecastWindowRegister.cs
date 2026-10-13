@@ -19,12 +19,12 @@ namespace RD.Recast.Editor
         {
             try
             {
-                // 注册 Recast 包中的窗口类型
-                WindowsDefine.RegisterWindowType(typeof(BatchNavMeshExportWindow));
+                // 注册为 Rendu 工具窗口的一个页签(不再单独开窗口)
+                ToolTabRegistry.Register(BatchNavMeshExportContent.TabName, 1010, BatchNavMeshExportContent.CreateContent);
             }
             catch (System.Exception e)
             {
-                UnityEngine.Debug.LogError($"[RecastWindowRegister] 注册窗口类型失败: {e.Message}");
+                UnityEngine.Debug.LogError($"[RecastWindowRegister] 注册工具页签失败: {e.Message}");
             }
         }
     }

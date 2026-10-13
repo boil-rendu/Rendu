@@ -10,7 +10,7 @@ namespace RD.UI.Editor
     {
         /// <summary>
         /// 把 sourceFolder 完整拷贝到 targetFolder
-        /// 目标已存在会先弹确认；拷贝完成后刷新程序集引用并关闭 AutoTool 窗口
+        /// 目标已存在会先弹确认；拷贝完成后刷新程序集引用并关闭 UITool 窗口
         /// </summary>
         public static void Copy(string sourceFolder, string targetFolder)
         {
@@ -38,7 +38,7 @@ namespace RD.UI.Editor
                 CopyAll(sourceDir, targetDir);
                 UnityTipsHelper.Show("创建完毕");
                 EditorApplication.ExecuteMenuItem("RD/Loader/ReGenerateProjectAssemblyReference");
-                AutoTool.CloseWindowRefresh();
+                UITool.CloseWindowRefresh();
             }
         }
 

@@ -80,7 +80,7 @@ namespace RD.Client
         [ReadOnly]
         [BoxGroup("项目配置", CenterLabel = true)]
         [LabelText("代码模板")]
-        public string TemplatePath => $"{FrameworkPath}/Editor/AutoTool/Template";
+        public string TemplatePath => $"{FrameworkPath}/Editor/UITool/Template";
 
         [ReadOnly]
         [BoxGroup("项目配置", CenterLabel = true)]

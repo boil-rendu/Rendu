@@ -13,7 +13,7 @@ namespace RD.Loader.Editor
     using Object = UnityEngine.Object;
     /// <summary>
     /// 编译宏管理模块: 按平台切换、增删单个宏、用 [EnumMacro] 标注的 Flags 枚举宏预设。
-    /// 旧版在 cn.rendu.ui (Rendu/UI 自动化工具 → 宏设置); 现按"编译符号属编译域"归到 loader,
+    /// 旧版在 cn.rendu.ui (Rendu/UI 工具 → 宏设置); 现按"编译符号属编译域"归到 loader,
     /// 在 LoaderTool 里以"宏定义"出现。底层读写 PlayerSettings.ScriptingDefineSymbols,
     /// 与 ui 旧版写同一份(loader 旧的 DefineWindow 只管 Standalone 一组, 已废弃被本模块替代)。
     /// </summary>
@@ -63,7 +63,7 @@ namespace RD.Loader.Editor
 
             MacroHelper.ChangeSymbols(allRemove, allSelect, BuildTargetGroup);
 
-            // 写完编译符号后刷一下资源, 让下一次编译带上新宏; 不关任何窗口(loader 包的 Macro 不该去关 ui 包的 AutoTool)
+            // 写完编译符号后刷一下资源, 让下一次编译带上新宏; 不关任何窗口(loader 包的 Macro 不该去关 ui 包的 UITool)
             AssetDatabase.SaveAssets();
             EditorApplication.ExecuteMenuItem("Assets/Refresh");
         }

@@ -10,19 +10,16 @@ namespace RD.PackageManager.Editor
     /// </summary>
     internal static class PackageManagerMenu
     {
-        const string RootMenu = MenuDefine.ProjectRootMenu + "/PackageManager";
-        const  int RootMenuPriority = 1000;
-        
-        const string CreatePackageMenu = RootMenu +"/Create Package";
+        // 拍平成一级菜单项(与 Loader Tool / UI Tool 同风格), 不再套 PackageManager 子菜单
+        const string CreatePackageMenu = MenuDefine.ProjectRootMenu + "/Package Manager";
+        const  int CreatePackagePriority = 1000;
 
-
-        
         #region PackageManager 工具
 
-        [MenuItem(CreatePackageMenu, false, RootMenuPriority + 1)]
+        [MenuItem(CreatePackageMenu, false, CreatePackagePriority)]
         public static void CreateNewPackage()
         {
-            PackageCreateView.OpenWindow();
+            ToolTabRegistry.OpenTab(PackageCreateContent.TabName);
         }
 
         #endregion

@@ -10,17 +10,16 @@ namespace RD.Protocol.Editor
     /// </summary>
     internal static class ProtocolMenu
     {
-        const string RootMenu = MenuDefine.ProjectRootMenu + "/Protocol";
-        const  int RootMenuPriority = 1030;
-        
-        const string ExportMenu = RootMenu +"/Export";
-        
-        #region Protocol 工具 
+        // 拍平成一级菜单项(与 Loader Tool / UI Tool 同风格), 不再套 Protocol 子菜单
+        const string ExportMenu = MenuDefine.ProjectRootMenu + "/Protocol Export";
+        const  int ExportPriority = 1030;
 
-        [MenuItem(ExportMenu, false, RootMenuPriority)]
+        #region Protocol 工具
+
+        [MenuItem(ExportMenu, false, ExportPriority)]
         public static void OpenProtoWindow()
         {
-            ProtoViewWindow.Init();
+            ToolTabRegistry.OpenTab(ProtoViewContent.TabName);
         }
 
         #endregion
