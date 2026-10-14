@@ -15,10 +15,10 @@ namespace RD.Loader.Editor
     [HideReferenceObjectPicker]
     public class MacroCurrentData
     {
-        /// <summary>当前已存在的宏数量(只读展示)</summary>
-        [LabelText("当前已存在宏数量")]
+        /// <summary>当前已存在的全部宏(只读展示, 分号分隔) —— 让"现在有哪些宏"一目了然, 不用点开下拉看。</summary>
+        [LabelText("当前全部宏")]
         [ReadOnly]
-        public int CurrentMacroCount;
+        public string CurrentMacros;
 
         /// <summary>待移除的宏(下拉选择)</summary>
         [LabelText("需要移除的宏")]
@@ -44,7 +44,7 @@ namespace RD.Loader.Editor
             RemoveMacro       = null;
             AddMacro          = null;
             AllMacro          = MacroHelper.GetSymbols(MacroModule.BuildTargetGroup);
-            CurrentMacroCount = AllMacro.Count;
+            CurrentMacros     = string.Join("; ", AllMacro);
         }
 
         /// <summary>下拉框数据源: 全部已定义宏</summary>

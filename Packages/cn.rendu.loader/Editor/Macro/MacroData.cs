@@ -11,14 +11,6 @@ namespace RD.Loader.Editor
     [EnumMacro]
     public enum EMacroType
     {
-        /// <summary>全选</summary>
-        [LabelText("所有")]
-        ALL = -1,
-
-        /// <summary>都不选</summary>
-        [LabelText("无")]
-        NONE = 0,
-
         /// <summary>已初始化</summary>
         [LabelText("已初始化")]
         INITED = 1 << 1,
@@ -34,14 +26,6 @@ namespace RD.Loader.Editor
     [EnumMacro]
     public enum EUIMacroType
     {
-        /// <summary>全选</summary>
-        [LabelText("所有")]
-        ALL = -1,
-
-        /// <summary>都不选</summary>
-        [LabelText("无")]
-        NONE = 0,
-
         /// <summary>启用 UI 系统</summary>
         [LabelText("UI")]
         UI = 1,
@@ -85,14 +69,6 @@ namespace RD.Loader.Editor
     [EnumMacro]
     public enum EUIAssetsMacroType
     {
-        /// <summary>全选</summary>
-        [LabelText("所有")]
-        ALL = -1,
-
-        /// <summary>都不选</summary>
-        [LabelText("无")]
-        NONE = 0,
-
         /// <summary>关闭同步加载</summary>
         [LabelText("关闭同步加载")]
         UIMACRO_SYNCLOAD_CLOSE = 1,

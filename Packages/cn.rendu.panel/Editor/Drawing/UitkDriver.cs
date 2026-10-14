@@ -433,6 +433,12 @@ namespace RD.Panel.Editor
             var row = Take(() => new VisualElement(), null);
             ResetContainerResidue(row);
             row.style.flexDirection = FlexDirection.Row;
+            // IMGUI 的横向 GUILayout 组里子元素一律顶对齐: "键:\n值"这类带换行的文本段把行撑高后,
+            // 定高的 emoji 贴图与后面的文字都贴在行顶(错位只有字体盒自身那 1~2px)。
+            // UITK 默认 alignItems=Stretch: 定高 Image 贴顶, 而被拉伸到整行高的文字 Label 按
+            // MiddleLeft 垂直居中 —— "已停止"会明显掉到行中间, 与 IMGUI 对不上。这里显式顶对齐。
+            // 每轮都写: ResetContainerResidue 只清 alignSelf, 复用来的元素可能带着别处的 alignItems。
+            row.style.alignItems = Align.FlexStart;
             row.style.marginBottom  = RowSpacing;
             PushAsScope(row);
 
@@ -644,10 +650,11 @@ namespace RD.Panel.Editor
             label.style.marginLeft   = 0f;
             label.style.marginRight  = 0f;
 
-            // 居中/右对齐的标题要跨整行才有"居中"可言: IMGUI 的 GUILayout.Label 占满可用宽,
-            // 而这里 Label 宽度默认是内容宽, 不撑开的话 MiddleCenter 只是内容内居中(观感偏左)
-            if (spec.Align != PanelAlign.Left && spec.Width <= 0f) label.style.flexGrow = 1f;
-            else label.style.flexGrow = 0f;
+            // IMGUI 的 GUILayout.Label 样式 stretchWidth=true: 一律占满本行剩余宽(锁宽的除外) ——
+            // 横排里会把后面的内容(别的文本段 / FlexibleSpace / 控件)推到右边。UIElements 的 Label
+            // 默认是内容宽, 这里用 flexGrow=1 复刻同一行为; 只给 Center/Right 撑开的话,
+            // "键:\n🔴 值"这类带 emoji 的分段文字会全部挤在左边, 与 IMGUI 对不上
+            label.style.flexGrow = spec.Width > 0f ? 0f : 1f;
 
             // 开关富文本: 与 IMGUI 后端的 GUISettings.richText 对齐(富文本标记由引擎在 ToTextSpec 里声明)。
             // 不设的话 <color> / <b> 之类标记会被当成普通字符原样显示出来。

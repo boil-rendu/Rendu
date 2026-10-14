@@ -17,8 +17,8 @@ namespace RD.Loader.Editor
     public class ServerModule : BaseToolModule
     {
         private const string StartConfigRoot = "Packages/cn.rendu.excel/Config/Bytes/Server/StartConfig";
-        private const string StatusRunning = "<color=#4CAF50>🟢 运行中</color>";
-        private const string StatusStopped = "<color=#E2696C>🔴 已停止</color>";
+        private const string StatusRunning = "🟢 运行中";
+        private const string StatusStopped = "🔴 已停止";
 
         [LabelText("游戏服务器")]
         [ShowInInspector]

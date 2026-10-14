@@ -20,8 +20,7 @@ namespace RD.Loader.Editor
     [UIAutoMenu("宏定义", 100, Scope = "loader")]
     public class MacroModule : BaseToolModule
     {
-        [Button("文档", 30)]
-        [PropertyOrder(-99999)]
+        [Button("文档", -100)]
         public void OpenDocument()
         {
             Application.OpenURL("https://lib9kmxvq7k.feishu.cn/wiki/F1cDwqKSliIiBIkWMwmcfsj6nUe");
@@ -39,18 +38,26 @@ namespace RD.Loader.Editor
             SelfInitialize();
         }
 
-        [BoxGroup("当前平台所有宏", centerLabel: true)]
-        [HideLabel]
-        public MacroCurrentData MacroStaticData;
-
-        [BoxGroup("自定义宏数据", centerLabel: true)]
+        // ===== 主流程: 预设宏(RD / UI / 资源加载) —— 勾选后点「更新预设宏」写入 =====
+        [BoxGroup("预设宏", centerLabel: true)]
         [HideLabel]
         [ShowInInspector]
         [ListDrawerSettings(IsReadOnly = true)]
         [HideReferenceObjectPicker]
+        [PropertyOrder(10)]
+        [InfoBox("勾选各分组(RD / UI / 资源加载)要启用的宏, 点「更新预设宏」写入当前平台。" +
+                 "只影响这三个分组的宏, 不会改动 UNITY 等其它符号。", InfoMessageType.Info)]
         private List<MacroDataBase> AllMacroData;
 
-        [Button("更新自定义宏", 50), GUIColor(0.53f, 0.95f, 0.72f)]
+        // ===== 辅助: 当前平台全部编译符号 —— 查看 / 手动增删临时宏(如 UNITY) =====
+        [BoxGroup("当前平台全部编译符号", centerLabel: true)]
+        [HideLabel]
+        [PropertyOrder(30)]
+        [InfoBox("这里列的是当前平台所有编译符号(含 UNITY 等非预设宏), 可手动增删临时宏。" +
+                 "预设分组(RD / UI / 资源加载)的改动请用上面的「更新预设宏」。", InfoMessageType.Info)]
+        public MacroCurrentData MacroStaticData;
+
+        [Button("更新预设宏", 20), GUIColor(0.53f, 0.95f, 0.72f)]
         public void Refresh()
         {
             var allRemove = new List<string>();
@@ -63,9 +70,10 @@ namespace RD.Loader.Editor
 
             MacroHelper.ChangeSymbols(allRemove, allSelect, BuildTargetGroup);
 
-            // 写完编译符号后刷一下资源, 让下一次编译带上新宏; 不关任何窗口(loader 包的 Macro 不该去关 ui 包的 UITool)
-            AssetDatabase.SaveAssets();
-            EditorApplication.ExecuteMenuItem("Assets/Refresh");
+            // 写完先刷新界面(与上面的增删一致): 让勾选/宏列表立刻反映刚写入的状态。
+            // 编译符号改变本身就会触发 Unity 重编译, 不再显式 Assets/Refresh ——
+            // 那会立刻强制编译, 界面来不及更新(就是"没刷新就编译"的原因)。
+            SelfInitialize();
         }
 
         public override void Initialize()
