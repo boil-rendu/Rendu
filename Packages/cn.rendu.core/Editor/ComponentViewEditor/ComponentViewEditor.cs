@@ -8,7 +8,7 @@ using UnityEngine;
 namespace RD.Core.Editor
 {
     [CustomEditor(typeof(ComponentView))]
-    public class ComponentViewEditor : Editor
+    public class ComponentViewEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {
