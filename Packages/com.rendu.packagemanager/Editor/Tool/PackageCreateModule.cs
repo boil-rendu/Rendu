@@ -1,14 +1,14 @@
 //------------------------------------------------------------
 // 创建 / 更新 Rendu Package(声明式模块版)
 // 对应原 PackageCreateView(UXML 自绘对话框): 必填 / 可选 / 摘要 / 强制更新 / 创建按钮,
-// 界面全靠特性描述, 由 cn.rendu.panel 引擎绘制; 三个 [Flags] 枚举走引擎的多选控件。
+// 界面全靠特性描述, 由 cn.rendu.draw 引擎绘制; 三个 [Flags] 枚举走引擎的多选控件。
 //------------------------------------------------------------
 
 #if UNITY_EDITOR
 
 using RD.EditTool.Editor;
 using RD.Init.Editor;
-using RD.Panel;
+using RD.Draw;
 using UnityEditor;
 using UnityEngine;
 

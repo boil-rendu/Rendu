@@ -7,8 +7,8 @@
         "RD.Core",
         "RD.Loader",
         "RD.YooAsset",
-        "RD.Panel",
-        "RD.Panel.Editor",
+        "RD.Draw",
+        "RD.Draw.Editor",
         "RD.EditTool.Editor"
     ],
     "includePlatforms": [

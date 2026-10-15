@@ -7,8 +7,8 @@
 #if UNITY_EDITOR
 
 using System.Collections.Generic;
-using RD.Panel;
-using RD.Panel.Editor;
+using RD.Draw;
+using RD.Draw.Editor;
 using RD.EditTool.Editor;
 using UnityEditor;
 using UnityEngine;

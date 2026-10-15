@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "unity": "2022.3",
   "category": "Editor",
-  "description": "检视器宿主: InspectorEditor(挂到 UnityEditor.Editor) / SerializedScriptableObject(JSON 落盘的编辑器资产) / Serialization。绘制引擎与全部特性在 cn.rendu.panel",
+  "description": "检视器宿主: InspectorEditor(挂到 UnityEditor.Editor) / SerializedScriptableObject(JSON 落盘的编辑器资产) / Serialization。绘制引擎与全部特性在 cn.rendu.draw",
   "author": {
     "name": "Boil",
     "email": "rendu-core@outlook.com",
@@ -16,6 +16,6 @@
     "registry": "https://npm.pkg.github.com/@RenduPackages"
   },
   "dependencies": {
-    "cn.rendu.panel": "3.0.0"
+    "cn.rendu.draw": "3.0.0"
   }
 }

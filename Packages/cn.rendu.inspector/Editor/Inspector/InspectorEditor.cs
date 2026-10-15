@@ -1,4 +1,4 @@
-using RD.Panel.Editor;
+using RD.Draw.Editor;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -42,7 +42,7 @@ namespace RD.Inspector.Editor
         private VisualElement m_Panel;
 
         /// <summary>UI Toolkit 模式下的绘制后端(与 m_Panel 同生共死, 重建面板时一起换新)。</summary>
-        private IPanelDriver m_Driver;
+        private IDriver m_Driver;
 
         public override VisualElement CreateInspectorGUI()
         {

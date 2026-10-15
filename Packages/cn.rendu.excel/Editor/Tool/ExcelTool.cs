@@ -1,7 +1,7 @@
 //------------------------------------------------------------
 // 工具窗口: Excel Tool —— 与 LoaderTool / UITool 完全同构的薄壳, 只负责:
 //   1) 接受 Scope == "excel" 的模块; 2) 提供菜单入口; 3) 停靠到工具窗口组。
-// 界面由模块自己用特性声明(见 ExcelToolModule), 由 cn.rendu.panel 引擎绘制(IMGUI / UI Toolkit 双后端),
+// 界面由模块自己用特性声明(见 ExcelToolModule), 由 cn.rendu.draw 引擎绘制(IMGUI / UI Toolkit 双后端),
 // 不再写 UXML + 手写控件绑定。
 //------------------------------------------------------------
 

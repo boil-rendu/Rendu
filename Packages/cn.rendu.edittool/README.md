@@ -1,6 +1,6 @@
 # RD.EditTool
 
-编辑器窗口宿主：把窗口"长什么样"从业务里摘出来 —— 左菜单树 + 右内容面板的骨架、滚动、分割条、选中持久化都在这里。绘制引擎与全部特性在 [`cn.rendu.panel`](../cn.rendu.panel/README.md)；绘制后端可在 IMGUI / UI Toolkit 之间切换（见下）。
+编辑器窗口宿主：把窗口"长什么样"从业务里摘出来 —— 左菜单树 + 右内容面板的骨架、滚动、分割条、选中持久化都在这里。绘制引擎与全部特性在 [`cn.rendu.draw`](../cn.rendu.draw/README.md)；绘制后端可在 IMGUI / UI Toolkit 之间切换（见下）。
 
 ## 包结构
 
@@ -23,7 +23,7 @@ cn.rendu.edittool/
 
 | 程序集 | 引用 | 说明 |
 |---|---|---|
-| `RD.EditTool.Editor` | `RD.Panel`、`RD.Panel.Editor` | 用 `Engine.DrawObject` 绘制窗口自身与右侧面板 |
+| `RD.EditTool.Editor` | `RD.Draw`、`RD.Draw.Editor` | 用 `Engine.DrawObject` 绘制窗口自身与右侧面板 |
 | `RD.EditTool.Tests.Editor` | `RD.EditTool.Editor` | 仅测试用 |
 
 ## 命名空间为什么是 `RD.EditTool.Editor`（复数）
@@ -35,7 +35,7 @@ cn.rendu.edittool/
 普通窗口；`OnGUI` 里自动用引擎绘制**窗口自身**的成员：
 
 ```csharp
-using RD.Panel;
+using RD.Draw;
 using RD.EditTool.Editor;
 using UnityEditor;
 
@@ -143,7 +143,7 @@ private readonly EditorPrefsValue<float> m_MenuWidthPrefs = new("MyTool_MenuWidt
 
 ## 测试
 
-**不开 Unity 的快速回归**：`Tools~/Verify/` 是独立的 .NET 控制台工程（把本包与 cn.rendu.panel 的源码编进一个进程，自带极简 NUnit 运行器），只需 .NET 8：
+**不开 Unity 的快速回归**：`Tools~/Verify/` 是独立的 .NET 控制台工程（把本包与 cn.rendu.draw 的源码编进一个进程，自带极简 NUnit 运行器），只需 .NET 8：
 
 ```bash
 cd "Packages/cn.rendu.edittool/Tools~/Verify" && dotnet run
@@ -163,4 +163,4 @@ cd "Packages/cn.rendu.edittool/Tools~/Verify" && dotnet run
 | `protected override void BuildToolkitUI(VisualElement root)` | UI Toolkit 模式的外壳入口；默认整窗一个滚动区，自己有外壳（如菜单 + 分割条）的窗口重写它 |
 | `protected VisualElement CreateToolkitContent(VisualElement parent, Action draw, bool scroll = true)` | 在自定义外壳里"开一块引擎内容区"并接上重绘链（`scroll=false` 不带滚动） |
 
-要直接调 `Engine.DrawObject`（例如在 `EditorWindow` 体系外自己造一个宿主）走 `Engine.CreateHostState()` + 带 `HostState` 的重载 —— 那是 cn.rendu.panel 的事，详见 [cn.rendu.panel README §8](../cn.rendu.panel/README.md#8-辅助-api)。
+要直接调 `Engine.DrawObject`（例如在 `EditorWindow` 体系外自己造一个宿主）走 `Engine.CreateHostState()` + 带 `HostState` 的重载 —— 那是 cn.rendu.draw 的事，详见 [cn.rendu.draw README §8](../cn.rendu.draw/README.md#8-辅助-api)。

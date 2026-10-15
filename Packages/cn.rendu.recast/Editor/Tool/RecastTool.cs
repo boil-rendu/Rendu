@@ -1,7 +1,7 @@
 //------------------------------------------------------------
 // 工具窗口: Recast Tool —— 与 LoaderTool / UITool / ExcelTool 同构的薄壳, 只负责:
 //   1) 接受 Scope == "recast" 的模块; 2) 停靠到工具窗口组;  菜单入口在 RecastMenu 统一定义。
-// 界面由模块自己用特性声明(见 NavMeshExportModule), 由 cn.rendu.panel 引擎绘制。
+// 界面由模块自己用特性声明(见 NavMeshExportModule), 由 cn.rendu.draw 引擎绘制。
 //------------------------------------------------------------
 
 #if UNITY_EDITOR

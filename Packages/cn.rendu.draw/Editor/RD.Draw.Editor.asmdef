@@ -1,0 +1,18 @@
+{
+  "name": "RD.Draw.Editor",
+  "rootNamespace": "RD",
+  "references": [
+    "RD.Draw"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

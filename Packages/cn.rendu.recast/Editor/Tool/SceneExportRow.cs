@@ -1,6 +1,6 @@
 #if UNITY_EDITOR
 
-using RD.Panel;
+using RD.Draw;
 
 namespace RD.Recast.Editor
 {

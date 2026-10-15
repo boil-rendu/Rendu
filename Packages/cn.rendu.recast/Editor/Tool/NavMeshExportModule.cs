@@ -1,7 +1,7 @@
 //------------------------------------------------------------
 // 批量导出导航网格(声明式模块版)
 // 与原 BatchNavMeshExportContent(UXML 自绘)等价: 场景勾选表 + 导出设置 + Recast 参数 + 进度条,
-// 但不再写 UXML、不手写 Q<T>()/事件绑定, 界面全靠特性描述, 由 cn.rendu.panel 引擎绘制。
+// 但不再写 UXML、不手写 Q<T>()/事件绑定, 界面全靠特性描述, 由 cn.rendu.draw 引擎绘制。
 //------------------------------------------------------------
 
 #if UNITY_EDITOR
@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using RD.EditTool.Editor;
-using RD.Panel;
+using RD.Draw;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;

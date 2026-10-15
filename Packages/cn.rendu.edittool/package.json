@@ -15,6 +15,6 @@
     "registry": "https://npm.pkg.github.com/@RenduPackages"
   },
   "dependencies": {
-    "cn.rendu.panel": "3.0.0"
+    "cn.rendu.draw": "3.0.0"
   }
 }

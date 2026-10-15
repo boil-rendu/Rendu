@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    包内自带的离线校验工程: 把 Runtime / Editor / Tests 的源码直接编译进一个普通 .NET 进程,
+    在不开 Unity 的前提下跑 NUnit 用例(自带一个极简运行器, 见 Program.cs)。
+
+    用法: 进入本目录后执行 dotnet run (csproj 就在当前目录, 无需指定工程文件)。
+
+    需要 UnityEngine.dll / UnityEditor.dll 做引用, 默认指向 Tuanjie 安装目录。
+    换机器/换 Unity 版本时用属性或环境变量指定(二选一):
+        dotnet run -p:UnityManaged=/Applications/Unity/Hub/Editor/2022.3.62f1/Unity.app/Contents/Managed
+        UNITY_MANAGED=/path/to/Managed dotnet run
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>Verify</AssemblyName>
+    <RootNamespace>Verify</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <NoWarn>$(NoWarn);CS1701;CS1702;CS0618</NoWarn>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <!-- 绘制层(UI Toolkit 后端)整段包在 #if UNITY_2021_2_OR_NEWER 里, 离线编译没有 Unity 的隐式宏:
+         不补这一行, UitkDriver.cs 会被整段跳过 —— 校验"通过"只是没编到那个文件, 而检视器宿主
+         在代码里直接 new UitkDriver(...), 缺了它反倒会报"找不到类型" -->
+    <!-- UNITY_EDITOR 同理: DrawMetrics / DrawEmoji 整段包在 #if UNITY_EDITOR 里(用了 EditorGUIUtility /
+         AssetDatabase), 不补这个宏它们会被静默跳过, 用到它们的 ImGuiDriver/UitkDriver 才报"不存在名称" -->
+    <DefineConstants>$(DefineConstants);UNITY_2021_2_OR_NEWER;UNITY_EDITOR</DefineConstants>
+    <RunAnalyzers>false</RunAnalyzers>
+    <EnableNETAnalyzers>false</EnableNETAnalyzers>
+    <UnityManaged Condition="'$(UnityManaged)' == '' and '$(UNITY_MANAGED)' != ''">$(UNITY_MANAGED)</UnityManaged>
+    <UnityManaged Condition="'$(UnityManaged)' == ''">/Applications/Tuanjie/Hub/Editor/2022.3.62t10/Tuanjie.app/Contents/Managed</UnityManaged>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="../../Runtime/*.cs" />
+    <Compile Include="../../Runtime/Attributes/*.cs" />
+    <Compile Include="../../Runtime/Utilities/*.cs" />
+    <Compile Include="../../Editor/**/*.cs" />
+    <Compile Include="../../Tests/Editor/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NUnit" Version="3.14.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="UnityEngine">
+      <HintPath>$(UnityManaged)/UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEditor">
+      <HintPath>$(UnityManaged)/UnityEditor.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

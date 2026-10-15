@@ -5,7 +5,7 @@
         "RD.Inspector.Editor",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "RD.Panel"
+        "RD.Draw"
     ],
     "includePlatforms": [
         "Editor"

@@ -1,0 +1,9 @@
+﻿{
+  "Name": "Draw",
+  "ScriptsReferences":
+  {
+    "ModelView": [
+      "RD.Draw"
+    ]
+  }
+}

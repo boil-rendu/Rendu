@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using RD.Inspector.Editor;
 using NUnit.Framework;
-using RD.Panel;
+using RD.Draw;
 using UnityEngine;
 
 namespace RD.Inspector.Tests.Editor

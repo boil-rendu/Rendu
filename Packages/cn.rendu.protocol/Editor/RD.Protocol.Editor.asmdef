@@ -4,8 +4,8 @@
     "references": [
         "RD.Init",
         "RD.Init.Editor",
-        "RD.Panel",
-        "RD.Panel.Editor",
+        "RD.Draw",
+        "RD.Draw.Editor",
         "RD.EditTool.Editor"
     ],
     "includePlatforms": [

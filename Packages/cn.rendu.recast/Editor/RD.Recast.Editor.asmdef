@@ -4,8 +4,8 @@
         "RD.Recast",
         "RD.Init.Editor",
         "Unity.Mathematics",
-        "RD.Panel",
-        "RD.Panel.Editor",
+        "RD.Draw",
+        "RD.Draw.Editor",
         "RD.EditTool.Editor"
     ],
     "includePlatforms": [

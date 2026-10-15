@@ -1,9 +1,0 @@
-﻿{
-  "Name": "Panel",
-  "ScriptsReferences":
-  {
-    "ModelView": [
-      "RD.Panel"
-    ]
-  }
-}

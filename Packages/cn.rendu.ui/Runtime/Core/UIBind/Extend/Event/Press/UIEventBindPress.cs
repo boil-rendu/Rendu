@@ -2,7 +2,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
-using RD.Panel;
+using RD.Draw;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
 using RD.Core;

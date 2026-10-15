@@ -35,7 +35,7 @@
       "depth": 0,
       "source": "embedded",
       "dependencies": {
-        "cn.rendu.panel": "3.0.0"
+        "cn.rendu.draw": "3.0.0"
       }
     },
     "cn.rendu.excel": {
@@ -73,7 +73,7 @@
       "depth": 0,
       "source": "embedded",
       "dependencies": {
-        "cn.rendu.panel": "3.0.0"
+        "cn.rendu.draw": "3.0.0"
       }
     },
     "cn.rendu.invoke": {
@@ -122,8 +122,8 @@
       "source": "embedded",
       "dependencies": {}
     },
-    "cn.rendu.panel": {
-      "version": "file:cn.rendu.panel",
+    "cn.rendu.draw": {
+      "version": "file:cn.rendu.draw",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}
@@ -171,7 +171,7 @@
       "dependencies": {
         "cn.rendu.core": "1.0.0",
         "cn.rendu.invoke": "4.0.3",
-        "cn.rendu.panel": "3.0.0",
+        "cn.rendu.draw": "3.0.0",
         "cn.rendu.inspector": "1.0.0",
         "cn.rendu.edittool": "1.0.0"
       }

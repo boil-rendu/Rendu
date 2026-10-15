@@ -7,7 +7,7 @@
         "RD.SourceGeneratorAttribute",
         "RD.YooAsset",
         "Unity.Mathematics",
-        "RD.Panel"
+        "RD.Draw"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

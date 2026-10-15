@@ -1,6 +1,6 @@
 # RD.Inspector
 
-检视器宿主包：把 [cn.rendu.panel](../cn.rendu.panel/README.md) 的绘制引擎（`Engine.DrawObject`）挂到 Unity 的两个原生位置——**组件/资产的 Inspector 面板**与**带 JSON 落盘的编辑器资产**。本包不含任何绘制逻辑。
+检视器宿主包：把 [cn.rendu.draw](../cn.rendu.draw/README.md) 的绘制引擎（`Engine.DrawObject`）挂到 Unity 的两个原生位置——**组件/资产的 Inspector 面板**与**带 JSON 落盘的编辑器资产**。本包不含任何绘制逻辑。
 
 ## 包结构
 
@@ -21,7 +21,7 @@ cn.rendu.inspector/
 
 | 程序集 | 引用 | 说明 |
 |---|---|---|
-| `RD.Inspector.Editor` | `RD.Panel`、`RD.Panel.Editor` | 引擎与特性都在 cn.rendu.panel |
+| `RD.Inspector.Editor` | `RD.Draw`、`RD.Draw.Editor` | 引擎与特性都在 cn.rendu.draw |
 
 ## 给 MonoBehaviour / ScriptableObject 接检视器
 
@@ -70,7 +70,7 @@ public class MyConfig : SerializedScriptableObject
 
 ## 测试
 
-**不开 Unity 的快速回归**（`Tools~/Verify/`，与 cn.rendu.panel 同一套路）：
+**不开 Unity 的快速回归**（`Tools~/Verify/`，与 cn.rendu.draw 同一套路）：
 
 ```bash
 cd "Packages/cn.rendu.inspector/Tools~/Verify" && dotnet run
@@ -82,6 +82,6 @@ cd "Packages/cn.rendu.inspector/Tools~/Verify" && dotnet run
 
 | 包 | 职责 |
 |---|---|
-| `cn.rendu.panel` | 特性 + 绘制引擎：任意对象 → 属性面板 |
+| `cn.rendu.draw` | 特性 + 绘制引擎：任意对象 → 属性面板 |
 | `cn.rendu.inspector`（本包） | 检视器宿主：面板挂到 `UnityEditor.Editor` / 编辑器资产 |
 | `cn.rendu.edittool` | 窗口宿主：左菜单树 + 右面板的工具窗口 |

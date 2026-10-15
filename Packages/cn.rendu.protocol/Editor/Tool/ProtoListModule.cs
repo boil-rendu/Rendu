@@ -8,7 +8,7 @@
 
 using System.Collections.Generic;
 using RD.EditTool.Editor;
-using RD.Panel;
+using RD.Draw;
 
 namespace RD.Protocol.Editor
 {

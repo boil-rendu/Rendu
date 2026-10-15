@@ -5,8 +5,8 @@ using System.Globalization;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
-using RD.Panel;
-using RD.Panel.Editor;
+using RD.Draw;
+using RD.Draw.Editor;
 using UnityEngine;
 
 namespace RD.Inspector.Editor

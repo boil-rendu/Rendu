@@ -2,8 +2,8 @@
     "name": "RD.EditTool.Editor",
     "rootNamespace": "RD",
     "references": [
-        "RD.Panel",
-        "RD.Panel.Editor"
+        "RD.Draw",
+        "RD.Draw.Editor"
     ],
     "includePlatforms": [
         "Editor"

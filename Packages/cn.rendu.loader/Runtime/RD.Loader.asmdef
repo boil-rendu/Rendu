@@ -6,7 +6,7 @@
         "RD.SourceGeneratorAttribute",
         "RD.HybridCLR",
         "RD.YooAsset",
-        "RD.Panel"
+        "RD.Draw"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

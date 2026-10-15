@@ -1,6 +1,6 @@
 //------------------------------------------------------------
 // 工具窗口: PackageManager Tool —— 与 LoaderTool / UITool / ExcelTool / RecastTool / ProtocolTool 同构的薄壳。
-// 界面由模块自己用特性声明(PackageCreateModule), 由 cn.rendu.panel 引擎绘制;
+// 界面由模块自己用特性声明(PackageCreateModule), 由 cn.rendu.draw 引擎绘制;
 // 菜单入口在 PackageManagerMenu 统一定义。
 //------------------------------------------------------------
 

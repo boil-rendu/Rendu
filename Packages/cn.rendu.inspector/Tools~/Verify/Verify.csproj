@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    包内自带的离线校验工程: 把本包 Editor / Tests 的源码, 连同其依赖 cn.rendu.panel
+    包内自带的离线校验工程: 把本包 Editor / Tests 的源码, 连同其依赖 cn.rendu.draw
     的 Runtime / Editor 源码, 一起编进一个普通 .NET 进程, 在不开 Unity 的前提下跑 NUnit 用例
     (自带一个极简运行器, 见 Program.cs)。
 
@@ -26,7 +26,9 @@
     <!-- 绘制层(UI Toolkit 后端)整段包在 #if UNITY_2021_2_OR_NEWER 里, 离线编译没有 Unity 的隐式宏:
          不补这一行, UitkDriver.cs 会被整段跳过 —— 校验"通过"只是没编到那个文件, 而本包在代码里
          直接 new UitkDriver(...), 缺了它反倒会报"找不到类型" -->
-    <DefineConstants>$(DefineConstants);UNITY_2021_2_OR_NEWER</DefineConstants>
+    <!-- UNITY_EDITOR 同理: 依赖包 cn.rendu.draw 的 DrawMetrics / DrawEmoji 整段包在 #if UNITY_EDITOR 里,
+         不补这个宏它们会被静默跳过, 用到它们的驱动实现报"不存在名称" -->
+    <DefineConstants>$(DefineConstants);UNITY_2021_2_OR_NEWER;UNITY_EDITOR</DefineConstants>
     <RunAnalyzers>false</RunAnalyzers>
     <EnableNETAnalyzers>false</EnableNETAnalyzers>
     <UnityManaged Condition="'$(UnityManaged)' == '' and '$(UNITY_MANAGED)' != ''">$(UNITY_MANAGED)</UnityManaged>
@@ -38,11 +40,11 @@
     <!-- 本包 -->
     <Compile Include="../../Editor/**/*.cs" />
     <Compile Include="../../Tests/Editor/*.cs" />
-    <!-- 依赖: cn.rendu.panel 的全部源码(特性 + 绘制引擎) -->
-    <Compile Include="../../../cn.rendu.panel/Runtime/*.cs" />
-    <Compile Include="../../../cn.rendu.panel/Runtime/Attributes/*.cs" />
-    <Compile Include="../../../cn.rendu.panel/Runtime/Utilities/*.cs" />
-    <Compile Include="../../../cn.rendu.panel/Editor/**/*.cs" />
+    <!-- 依赖: cn.rendu.draw 的全部源码(特性 + 绘制引擎) -->
+    <Compile Include="../../../cn.rendu.draw/Runtime/*.cs" />
+    <Compile Include="../../../cn.rendu.draw/Runtime/Attributes/*.cs" />
+    <Compile Include="../../../cn.rendu.draw/Runtime/Utilities/*.cs" />
+    <Compile Include="../../../cn.rendu.draw/Editor/**/*.cs" />
   </ItemGroup>
 
   <ItemGroup>

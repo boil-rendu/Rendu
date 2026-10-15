@@ -18,7 +18,7 @@
   "dependencies": {
     "cn.rendu.core": "1.0.0",
     "cn.rendu.invoke": "4.0.3",
-    "cn.rendu.panel": "3.0.0",
+    "cn.rendu.draw": "3.0.0",
     "cn.rendu.inspector": "1.0.0",
     "cn.rendu.edittool": "1.0.0"
   },

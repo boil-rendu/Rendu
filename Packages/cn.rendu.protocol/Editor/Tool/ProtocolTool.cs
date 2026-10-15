@@ -1,6 +1,6 @@
 //------------------------------------------------------------
 // 工具窗口: Protocol Tool —— 与 LoaderTool / UITool / ExcelTool / RecastTool 同构的薄壳。
-// 界面由模块自己用特性声明(ProtoListModule / ProtoEditModule), 由 cn.rendu.panel 引擎绘制;
+// 界面由模块自己用特性声明(ProtoListModule / ProtoEditModule), 由 cn.rendu.draw 引擎绘制;
 // 菜单入口在 ProtocolMenu 统一定义。
 //------------------------------------------------------------
 

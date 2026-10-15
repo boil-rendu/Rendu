@@ -6,7 +6,7 @@ UI 框架（Panel / Bind 源生成 / 事件，详见飞书 wiki）与 **UI 工�
 2. **Editor / UITool** —— 工具窗口与 13 个工具模块（`RD.UI.Editor` 程序集，只在 Editor 平台）
 3. **DotNet~/RD.UI.BindSourceGenerator** —— 数据绑定字段/事件表的 Roslyn 源生成器（`netstandard2.0` 硬约束，详见根 [README §重要约束](../../README.md#重要约束)）
 
-工具窗口与模块机制本身在 [cn.rendu.edittool](../cn.rendu.edittool/README.md)；特性与绘制引擎在 [cn.rendu.panel](../cn.rendu.panel/README.md)；检视器宿主在 [cn.rendu.inspector](../cn.rendu.inspector/README.md)。
+工具窗口与模块机制本身在 [cn.rendu.edittool](../cn.rendu.edittool/README.md)；特性与绘制引擎在 [cn.rendu.draw](../cn.rendu.draw/README.md)；检视器宿主在 [cn.rendu.inspector](../cn.rendu.inspector/README.md)。
 
 > 重要：**Phase 1-2 后，本包不再承载"工具窗口基建"**。`BaseToolModule` / `BaseTreeMenuItem` / `BaseCreateModule` / `UIAutoMenuAttribute` 等都已迁到 [cn.rendu.edittool](../cn.rendu.edittool/README.md) 命名空间 `RD.EditTool.Editor`。本包只剩"UI 域"的具体模块与 UITool 容器。
 
@@ -120,7 +120,7 @@ cn.rendu.ui/
 | 程序集 | 引用 | 说明 |
 |---|---|---|
 | `RD.UI` (Runtime) | `RD.Core` | UI 框架运行时 |
-| `RD.UI.Editor` | `RD.Core`、`RD.Panel`、`RD.Panel.Editor`、`RD.Inspector.Editor`、`RD.EditTool.Editor` | 编辑器扩展：工具窗口 + 上下文菜单 + Hierarchy/Scene/Toolbar 扩展 |
+| `RD.UI.Editor` | `RD.Core`、`RD.Draw`、`RD.Draw.Editor`、`RD.Inspector.Editor`、`RD.EditTool.Editor` | 编辑器扩展：工具窗口 + 上下文菜单 + Hierarchy/Scene/Toolbar 扩展 |
 | `RD.UI.BindSourceGenerator` (DotNet~) | `Microsoft.CodeAnalysis.CSharp` 4.3.1 | 数据绑定字段/事件表源生成器；**netstandard2.0 硬约束**（见根 README） |
 
 ## 与其他包的关系
@@ -129,7 +129,7 @@ cn.rendu.ui/
 |---|---|
 | `cn.rendu.core` | 提供 UI 框架的运行时支撑（Entity / 网络 / Fiber） |
 | `cn.rendu.invoke` | Invoke 源生成器（UI Bind 走它的事件回调） |
-| `cn.rendu.panel` | 特性 + 绘制引擎（`[Button] / [ShowInInspector] / [GUIColor]` 等） |
+| `cn.rendu.draw` | 特性 + 绘制引擎（`[Button] / [ShowInInspector] / [GUIColor]` 等） |
 | `cn.rendu.inspector` | InspectorEditor，UI 资产检视 |
 | `cn.rendu.edittool` | GenericToolWindow + BaseToolModule（**Phase 1-2 后由本包迁出**） |
 | `cn.rendu.loader` | **不依赖**。`UITool` 与 `LoaderTool` 是两个独立的工具窗口实例，凭 `AcceptScope=null` / `="loader"` 互不串台 |
