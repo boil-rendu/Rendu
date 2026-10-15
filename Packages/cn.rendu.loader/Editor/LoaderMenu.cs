@@ -7,18 +7,22 @@ using UnityEngine;
 namespace RD.Loader.Editor
 {
     /// <summary>
-    /// Loader 顶层菜单 (Rendu/Loader/) — 只保留两个全局热键入口:
+    /// 全局快捷键菜单 (Rendu/快捷键/) — 只保留两个全局热键入口:
     ///   - Compile _F6     整工程编译 (AssetDatabase.Refresh + AssemblyTool.DoCompile)
     ///   - Hot Reload _F7  运行时热重载 (走 RD.CodeLoader.Instance.Reload)
     ///
+    /// 这两个动作是**全局编辑器动作**(不是某个工具窗口的功能), Loader Tool 窗口里没有对应按钮,
+    /// 所以不能删; 菜单名从早年的 "Loader" 改成 "快捷键" —— 与 "Rendu/Loader Tool" 工具窗口
+    /// 只差一个词、用户完全分不清, 改名后按职责各就各位。
+    ///
     /// 7 个工具窗口的入口 (GlobalConfig / ProjectInit / Build / Server / ProjectFiles / ScriptsReferences / Define)
-    /// 已全部迁移到 LoaderTool.cs:23 的 [MenuItem("Rendu/Loader Tool")], 不再平铺在 Loader 子菜单里;
+    /// 已全部迁移到 LoaderTool.cs:23 的 [MenuItem("Rendu/Loader Tool")], 不再平铺在本菜单里;
     /// 5 个平铺动作 (Build Application / Regenerate / GenerateAssemblyRef / UpdateScriptsRef / InitScripts)
     /// 也都收编到对应模块的 [Button] 按钮, 不再做菜单项。
     /// </summary>
     internal static class LoaderMenu
     {
-        const string RootMenu = MenuDefine.ProjectRootMenu + "/Loader";
+        const string RootMenu = MenuDefine.ProjectRootMenu + "/快捷键";
         // [MenuItem] 的 priority 参数是 attribute 实参, 必须是常量表达式;
         // const int + 字面量在 Roslyn (.NET 8 verifier) 不算常量, 用字面量更稳。
 

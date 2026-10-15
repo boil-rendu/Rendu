@@ -14,7 +14,7 @@ cn.rendu.loader/
 │
 ├── Editor/                               RD.Loader.Editor（Editor 程序集）
 │   ├── RD.Loader.Editor.asmdef
-│   ├── LoaderMenu.cs                     顶层菜单 Rendu/Loader/（只留 F6/F7 两个全局热键）
+│   ├── LoaderMenu.cs                     顶层菜单 Rendu/快捷键/（只留 F6/F7 两个全局热键）
 │   ├── Tool/LoaderTool.cs                Rendu/Loader Tool 工具窗口（AcceptScope="loader"）
 │   │
 │   ├── Macro/                            100  宏定义（Phase 3 从 cn.rendu.ui 迁入）

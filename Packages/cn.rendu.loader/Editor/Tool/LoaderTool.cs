@@ -39,7 +39,7 @@ namespace RD.Loader.Editor
         }
 
         // 菜单路径: "Rendu/Loader Tool" (由 MenuDefine.ProjectRootMenu 拼出),
-        // 与 Rendu/Loader/ 子菜单 (F6/F7 入口) 并列, 都在 Rendu 一级菜单下, 互不挤占。
+        // 与 Rendu/快捷键/ 子菜单 (F6/F7 入口) 并列, 都在 Rendu 一级菜单下, 互不挤占。
 
         /// <summary>本窗口只加载 Scope == "loader" 的模块, 与 ui 包的 UITool 互不串台。</summary>
         protected override string AcceptScope => "loader";
