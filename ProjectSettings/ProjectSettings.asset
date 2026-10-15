@@ -639,7 +639,7 @@ PlayerSettings:
     PlayableAds: DOTWEEN
     QNX: DOTWEEN
     Stadia: DOTWEEN
-    Standalone: UNITY;INITED
+    Standalone: UNITY;INITED;DOTWEEN
     VisionOS: DOTWEEN
     WebGL: DOTWEEN
     WeixinMiniGame: DOTWEEN
