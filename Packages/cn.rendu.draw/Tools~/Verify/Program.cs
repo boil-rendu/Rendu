@@ -7,8 +7,14 @@ internal static class Program
 {
     // 这些用例需要 Unity 运行时(ScriptableObject/AssetDatabase/原生对象等), 只能在 Unity Test Runner 内验证。
     // 本包的用例均为纯逻辑, 无需 Unity 运行时; 预留跳过机制以备后用。
+    // UitkDriverValueSyncTests 整组是真机用例: UIElements 的 VisualElement 创建要走原生 ECall,
+    // 离线进程里直接抛 SecurityException, 故整组跳过(在 Unity Test Runner 内验证)。
     private static readonly string[] RequiresUnityRuntime =
     {
+        "TextField_KeepsUserEditUntilEngineConsumesIt",
+        "TextField_AppliesModelValueWhenNoPendingChange",
+        "Popup_KeepsUserSelectionUntilEngineConsumesIt",
+        "Foldout_KeepsUserToggleUntilEngineConsumesIt",
     };
 
     private static int Main(string[] args)

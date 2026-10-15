@@ -411,6 +411,19 @@ namespace RD.Draw.Editor
             RequestRepaint();
         }
 
+        /// <summary>
+        /// 该控件是否有"两次绘制之间"用户造成、还没被 EndCheck 消费的改动。
+        ///
+        /// 保留模式与立即模式的本质差别: IMGUI 的改动发生在 OnGUI 执行期间, 同一个帧里
+        /// BeginChangeCheck/EndChangeCheck 直接比得出差值; 这里改动发生在两次绘制之间 ——
+        /// 用户点完/输完那一刻控件里已经是新值, 而引擎手里的模型值还是旧的。
+        /// 所以各控件**不能无条件 SetValueWithoutNotify(模型值)**: 那会把用户刚弄的内容
+        /// 在随后的重绘里当场抹掉, 并把旧值当"新值"交回引擎写回模型 ——
+        /// 表现就是控件能点能选, 但瞬间弹回旧值, 等于什么都没发生。
+        /// 有未消费改动时跳过覆写, 把用户的当前值交给引擎; 下次绘制模型已是新值, 再正常同步。
+        /// </summary>
+        private bool HasPendingChange(VisualElement element) => m_ChangedElements.Contains(element);
+
         //-------------------------------------- 文本 --------------------------------------
 
         public void Label(string text, in DrawTextSpec spec)
@@ -650,11 +663,15 @@ namespace RD.Draw.Editor
             label.style.marginLeft   = 0f;
             label.style.marginRight  = 0f;
 
-            // IMGUI 的 GUILayout.Label 样式 stretchWidth=true: 一律占满本行剩余宽(锁宽的除外) ——
-            // 横排里会把后面的内容(别的文本段 / FlexibleSpace / 控件)推到右边。UIElements 的 Label
-            // 默认是内容宽, 这里用 flexGrow=1 复刻同一行为; 只给 Center/Right 撑开的话,
-            // "键:\n🔴 值"这类带 emoji 的分段文字会全部挤在左边, 与 IMGUI 对不上
-            label.style.flexGrow = spec.Width > 0f ? 0f : 1f;
+            // IMGUI 的 GUILayout.Label 样式 stretchWidth=true: 横排里占满本行剩余宽(锁宽的除外),
+            // 把后面的内容(别的文本段 / FlexibleSpace / 控件)推到右边。
+            // 但 flexGrow 是"主轴"增长: 横排(Row)里才是宽; 竖排(Column)里会变成"长高" ——
+            // 标签被撑成一条大块, 行距观感全毁, 盖住/挤走后面的控件(pickingMode 默认 Position,
+            // 被盖住就等于吃掉点击)。竖排里的横向占满是 cross-axis, 交给默认的 alignSelf=Stretch。
+            // 因此只在该 Label 的父容器是横排时才给 flexGrow; 父容器方向由各 Begin* 显式设置, 可靠。
+            var inRow = label.parent != null
+                       && label.parent.style.flexDirection == FlexDirection.Row;
+            label.style.flexGrow = inRow && spec.Width <= 0f ? 1f : 0f;
 
             // 开关富文本: 与 IMGUI 后端的 GUISettings.richText 对齐(富文本标记由引擎在 ToTextSpec 里声明)。
             // 不设的话 <color> / <b> 之类标记会被当成普通字符原样显示出来。
@@ -742,12 +759,13 @@ namespace RD.Draw.Editor
             var foldout = Take(() =>
             {
                 var made = new Foldout();
-                made.RegisterValueChangedCallback(_ => RequestRepaint());   // 折叠变化要重绘才被引擎看到
+                // 记进改动集合而不只排重绘: 折叠状态也走 HasPendingChange 那套"不拿旧值覆写"的逻辑
+                made.RegisterValueChangedCallback(_ => NoteChanged(made));   // 折叠变化要重绘才被引擎看到
                 return made;
             }, null);
 
             foldout.text = label ?? "";
-            foldout.SetValueWithoutNotify(expanded);
+            if (HasPendingChange(foldout) == false) foldout.SetValueWithoutNotify(expanded);
             foldout.style.marginTop    = 0f;   // 主题 margin 归零, 行距唯一来源是 RowSpacing
             foldout.style.marginBottom = RowSpacing;
             return foldout.value;
@@ -763,7 +781,7 @@ namespace RD.Draw.Editor
             }, null);
 
             ApplyLabelAndWidth(field, label, width);
-            field.SetValueWithoutNotify(value ?? "");
+            if (HasPendingChange(field) == false) field.SetValueWithoutNotify(value ?? "");
             return field.value;
         }
 
@@ -777,7 +795,7 @@ namespace RD.Draw.Editor
             }, null);
 
             ApplyLabelAndWidth(field, label, width);
-            field.SetValueWithoutNotify(value);
+            if (HasPendingChange(field) == false) field.SetValueWithoutNotify(value);
             return field.value;
         }
 
@@ -791,7 +809,7 @@ namespace RD.Draw.Editor
             }, null);
 
             ApplyLabelAndWidth(field, label, width);
-            field.SetValueWithoutNotify(value);
+            if (HasPendingChange(field) == false) field.SetValueWithoutNotify(value);
             return field.value;
         }
 
@@ -807,7 +825,7 @@ namespace RD.Draw.Editor
             ApplyLabelAndWidth(field, label, width);
             field.lowValue  = min;
             field.highValue = max;
-            field.SetValueWithoutNotify(value);
+            if (HasPendingChange(field) == false) field.SetValueWithoutNotify(value);
             return field.value;
         }
 
@@ -821,7 +839,7 @@ namespace RD.Draw.Editor
             }, null);
 
             ApplyLabelAndWidth(field, label, width);
-            field.SetValueWithoutNotify(value);
+            if (HasPendingChange(field) == false) field.SetValueWithoutNotify(value);
             return field.value;
         }
 
@@ -837,7 +855,10 @@ namespace RD.Draw.Editor
             ApplyLabelAndWidth(field, label, width);
             field.choices = new List<string>(options ?? System.Array.Empty<string>());
             var index = System.Math.Clamp(selected, 0, System.Math.Max(0, field.choices.Count - 1));
-            field.SetValueWithoutNotify(index >= 0 && index < field.choices.Count ? field.choices[index] : "");
+            // 有未消费的下拉改动时不能拿模型旧值覆写: 会把用户刚选的项弹回旧值(表现为"点了没反应"),
+            // 并把旧 index 当新值交回引擎。choices 每轮重设不影响值, 可以照常设。
+            if (HasPendingChange(field) == false)
+                field.SetValueWithoutNotify(index >= 0 && index < field.choices.Count ? field.choices[index] : "");
             return field.index;
         }
 
@@ -860,7 +881,7 @@ namespace RD.Draw.Editor
             }, null);
 
             ApplyLabelAndWidth(field, label, width);
-            field.SetValueWithoutNotify(value);
+            if (HasPendingChange(field) == false) field.SetValueWithoutNotify(value);
             return field.value;
         }
 
@@ -907,7 +928,8 @@ namespace RD.Draw.Editor
                 toggle.style.borderTopLeftRadius     = 0f;
                 toggle.style.borderTopRightRadius    = 0f;
                 toggle.style.unityTextAlign = TextAnchor.MiddleCenter;
-                toggle.SetValueWithoutNotify(index == selected);
+                // 同上: 刚点过的页签不能拿旧 selected 覆写, 否则视觉上弹回旧项(消费靠 m_ClickedKey, 与值无关)
+                if (HasPendingChange(toggle) == false) toggle.SetValueWithoutNotify(index == selected);
 
                 // 消费点击(与 Button 同一语义: 取到一次即清掉; 点到当前项不算切换, 与 IMGUI 一致)。
                 // consumed 守卫: 点击被消费后, 后面"当前选中项"的 else if 不能再把 result 改回去 ——
@@ -939,7 +961,7 @@ namespace RD.Draw.Editor
 
             ApplyLabelAndWidth(field, label, width);
             field.objectType = type;
-            field.SetValueWithoutNotify(value);
+            if (HasPendingChange(field) == false) field.SetValueWithoutNotify(value);
             return field.value;
         }
 
@@ -975,7 +997,7 @@ namespace RD.Draw.Editor
 
                 ApplyLabelAndWidth(field, label, width);
                 var mask = value is LayerMask layerMask ? layerMask.value : 0;
-                field.SetValueWithoutNotify(mask);
+                if (HasPendingChange(field) == false) field.SetValueWithoutNotify(mask);
                 return (LayerMask)field.value;
             }
 
@@ -989,7 +1011,7 @@ namespace RD.Draw.Editor
                 }, null);
 
                 ApplyLabelAndWidth(field, label, width);
-                field.SetValueWithoutNotify(value as AnimationCurve);
+                if (HasPendingChange(field) == false) field.SetValueWithoutNotify(value as AnimationCurve);
                 return field.value;
             }
 
@@ -1003,7 +1025,7 @@ namespace RD.Draw.Editor
                 }, null);
 
                 ApplyLabelAndWidth(field, label, width);
-                field.SetValueWithoutNotify(value as Gradient);
+                if (HasPendingChange(field) == false) field.SetValueWithoutNotify(value as Gradient);
                 return field.value;
             }
 
@@ -1026,7 +1048,7 @@ namespace RD.Draw.Editor
 
             ApplyLabelAndWidth(field, label, width);
             var typed = value is TValue typedValue ? typedValue : default;
-            field.SetValueWithoutNotify(typed);
+            if (HasPendingChange(field) == false) field.SetValueWithoutNotify(typed);
             return field.value;
         }
 
@@ -1151,7 +1173,12 @@ namespace RD.Draw.Editor
                 }
             }
 
+            // IMGUI 的 GUI.enabled=false 把控件整体置灰且不收事件; UIElements 的 SetEnabled 同理。
+            // 弹空(不在任何 PushEnabled 区间里)时必须显式启用, 不能只写"禁用"不写"启用":
+            // 元素按位置复用, 上一轮在禁用区间里画过的元素会永久留着禁用态 ——
+            // 表现就是整个面板点不动(点击不发事件), 且再也不会自己好
             if (m_Enabled.Count > 0) element.SetEnabled(m_Enabled.Peek());
+            else element.SetEnabled(true);
         }
 
         private void ApplyLabelAndWidth<T>(BaseField<T> field, string label, float width)

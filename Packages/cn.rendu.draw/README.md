@@ -81,7 +81,7 @@ cn.rendu.draw/
 │   │   └── DrawSpec.cs               控件描述符（DrawTextSpec / DrawButtonSpec 等，跨后端复用）
 │   └── Controls/                    控件层
 │       └── Icons.cs                 内置图标 + SdfIconType → Texture 解析
-└── Tests/Editor/                    EditMode 测试（程序集：RD.Draw.Tests.Editor，引擎侧 4 夹具 115 例）
+└── Tests/Editor/                    EditMode 测试（程序集：RD.Draw.Tests.Editor，引擎侧 4 夹具 115 例 + UITK 值同步 4 例）
 
 检视器宿主（InspectorEditor / SerializedScriptableObject / Serialization + 19 例测试）
 在 cn.rendu.inspector 包；窗口宿主在 cn.rendu.edittool 包。
@@ -780,7 +780,7 @@ public enum Mode { Simple, Advanced }
 cd "Packages/cn.rendu.draw/Tools~/Verify" && dotnet run
 ```
 
-几秒内即可跑完全部纯逻辑断言（表达式、成员收集、折叠状态、条件显隐），无需启动编辑器，全部可在纯 .NET 进程里跑。当前规模：**4 个夹具 115 例，脱机 115 通过 / 0 跳过**（`ExpressionEvaluatorTests` 44、`EngineReflectionTests` 37、`EngineConditionTests` 20、`EngineStateTests` 14）。序列化 19 例在 cn.rendu.inspector（17 通过 / 2 跳过），菜单树 14 例在 cn.rendu.edittool。
+几秒内即可跑完全部纯逻辑断言（表达式、成员收集、折叠状态、条件显隐），无需启动编辑器，全部可在纯 .NET 进程里跑。当前规模：**4 个夹具 115 例，脱机 115 通过 / 0 跳过**（`ExpressionEvaluatorTests` 44、`EngineReflectionTests` 37、`EngineConditionTests` 20、`EngineStateTests` 14）。另有 `UitkDriverValueSyncTests` 4 例（UITK 值同步回归：未消费的用户改动不许被模型旧值覆写），需要 Unity 运行时，只在 Unity Test Runner 内跑。序列化 19 例在 cn.rendu.inspector（17 通过 / 2 跳过），菜单树 14 例在 cn.rendu.edittool。
 
 运行器接受一个**夹具名子串**作为可选参数（`Program.Main` 的 `args[0]`，大小写不敏感的 `IndexOf` 匹配），只想跑一块时：
 
