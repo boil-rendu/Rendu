@@ -33,6 +33,26 @@ namespace RD.EditTool.Editor
         private readonly HashSet<MenuTreeItem> m_FirstSelect = new();
         private bool m_RestoringSelection;
 
+        /// <summary>菜单树之外, 右侧内容区至少要多宽才不至于被挤成"一条菜单"。</summary>
+        private const float MinContentWidth = 500f;
+
+        /// <summary>窗口的最小高度。</summary>
+        private const float MinWindowHeight = 500f;
+
+        /// <summary>
+        /// 开窗即给一个可用的最小尺寸。
+        ///
+        /// 各工具的 OpenWindow 都是 GetWindow(标题, utility: true, 同组停靠类型) —— utility 浮动窗的
+        /// 默认尺寸只有几百像素宽, 而左侧菜单树固定 300px(见 <see cref="MenuEditorWindow.MenuWidth"/>):
+        /// 窄窗下树会把右侧内容区挤成 0 宽, 整个窗口看着就像一条菜单、内容全黑(Recast 中过招 ——
+        /// 别的窗口用户早先手动拖宽过, 尺寸被 Unity 记住, 所以只有第一次开的窗口显出来)。
+        /// minSize 只兜底下限: 用户之后拖大的尺寸 Unity 会记住, 不会被这里改回去。
+        /// </summary>
+        private void OnEnable()
+        {
+            minSize = new Vector2(Mathf.Ceil(MenuWidth) + MinContentWidth, MinWindowHeight);
+        }
+
         /// <summary>
         /// 选中变化时调度: 恢复上次选中 / 调模块 SelectionMenu / 切换 Toggled / 落盘最近选中。
         /// 子类一般不用重写。
