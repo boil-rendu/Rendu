@@ -1,0 +1,20 @@
+{
+  "name": "RD.Serialization.Editor",
+  "rootNamespace": "RD.Serialization.Editor",
+  "references": [
+    "RD.Draw",
+    "RD.Draw.Editor",
+    "RD.Utilities"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

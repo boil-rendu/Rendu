@@ -1,0 +1,21 @@
+{
+  "name": "cn.rendu.serialization",
+  "displayName": "RD.Serialization",
+  "version": "1.0.0",
+  "unity": "2022.3",
+  "description": "编辑器序列化层: Serialization([Serialize] 成员的 JSON 序列化内核) + SerializedScriptableObject(带 JSON 落盘的资产载体)。特性与绘制引擎在 cn.rendu.draw; 检视器宿主 cn.rendu.inspector 与窗口宿主 cn.rendu.edittool 都可引用本包, 互不依赖",
+  "author": {
+    "name": "Boil",
+    "email": "rendu-core@outlook.com",
+    "url": "https://github.com/RenduPackages"
+  },
+  "repository": {},
+  "relatedPackages": {},
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/@RenduPackages"
+  },
+  "dependencies": {
+    "cn.rendu.draw": "1.0.0",
+    "cn.rendu.utilities": "1.0.0"
+  }
+}
