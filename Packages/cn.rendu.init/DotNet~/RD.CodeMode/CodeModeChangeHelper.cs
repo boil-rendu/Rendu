@@ -1,0 +1,169 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+
+namespace RD
+{
+    public static class CodeModeChangeHelper
+    {
+        private static readonly string[] moduleDirs = { "Packages", "Library/PackageCache" };
+
+        private static readonly string[] scriptDirs = { "Scripts", "CodeMode" };
+
+        private static readonly string[] modelDirs = { "Model", "Hotfix", "ModelView", "HotfixView", "Core", "Loader", "Config", "Editor" };
+
+        private static readonly string[] serverDirs = { "Server", "Client", "Share", "Test", "ClientServer" };
+
+        private static readonly HashSet<string> v = new()
+        {
+            "Client/Scripts/Model/Client",
+            "Client/Scripts/Model/Share",
+            "Client/CodeMode/Model/Client",
+            "Client/CodeMode/Config/Client",
+            "Client/Scripts/ModelView/Client",
+            "Client/Scripts/ModelView/Share",
+            "Client/CodeMode/ModelView/Client",
+            "Client/Scripts/Hotfix/Client",
+            "Client/Scripts/Hotfix/Share",
+            "Client/CodeMode/Hotfix/Client",
+            "Client/Scripts/HotfixView/Client",
+            "Client/Scripts/HotfixView/Share",
+            "Client/CodeMode/HotfixView/Client",
+            "Client/Scripts/Core/Client",
+            "Client/Scripts/Core/Share",
+            "Client/CodeMode/Core/Client",
+            "Client/Scripts/Loader/Client",
+            "Client/Scripts/Loader/Share",
+            "Client/CodeMode/Loader/Client",
+            "Client/Scripts/Editor/Share",
+            "Client/Scripts/Editor/Client",
+            "Client/CodeMode/Editor/Client",
+
+            "Server/Scripts/Model/Server",
+            "Server/Scripts/Model/Share",
+            "Server/CodeMode/Model/Server",
+            "Server/CodeMode/Config/Server",
+            "Server/Scripts/Hotfix/Server",
+            "Server/Scripts/Hotfix/Share",
+            "Server/CodeMode/Hotfix/Server",
+            "Server/Scripts/Core/Server",
+            "Server/Scripts/Core/Share",
+            "Server/CodeMode/Core/Server",
+            "Server/Scripts/Loader/Server",
+            "Server/Scripts/Loader/Share",
+            "Server/CodeMode/Loader/Server",
+            "Server/Scripts/Editor/Share",
+
+            "ClientServer/Scripts/Model/Client",
+            "ClientServer/Scripts/Model/Server",
+            "ClientServer/Scripts/Model/Share",
+            "ClientServer/CodeMode/Model/ClientServer",
+            "ClientServer/CodeMode/Config/ClientServer",
+            "ClientServer/Scripts/ModelView/Client",
+            "ClientServer/Scripts/ModelView/Server",
+            "ClientServer/Scripts/ModelView/Share",
+            "ClientServer/CodeMode/ModelView/ClientServer",
+            "ClientServer/Scripts/Hotfix/Client",
+            "ClientServer/Scripts/Hotfix/Server",
+            "ClientServer/Scripts/Hotfix/Share",
+            "ClientServer/CodeMode/Hotfix/ClientServer",
+            "ClientServer/Scripts/HotfixView/Client",
+            "ClientServer/Scripts/HotfixView/Server",
+            "ClientServer/Scripts/HotfixView/Share",
+            "ClientServer/CodeMode/HotfixView/ClientServer",
+            "ClientServer/Scripts/Core/Client",
+            "ClientServer/Scripts/Core/Share",
+            "ClientServer/Scripts/Core/Server",
+            "ClientServer/CodeMode/Core/ClientServer",
+            "ClientServer/Scripts/Loader/Client",
+            "ClientServer/Scripts/Loader/Share",
+            "ClientServer/Scripts/Loader/Server",
+            "ClientServer/CodeMode/Loader/ClientServer",
+            "ClientServer/Scripts/Editor/Share",
+            "ClientServer/Scripts/Editor/Client",
+            "ClientServer/CodeMode/Editor/ClientServer",
+            "ClientServer/Scripts/Editor/Test",
+            "ClientServer/Scripts/Hotfix/Test",
+            "ClientServer/Scripts/HotfixView/Test",
+            "ClientServer/Scripts/Model/Test",
+            "ClientServer/Scripts/ModelView/Test",
+        };
+
+        public static void ChangeToCodeMode(string codeMode, HashSet<string> targetPackages)
+        {
+            Console.WriteLine($"目标包列表: {string.Join(", ", targetPackages)}");
+
+            foreach (string a in moduleDirs)
+            {
+                if (!Directory.Exists(a))
+                {
+                    continue;
+                }
+
+                foreach (string moduleDir in Directory.GetDirectories(a, "cn.rendu.*"))
+                {
+                    string packageName = Path.GetFileName(moduleDir);
+                    bool isTargetPackage = targetPackages.Contains(packageName);
+
+                    foreach (string scriptDir in scriptDirs)
+                    {
+                        string p = Path.Combine(moduleDir, scriptDir);
+                        if (!Directory.Exists(p))
+                        {
+                            continue;
+                        }
+
+                        foreach (string modelDir in modelDirs)
+                        {
+                            string c = Path.Combine(p, modelDir);
+                            if (!Directory.Exists(c))
+                            {
+                                continue;
+                            }
+
+                            foreach (string serverDir in serverDirs)
+                            {
+                                string e = Path.Combine(c, serverDir);
+                                if (!Directory.Exists(e))
+                                {
+                                    continue;
+                                }
+
+                                // 对于目标包，根据 codeMode 处理；Editor 作为通用扩展入口，对所有包保留。
+                                HandleAssemblyReferenceFile(codeMode, moduleDir, scriptDir, modelDir, serverDir, isTargetPackage);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void HandleAssemblyReferenceFile(string codeMode, string moduleDir, string scriptDir, string modelDir, string serverDir, bool isTargetPackage)
+        {
+            string filePath = Path.Combine(moduleDir, scriptDir, modelDir, serverDir, "AssemblyReference.asmref");
+            DeleteAssemblyReference(filePath);
+
+            if (isTargetPackage || modelDir == "Editor")
+            {
+                string path = $"{codeMode}/{scriptDir}/{modelDir}/{serverDir}";
+                if (v.Contains(path))
+                {
+                    CreateAssemblyReference(filePath, modelDir);
+                }
+            }
+        }
+
+        private static void DeleteAssemblyReference(string path)
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+
+        private static void CreateAssemblyReference(string path, string modelDir)
+        {
+            File.WriteAllText(path, $"{{ \"reference\": \"RD.{modelDir}\" }}");
+        }
+    }
+}

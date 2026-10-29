@@ -1,5 +1,60 @@
 {
   "dependencies": {
+    "cn.rendu.draw": {
+      "version": "file:cn.rendu.draw",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "cn.rendu.edittool": {
+      "version": "file:cn.rendu.edittool",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "cn.rendu.draw": "1.0.0"
+      }
+    },
+    "cn.rendu.init": {
+      "version": "file:cn.rendu.init",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "cn.rendu.inspector": {
+      "version": "file:cn.rendu.inspector",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "cn.rendu.draw": "1.0.0",
+        "cn.rendu.serialization": "1.0.0"
+      }
+    },
+    "cn.rendu.packagemanager": {
+      "version": "file:cn.rendu.packagemanager",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "cn.rendu.draw": "1.0.0",
+        "cn.rendu.edittool": "1.0.0",
+        "cn.rendu.serialization": "1.0.0",
+        "cn.rendu.utilities": "1.0.0"
+      }
+    },
+    "cn.rendu.serialization": {
+      "version": "file:cn.rendu.serialization",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "cn.rendu.draw": "1.0.0",
+        "cn.rendu.utilities": "1.0.0"
+      }
+    },
+    "cn.rendu.utilities": {
+      "version": "file:cn.rendu.utilities",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
       "depth": 0,
@@ -52,13 +107,12 @@
       "url": "https://packages.tuanjie.cn"
     },
     "com.unity.ide.rider": {
-      "version": "3.0.40",
+      "version": "file:com.unity.ide.rider",
       "depth": 0,
-      "source": "registry",
+      "source": "embedded",
       "dependencies": {
         "com.unity.ext.nunit": "1.0.6"
-      },
-      "url": "https://packages.tuanjie.cn"
+      }
     },
     "com.unity.ide.visualstudio": {
       "version": "2.0.28",
