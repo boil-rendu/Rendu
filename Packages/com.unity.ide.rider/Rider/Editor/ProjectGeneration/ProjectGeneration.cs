@@ -65,6 +65,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     internal static bool isRiderProjectGeneration; // workaround to https://github.cds.internal.unity3d.com/unity/com.unity.ide.rider/issues/28
 
+    private const string k_IgnoreAsmdefPrefix = "Ignore";
+
     IAssemblyNameProvider IGenerator.AssemblyNameProvider => m_AssemblyNameProvider;
 
     public ProjectGeneration()
@@ -235,6 +237,12 @@ namespace Packages.Rider.Editor.ProjectGeneration
       var assemblyUsage = new AssemblyUsage();
       foreach (var assembly in allAssemblies)
       {
+        if (assembly.name.StartsWith(k_IgnoreAsmdefPrefix, StringComparison.OrdinalIgnoreCase))
+        {
+          assemblyUsage.AddPrecompiledAssembly(assembly);
+          continue;
+        }
+
         if (assembly.sourceFiles.Any(ShouldFileBePartOfSolution))
           assemblyUsage.AddProjectAssembly(assembly);
         else
@@ -274,6 +282,9 @@ namespace Packages.Rider.Editor.ProjectGeneration
       {
         var assembly = pair.Key;
         var additionalAssets = pair.Value;
+
+        if (assembly.StartsWith(k_IgnoreAsmdefPrefix, StringComparison.OrdinalIgnoreCase))
+          continue;
 
         if (!assemblyNamesWithSource.Contains(assembly))
         {
@@ -442,9 +453,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private void SyncSolutionFileIfNotChanged(string path, string newContents, Type[] types)
     {
+      // 这里会调用到OnGenerateCSProjectProcessor里面的OnGeneratedSlnSolution，用来删除Ignore开头的csproj文件，所以不要注释
       newContents = OnGeneratedSlnSolution(path, newContents, types);
 
-      SyncFileIfNotChanged(path, newContents);
+      //SyncFileIfNotChanged(path, newContents);
     }
 
     private static void OnGeneratedCSProjectFiles(Type[] types)
@@ -664,7 +676,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     public string SolutionFile()
     {
-      return Path.Combine(ProjectDirectory, $"{m_ProjectName}.sln");
+      // return Path.Combine(ProjectDirectory, $"{m_ProjectName}.sln");
+      return Path.Combine(ProjectDirectory, $"Rendu.sln");
     }
 
     private void ProjectHeader(StringBuilder stringBuilder, ProjectPart assembly, List<ResponseFileData> responseFilesData)
