@@ -1,0 +1,18 @@
+﻿{
+  "name": "cn.rendu.draw",
+  "displayName": "RD.Draw",
+  "version": "1.0.0",
+  "unity": "2022.3",
+  "description": "属性面板绘制引擎: 特性(Runtime 纯声明) + 反射绘制引擎(Editor) —— 任意对象 → 属性面板。引擎之上: 数据资产层 cn.rendu.serialization, 检视器宿主 cn.rendu.inspector, 窗口宿主 cn.rendu.edittool",
+  "author": {
+    "name": "Boil",
+    "email": "rendu-core@outlook.com",
+    "url": "https://github.com/RenduPackages"
+  },
+  "repository": {},
+  "relatedPackages": {},
+  "dependencies": {},
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/@RD-Packages"
+  }
+}
