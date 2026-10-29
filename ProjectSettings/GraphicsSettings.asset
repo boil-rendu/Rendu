@@ -66,7 +66,7 @@ GraphicsSettings:
   m_NoExactGfxBuffer: 0
   m_DisableClearAlpha: 0
   m_SRPDefaultSettings:
-    UnityEngine.Rendering.Universal.UniversalRenderPipeline: {fileID: 11400000, guid: d3c9e3f43ada24399b2bb2c12a5dd314, type: 2}
+    UnityEngine.Rendering.Universal.UniversalRenderPipeline: {fileID: 11400000, guid: 7995cfbbc1fea9d49b9d9e9b1a4bee57, type: 2}
   m_LightProbeOutsideHullStrategy: 1
   m_CameraRelativeLightCulling: 0
   m_CameraRelativeShadowCulling: 0
