@@ -1,0 +1,7 @@
+namespace RD
+{
+    public static partial class PackageType
+    {
+        public const int PackageManager = 1100;
+    }
+}

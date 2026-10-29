@@ -1,0 +1,584 @@
+﻿
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using UnityEditor;
+using UnityEngine;
+using UnityEditor.PackageManager.Requests;
+using UnityEditor.PackageManager;
+
+namespace RD.PackageManager.Editor
+{
+    public static class PackageHubHelper
+    {
+        private const string PackageURL = "https://github.com/orgs/RD-Packages/packages?page=";
+
+        public const string RDPackageHubAssetPath = PackageHelper.RDPackageAssetsFolderPath + "/PackageHubAsset.asset";
+
+        private static PackageHubAsset m_PackageHubAsset;
+
+        public static PackageHubAsset PackageHubAsset
+        {
+            get
+            {
+                if (m_PackageHubAsset == null)
+                {
+                    if (!LoadAsset())
+                    {
+                        Debug.LogError($"m_PackageHubAsset == null");
+                        return null;
+                    }
+                }
+
+                return m_PackageHubAsset;
+            }
+        }
+
+        public static PackageHubData GetPackageHubData(string packageName)
+        {
+            return PackageHubAsset.AllPackageData.GetValueOrDefault(packageName);
+        }
+
+        public static void SaveAsset()
+        {
+            if (m_PackageHubAsset == null) return;
+            EditorUtility.SetDirty(m_PackageHubAsset);
+        }
+
+        private static bool LoadAsset()
+        {
+            m_PackageHubAsset = AssetDatabase.LoadAssetAtPath<PackageHubAsset>(RDPackageHubAssetPath);
+
+            if (m_PackageHubAsset == null)
+            {
+                CreateAsset();
+            }
+
+            if (m_PackageHubAsset == null)
+            {
+                Debug.LogError($"没有找到 配置资源 且自动创建失败 请检查");
+                return false;
+            }
+
+            return true;
+        }
+
+        private static void CreateAsset()
+        {
+            m_PackageHubAsset = ScriptableObject.CreateInstance<PackageHubAsset>();
+
+            var assetFolder = $"{Application.dataPath}/../{PackageHelper.RDPackageAssetsFolderPath}";
+            if (!Directory.Exists(assetFolder))
+                Directory.CreateDirectory(assetFolder);
+
+            AssetDatabase.CreateAsset(m_PackageHubAsset, RDPackageHubAssetPath);
+        }
+
+        private static bool m_Requesting;
+
+        private static Action<bool> m_CheckUpdateCallback;
+
+        public static void CheckUpdate(Action<bool> callback)
+        {
+            m_CheckUpdateCallback = null;
+
+            if (m_Requesting)
+            {
+                Debug.Log($"请求中请稍等...请勿频繁请求");
+                callback?.Invoke(false);
+                return;
+            }
+
+            if (m_PackageHubAsset == null)
+            {
+                var result = LoadAsset();
+                if (!result)
+                {
+                    callback?.Invoke(false);
+                    return;
+                }
+            }
+
+            var currentTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            // 缓存为空时不走"间隔内免拉取"快速路径, 强制重拉一次自愈(否则空缓存会一直空到下个更新周期)
+            if (currentTime - m_PackageHubAsset.LastUpdateTime < m_PackageHubAsset.UpdateInterval
+                && m_PackageHubAsset.AllPackageData is { Count: > 0 })
+            {
+                callback?.Invoke(true);
+                return;
+            }
+
+            m_PackageHubAsset.LastUpdateTime = currentTime;
+            m_CheckUpdateCallback            = callback;
+            m_Requesting                     = true;
+
+            var _ = RefreshPackages();
+        }
+
+        private static async Task RefreshPackages()
+        {
+            var tempAllPackageData = new Dictionary<string, PackageHubData>();
+            int page               = 0;
+            int lastCount          = 0;
+            while (true)
+            {
+                page++;
+                var pageUrl = $"{PackageURL}{page}";
+
+                // 发起网络请求(HttpClient 默认 100s 超时保底), 期间轮询取消: 用户点 Cancel 立即中止, 不必等请求返回
+                var  htmlTask     = GetHtmlContent(pageUrl);
+                bool userCanceled = false;
+                while (!htmlTask.IsCompleted)
+                {
+                    if (EditorUtility.DisplayCancelableProgressBar(
+                            "同步信息",
+                            $"正在获取包列表 第 {page} 页，已收集 {tempAllPackageData.Count} 个包",
+                            0f))
+                    {
+                        userCanceled = true;
+                        break;
+                    }
+
+                    await Task.Delay(150);
+                }
+
+                if (userCanceled)
+                {
+                    m_Requesting = false;
+                    EditorUtility.ClearProgressBar();
+                    m_CheckUpdateCallback?.Invoke(false);
+                    m_CheckUpdateCallback = null;
+                    return;
+                }
+
+                var content = await htmlTask;
+                if (string.IsNullOrEmpty(content))
+                {
+                    // 请求失败(网络异常/超时): 中止同步并保留本地缓存, 绝不能拿空数据走差集删除把缓存清空
+                    Debug.LogWarning($"[PackageHub] 第 {page} 页拉取失败，本次同步中止，已保留本地缓存 {m_PackageHubAsset.AllPackageData.Count} 个包");
+                    m_Requesting = false;
+                    EditorUtility.ClearProgressBar();
+                    m_CheckUpdateCallback?.Invoke(false);
+                    m_CheckUpdateCallback = null;
+                    return;
+                }
+
+                if (!ExtractPackages(content, ref tempAllPackageData))
+                {
+                    // 解析不到任何包 = 正常翻页结束
+                    break;
+                }
+
+                //Debug.LogError($" 第{page}页 提取到:{tempAllPackageData.Count - lastCount} 数据");
+                lastCount = tempAllPackageData.Count;
+            }
+
+            if (tempAllPackageData.Count == 0)
+            {
+                // 一条都没拉到(如页面结构变了): 同样不覆盖缓存
+                Debug.LogWarning("[PackageHub] 未拉取到任何包数据，本次同步中止，已保留本地缓存");
+                m_Requesting = false;
+                EditorUtility.ClearProgressBar();
+                m_CheckUpdateCallback?.Invoke(false);
+                m_CheckUpdateCallback = null;
+                return;
+            }
+
+            await GetBookPackageInfo(tempAllPackageData);
+
+            SyncAllPackageData(tempAllPackageData);
+
+            //Debug.LogError($"总数据: {tempAllPackageData.Count}");
+            m_Requesting = false;
+            EditorUtility.ClearProgressBar();
+            m_CheckUpdateCallback?.Invoke(true);
+            m_CheckUpdateCallback = null;
+        }
+
+        private static void SyncAllPackageData(Dictionary<string, PackageHubData> datas)
+        {
+            var removeData = new HashSet<string>();
+            foreach (var packageData in m_PackageHubAsset.AllPackageData.Values)
+            {
+                var name = packageData.PackageName;
+                if (!datas.ContainsKey(name))
+                {
+                    removeData.Add(name);
+                }
+            }
+
+            foreach (var name in removeData)
+            {
+                m_PackageHubAsset.AllPackageData.Remove(name);
+            }
+
+            foreach (var packageData in datas.Values)
+            {
+                var name = packageData.PackageName;
+                if (m_PackageHubAsset.AllPackageData.TryGetValue(name, out var data))
+                {
+                    data.DownloadValue = packageData.DownloadValue;
+                }
+                else
+                {
+                    m_PackageHubAsset.AllPackageData[name] = packageData;
+                }
+            }
+
+            SaveAsset();
+        }
+
+        private static async Task<string> GetHtmlContent(string url)
+        {
+            string html = "";
+            using var client = new HttpClient();
+            try
+            {
+                var response = await client.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+                html = await response.Content.ReadAsStringAsync();
+            }
+            catch (Exception e)
+            {
+                // HttpClient 默认 100s 超时作保底; 调用方在 await 期间都会轮询取消, 交互场景可随时中止, 不需硬编码短超时
+                Debug.LogError("获取页面失败(超时或网络异常): " + url + " -> " + e.Message);
+            }
+
+            return html;
+        }
+
+        private static bool ExtractPackages(string html, ref Dictionary<string, PackageHubData> dic)
+        {
+            string          packagePattern  = @"title=""cn.rendu.(\w+)""";
+            string          downloadPattern = @"</svg>\s*?(.*?)\s*?</span>\s*?</div>\s*?</div>";
+            Regex           packageRegex    = new Regex(packagePattern);
+            Regex           downloadRegex   = new Regex(downloadPattern);
+            MatchCollection packageMatches  = packageRegex.Matches(html);
+            MatchCollection downloadMatches = downloadRegex.Matches(html);
+
+            if (packageMatches.Count != downloadMatches.Count || packageMatches.Count <= 0 || downloadMatches.Count <= 0)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < packageMatches.Count; i++)
+            {
+                var packageName      = $"cn.rendu.{packageMatches[i].Groups[1].Value}";
+                var downloadCountStr = downloadMatches[i].Groups[1].Value;
+                var downloadCount    = downloadCountStr.Replace(" ", "");
+
+                dic[packageName] = new()
+                {
+                    PackageName   = packageName,
+                    DownloadValue = ConvertToNumber(downloadCount),
+                };
+            }
+
+            return true;
+        }
+
+        private static long ConvertToNumber(string input)
+        {
+            double number;
+            string suffix = string.Empty;
+
+            int lastIndex = input.Length - 1;
+            if (char.IsLetter(input[lastIndex]))
+            {
+                suffix = input.Substring(lastIndex);
+                input  = input.Substring(0, lastIndex);
+            }
+
+            if (!double.TryParse(input, out number))
+            {
+                Debug.LogError($"无效的数字格式: {input}");
+                return 0;
+            }
+
+            switch (suffix.ToLower())
+            {
+                case "k":
+                    return (long)(number * 1e3);
+                case "w":
+                    return (long)(number * 1e4);
+                case "b":
+                    return (long)(number * 1e9);
+                default:
+                    return (long)(number);
+            }
+        }
+
+        public static bool CheckRemove(string packageName, bool showLog = false)
+        {
+            var packagePath = Application.dataPath.Replace("Assets", "Packages") + "/" + packageName;
+
+            if (!System.IO.Directory.Exists(packagePath))
+            {
+                if (showLog)
+                {
+                    UnityTipsHelper.Show($"{packagePath} 不存在此包 无法移除");
+                }
+
+                return false;
+            }
+
+            //查询依赖 他被其他包依赖时 无法移除必须先移除依赖包
+            var versionData = PackageVersionHelper.GetPackageVersionData(packageName);
+            if (versionData != null)
+            {
+                if (versionData.DependedBy != null)
+                {
+                    foreach (var dependencyInfo in versionData.DependedBy)
+                    {
+                        var name    = dependencyInfo.Name;
+                        var hubData = PackageHubHelper.GetPackageHubData(name);
+                        if (hubData != null)
+                        {
+                            if (hubData.Install)
+                            {
+                                if (showLog)
+                                {
+                                    UnityTipsHelper.Show($"无法移除此包: {packageName} 因为被{hubData.PackageName}引用 必须先移除依赖");
+                                }
+
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        #region 请求更新所有
+
+        private static bool m_RequestingAll;
+        private static int  m_RefreshCompleteCount;
+        private static int  m_RefreshMaxCount;
+        private static bool m_RefreshCanceled;
+
+        public static void RefreshRequestAll(List<PackageHubData> allPackages)
+        {
+            if (m_RequestingAll)
+            {
+                UnityTipsHelper.Show($"请求中请稍等...请勿频繁请求");
+                return;
+            }
+
+            m_RequestingAll        = true;
+            m_RefreshCanceled      = false;
+            m_RefreshMaxCount      = allPackages.Count;
+            m_RefreshCompleteCount = 0;
+
+            EditorUtility.DisplayCancelableProgressBar("同步信息", $"请求中... {m_RefreshCompleteCount} / {m_RefreshMaxCount}", 0f);
+
+            foreach (var package in allPackages)
+            {
+                if (package.PayPackage)
+                {
+                    RequestComplete();
+                    continue;
+                }
+
+                var packageName = package.PackageName;
+                package.OperationState = true;
+                new PackageRequestTarget(packageName, (info) =>
+                {
+                    package.OperationState = false;
+                    RequestComplete();
+                    package.RefreshInfo(info);
+                });
+            }
+        }
+
+        private static void RequestComplete()
+        {
+            // 已取消: 迟到的请求回调直接忽略, 不重弹进度条
+            if (m_RefreshCanceled) return;
+
+            m_RefreshCompleteCount++;
+
+            // 可取消: 每个请求完成时问一次; 用户点了取消就收尾走人
+            if (EditorUtility.DisplayCancelableProgressBar(
+                    "同步信息",
+                    $"请求中... {m_RefreshCompleteCount} / {m_RefreshMaxCount}",
+                    (float)m_RefreshCompleteCount / m_RefreshMaxCount))
+            {
+                m_RefreshCanceled  = true;
+                m_RequestingAll    = false;
+                EditorUtility.ClearProgressBar();
+                Debug.Log("[PackageHub] 用户取消了批量请求");
+                return;
+            }
+
+            if (m_RefreshCompleteCount >= m_RefreshMaxCount)
+            {
+                m_RequestingAll = false;
+                EditorUtility.ClearProgressBar();
+                RDPackageManagerWindow.CloseWindowRefresh();
+                RDPackageManagerWindow.OpenWindow();
+            }
+        }
+
+        #endregion
+
+        public static Dictionary<string, List<PackageHubData>> GetNextCategoryData(List<PackageHubData> allPackages, int layer, string lastAllPath = "")
+        {
+            Dictionary<string, List<PackageHubData>> nextCategory = new();
+            foreach (var package in allPackages)
+            {
+                var categoryAList = package.PackageCategory?.Split("|");
+                if (categoryAList == null)
+                {
+                    if (layer == 1)
+                    {
+                        var other = EPackageCategoryType.Other.ToString();
+                        if (!nextCategory.ContainsKey(other))
+                        {
+                            nextCategory.Add(other, new List<PackageHubData>());
+                        }
+
+                        nextCategory[other].Add(package);
+                    }
+
+                    continue;
+                }
+
+                foreach (var categoryA in categoryAList)
+                {
+                    var categoryList = categoryA.Split("/");
+                    var category     = "";
+                    if (categoryList != null && categoryList.Length >= layer)
+                    {
+                        if (layer > 1 && !string.IsNullOrEmpty(lastAllPath))
+                        {
+                            if (!categoryA.Contains(lastAllPath))
+                            {
+                                continue;
+                            }
+                        }
+
+                        category = categoryList[layer - 1];
+                        if (string.IsNullOrEmpty(category))
+                        {
+                            if (layer == 1)
+                            {
+                                category = EPackageCategoryType.Other.ToString();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (layer == 1)
+                        {
+                            category = EPackageCategoryType.Other.ToString();
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(category))
+                    {
+                        continue;
+                    }
+
+                    if (!nextCategory.ContainsKey(category))
+                    {
+                        nextCategory.Add(category, new List<PackageHubData>());
+                    }
+
+                    nextCategory[category].Add(package);
+                }
+            }
+
+            return nextCategory;
+        }
+
+        #region BookPackageInfo
+
+        private static async Task GetBookPackageInfo(Dictionary<string, PackageHubData> dic)
+        {
+            // 边拉边轮询取消, 避免 GitHub 书籍目录页拉取时对话框无响应(最长受 HttpClient 默认 100s 保底)
+            var  bookTask = GetHtmlContent("https://github.com/egametang/RD/blob/release9.0/Book/8.2RD%20Package%E7%9B%AE%E5%BD%95.md");
+            while (!bookTask.IsCompleted)
+            {
+                if (EditorUtility.DisplayCancelableProgressBar("同步信息", "正在获取书籍包目录信息...", 0f))
+                {
+                    EditorUtility.ClearProgressBar();
+                    Debug.Log("[PackageHub] 用户取消了书籍包信息获取");
+                    return;
+                }
+
+                await Task.Delay(150);
+            }
+
+            var packagesContent = await bookTask;
+            var rowRegex        = new Regex(@"<tr><td>(.*?)</td><td>(.*?)</td><td>(.*?)</td><td>(.*?)</td></tr>", RegexOptions.Compiled);
+            var matches         = rowRegex.Matches(packagesContent.Replace("\n", ""));
+
+            foreach (Match match in matches)
+            {
+                var name = match.Groups[2].Value;
+                if (!string.IsNullOrEmpty(name))
+                {
+                    var   pattern   = @"cn.rendu.(\w+)";
+                    Match nameMatch = Regex.Match(name, pattern);
+                    if (nameMatch.Success)
+                    {
+                        name = nameMatch.Value;
+                    }
+                }
+
+                var description = match.Groups[3].Value;
+
+                var url = "";
+                if (!string.IsNullOrEmpty(description))
+                {
+                    string urlPattern  = @"href=""(https?://[^""]+)""";
+                    string textPattern = @">([^<]+)<";
+                    Match  urlMatch    = Regex.Match(description, urlPattern);
+                    Match  textMatch   = Regex.Match(description, textPattern);
+                    if (urlMatch.Success && textMatch.Success)
+                    {
+                        url         = urlMatch.Groups[1].Value;
+                        description = $"{textMatch.Groups[1].Value}\n{url}";
+                    }
+                }
+
+                PackagePayInfo package = new()
+                {
+                    Id          = match.Groups[1].Value,
+                    Name        = name,
+                    Description = description,
+                    Price       = match.Groups[4].Value,
+                    Url         = url,
+                };
+
+                var packageName = package.Name;
+                if (!string.IsNullOrEmpty(packageName) &&
+                    !string.IsNullOrEmpty(package.Id) &&
+                    !string.IsNullOrEmpty(package.Price))
+                {
+                    if (!dic.ContainsKey(packageName))
+                    {
+                        int.TryParse(package.Id.Replace(" ",""), out int idInt);
+
+                        dic[packageName] = new()
+                        {
+                            PackageName        = packageName,
+                            DownloadValue      = long.MaxValue - idInt,
+                            PayInfo            = package,
+                            PackageDescription = package.Description,
+                            PackageCategory    = "Pay",
+                        };
+                    }
+                }
+            }
+        }
+
+        #endregion
+    }
+}

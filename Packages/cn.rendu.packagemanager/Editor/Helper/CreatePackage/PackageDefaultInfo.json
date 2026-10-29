@@ -1,0 +1,22 @@
+{
+  "formalPrefix": "cn.rendu.",
+  "displayPrefix": "RD.",
+  "defaultValues": {
+    "Required": {
+      "FormalName": "cn.rendu.example",
+      "DisplayName": "RD.Example",
+      "Version": "1.0.0",
+      "Unity": "2022.3",
+      "CreateType": 0,
+      "CreateFolderType": 0,
+      "RuntimeRefType": 0
+    },
+    "Optional": {
+      "Description": "Example package description",
+      "AuthorName": "Boil",
+      "AuthorEmail": "rendu-core@outlook.com",
+      "AuthorUrl": "https://github.com/RenduPackages",
+      "Keywords": "utility, tools"
+    }
+  }
+}

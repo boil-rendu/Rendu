@@ -1,0 +1,24 @@
+{
+    "name": "RD.PackageManager.Editor",
+    "rootNamespace": "RD",
+    "references": [
+        "RD.Draw",
+        "RD.Draw.Editor",
+        "RD.EditTool.Editor",
+        "RD.Serialization.Editor",
+        "RD.Utilities"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        ""
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

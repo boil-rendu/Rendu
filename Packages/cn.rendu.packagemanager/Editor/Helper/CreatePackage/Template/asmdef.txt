@@ -1,0 +1,20 @@
+﻿{
+     "name": "${DisplayName}",                    
+     "rootNamespace": "${DisplayName}",           
+     "references": [
+     ],                            
+     "includePlatforms": [
+     
+     ],                            
+     "excludePlatforms": [],                      
+     "allowUnsafeCode": true,                     
+     "overrideReferences": false,                 
+     "precompiledReferences": [],                 
+     "autoReferenced": true,                      
+     "defineConstraints": [],                    
+     "versionDefines": [],                      
+     "noEngineReferences": false,                
+     "LanguageVersion": "10.0"                  
+}
+
+ 
