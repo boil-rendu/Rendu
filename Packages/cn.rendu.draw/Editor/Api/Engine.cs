@@ -179,5 +179,39 @@ namespace RD.Draw.Editor
                 if (began) active.EndDraw();
             }
         }
+
+        //-------------------------------------- 变更胶水（宿主共享） --------------------------------------
+
+        /// <summary>
+        /// 一次写入的共享胶水：构造时拍 Undo 快照，<see cref="Dispose"/> 时标记脏 / 登记预制体修改 / 重绘。
+        /// 作用域风格：<c>using (Engine.BeginChange(target)) { 改字段; }</c>。
+        /// </summary>
+        public sealed class ChangeScope : IDisposable
+        {
+            private readonly object _target;
+            public ChangeScope(object target)
+            {
+                _target = target;
+                if (target is UnityEngine.Object uo)
+                    Undo.RecordObject(uo, "RD Draw Change");
+            }
+            public void Dispose() => ApplyChange(_target);
+        }
+
+        /// <summary>作用域风格的变更胶水：构造拍 Undo 快照，<c>using</c> 结束（<see cref="ChangeScope.Dispose"/>）时标记脏与重绘。</summary>
+        public static IDisposable BeginChange(object target) => new ChangeScope(target);
+
+        /// <summary>回调风格的变更胶水：在引擎写入完成（onChanged）后调用，标记脏 / 登记预制体修改 / 重绘。</summary>
+        public static void EndChange(object target) => ApplyChange(target);
+
+        private static void ApplyChange(object target)
+        {
+            if (target is not UnityEngine.Object uo) return;
+            EditorUtility.SetDirty(uo);
+            if (PrefabUtility.IsPartOfPrefabInstance(uo))
+                PrefabUtility.RecordPrefabInstancePropertyModifications(uo);
+            if (target is EditorWindow win) win.Repaint();
+            else EditorWindow.focusedWindow?.Repaint();
+        }
     }
 }
