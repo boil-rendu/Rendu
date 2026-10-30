@@ -55,7 +55,7 @@ namespace RD.EditTool.Editor
         /// 选中变化时调度: 恢复上次选中 / 调模块 SelectionMenu / 切换 Toggled / 落盘最近选中。
         /// 子类一般不用重写。
         /// </summary>
-        private void OnSelectionChanged(SelectionChangedType obj)
+        protected override void OnSelectionChanged(SelectionChangedType obj)
         {
             if (m_RestoringSelection) return;
             if (obj != SelectionChangedType.ItemAdded) return;
@@ -294,7 +294,7 @@ namespace RD.EditTool.Editor
         protected override MenuTree BuildMenuTree()
         {
             m_MenuTree = new MenuTree();
-            m_MenuTree.Selection.SelectionChanged += OnSelectionChanged;
+            SubscribeSelectionEvents();   // 创建即统一订阅两个处理器(幂等)
             m_AllMenuItem.Clear();
             return BuildToolMenuTree(m_MenuTree);
         }

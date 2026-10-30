@@ -1,6 +1,6 @@
 {
     "name": "RD.EditTool.Editor",
-    "rootNamespace": "RD",
+    "rootNamespace": "RD.EditTool.Editor",
     "references": [
         "RD.Utilities",
         "RD.Draw",

@@ -70,7 +70,7 @@ public class MyWindow : EditorWindowBase
 
 ## MenuEditorWindow
 
-左菜单树 + 右内容面板；右侧调 `DrawTargetObject(选中项.Value)`，所以**菜单项的 `Value` 可以是任意普通 C# 对象** —— 做工具面板时每个菜单项挂一个模块对象即可。
+左菜单树 + 右内容面板；右侧调 `DrawObject(选中项.Value)`，所以**菜单项的 `Value` 可以是任意普通 C# 对象** —— 做工具面板时每个菜单项挂一个模块对象即可。
 
 | 成员 | 说明 |
 |---|---|
@@ -146,13 +146,13 @@ public class ResCheckModule : BaseToolModule
 
 两种窗口的分工（均走 UIElements）：
 
-- **普通窗口**（只用 `DrawTargetObject()` 画引擎内容）：默认整窗一个滚动区，引擎内容画进去；
+- **普通窗口**（只用 `DrawObject()` 画引擎内容）：默认整窗一个滚动区，引擎内容画进去；
 - **`MenuEditorWindow`**：左侧菜单树与右侧内容都排进 UIElements 树 —— 分割条与右侧字段控件全是 UIElements 控件。
 
 写自定义窗口时注意：
 
-- 基类（`DrawWindow`）接管 `rootVisualElement`：要加自己的 UIElements 外壳，请重写 `BuildToolkitUI(VisualElement root)`，并用 `CreateToolkitContent(parent, draw, scroll)` 把引擎内容摆进自己的布局；
-- 自定义内容请重写 `OnDrawContent()`；它既被默认外壳的绘制体调用，也被嵌套内容区（`RunContent`）调用，一份代码两处复用。
+- 基类（`DrawWindow`）接管 `rootVisualElement`：要加自己的 UIElements 布局，请重写 `SetupUI(VisualElement root)`，并用 `CreateContentArea(parent, draw, scroll)` 把引擎内容摆进自己的布局；
+- 自定义内容请重写 `OnDrawContent()`；它既被默认布局的绘制入口调用，也被自定义布局的内容区回调调用，一份代码两处复用。
 
 ## MenuTree（菜单树数据模型）
 
@@ -196,10 +196,10 @@ private readonly EditorPrefsValue<float> m_MenuWidthPrefs = new("MyTool_MenuWidt
 
 | 子类会调用的入口 | 说明 |
 |---|---|
-| `protected virtual void OnDrawContent()` | 默认实现：画窗口自身的成员；一般不需要重写。默认外壳的绘制体与嵌套内容区都调它 |
-| `protected void DrawTargetObject(object target)` | 以本窗口的会话绘制任意对象（`MenuEditorWindow` 右侧用它画选中菜单项的值） |
+| `protected virtual void OnDrawContent()` | 默认实现：画窗口自身的成员；一般不需要重写。默认布局的绘制入口与自定义布局的内容区都调它 |
+| `protected void DrawObject(object target)` | 以本窗口的会话绘制任意对象（`MenuEditorWindow` 右侧用它画选中菜单项的值） |
 | `protected void ReportViewportWidth(float scrollY = 0f)` | 画完滚动区后调一次，把视口宽 / 可用下沿报给引擎（表格据此排版）；与后端无关 |
-| `protected virtual void BuildToolkitUI(VisualElement root)` | UIElements 外壳入口；默认整窗一个滚动区，自己有外壳（如菜单 + 分割条）的窗口重写它 |
-| `protected VisualElement CreateToolkitContent(VisualElement parent, Action draw, bool scroll = true)` | 在自定义外壳里"开一块引擎内容区"并接上重绘链（`scroll=false` 不带滚动） |
+| `protected virtual void SetupUI(VisualElement root)` | 搭建窗口 UI 的钩子；默认整窗一个滚动区，自己有布局（如菜单 + 分割条）的窗口重写它 |
+| `protected VisualElement CreateContentArea(VisualElement parent, Action draw, bool scroll = true)` | 在自定义布局里创建一块引擎内容容器并接上重绘链（`scroll=false` 不带滚动） |
 
 要直接调 `Engine.DrawObject`（例如在 `EditorWindow` 体系外自己造一个宿主）走 `Engine.CreateHostState()` + 带 `HostState` 的重载 —— 那是 cn.rendu.draw 的事，详见 [cn.rendu.draw README §8](../cn.rendu.draw/README.md#8-辅助-api)。

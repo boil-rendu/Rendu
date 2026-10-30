@@ -7,20 +7,21 @@ using UnityEngine.UIElements;
 namespace RD.EditTool.Editor
 {
     /// <summary>
-    /// 编辑器窗口的绘制宿主基类（宿主集成层，住在 cn.rendu.edittool，不是 RD.Draw）
+    /// 编辑器窗口的绘制宿主基类。
+    /// 负责把引擎的绘制能力（RD.Draw）接入 UIElements 窗口：管理内容驱动（Driver）与每窗口的绘制状态。
     /// </summary>
     public abstract class DrawWindow : EditorWindow
     {
-        /// <summary>本窗口的状态句柄：折叠 / 滚动状态，生命周期与窗口一致，各窗口互不串台。</summary>
-        public readonly HostState m_Session = Engine.CreateHostState();
+        /// <summary>本窗口的绘制状态（折叠 / 滚动位置等），生命周期与窗口一致，各窗口互不干扰。</summary>
+        protected readonly HostState m_Session = Engine.CreateHostState();
 
-        private Driver m_Driver;        // 默认外壳分支的 Driver
-        private Driver m_ActiveDriver;  // 绘制进行中：当前嵌套内容区正在用的驱动（DrawTarget 优先用它）
-        private Driver m_ContentDriver; // 自定义外壳里某块内容区的常驻驱动（绘制之外被事件回调时靠它）
+        // 本窗口内容区的引擎驱动：默认绑到整窗 root；自定义布局（如菜单窗口）时绑到右内容面板。
+        // 两种方式不会同时生效，因此只需一个字段；首次绘制和后续事件回调都复用它。
+        private Driver m_Driver;
 
         private bool m_Initialized;
 
-        /// <summary>子类重写做一次性初始化（首次绘制前调用，异常被接住不会打炸窗口）。</summary>
+        /// <summary>子类重写做一次性初始化（首次绘制前调用，异常会被捕获，不会让窗口崩溃）。</summary>
         protected virtual void Initialize() { }
 
         /// <summary>窗口销毁时调用，子类重写做清理。</summary>
@@ -34,10 +35,10 @@ namespace RD.EditTool.Editor
             catch (Exception e) { Debug.LogError($"[Draw] 窗口初始化失败 {GetType().Name}\n{e}"); }
         }
 
-        //-------------------------------------- 生命周期：CreateGUI 是 Unity 入口 --------------------------------------
-        // 定义了 CreateGUI 后，Unity 只调它、不会调窗口自身的 OnGUI；本类据此在内部建 Driver 树。
-        // 子类只需重写 OnDrawContent，不感知后端。
-        // CreateGUI 是普通方法：基类非 virtual，不能写 override（否则 CS0115）。
+        //-------------------------------------- 生命周期 --------------------------------------
+        // Unity 在定义了 CreateGUI 后只会调用它，不会再调用窗口自身的 OnGUI；
+        // 本类在内部重建 UIElements 树和引擎驱动，子类只需关心内容怎么画（OnDrawContent），不感知底层后端。
+        // 注意：CreateGUI 是普通方法而非 virtual，不能写 override（否则 CS0115）。
 
         protected void CreateGUI()
         {
@@ -45,33 +46,34 @@ namespace RD.EditTool.Editor
             Rebuild();
         }
 
+        /// <summary>重建整个 UI：清空窗体、新建根容器，再交给子类布局。</summary>
         private void Rebuild()
         {
             rootVisualElement.Clear();
             m_Driver = null;
-            m_ActiveDriver = null;
-            m_ContentDriver = null;
 
             var root = new VisualElement { style = { flexGrow = 1f } };
             rootVisualElement.Add(root);
-            BuildToolkitUI(root);
+            SetupUI(root);
         }
 
         /// <summary>
-        ///  外壳入口：默认整窗一个滚动区画窗口自身；有自定义外壳（菜单 + 分割条）的窗口重写它，
-        /// 用 <see cref="CreateToolkitContent"/> 开一块引擎内容区。
+        /// 布局钩子：子类重写以定义窗口的 UIElements 结构，并把引擎内容驱动绑到某个容器。
+        /// 默认实现：在整窗 root 上挂一个滚动区作为内容驱动，并立即绘制一次。
+        /// 需要自定义布局（如菜单 + 分割条）时，重写本方法排布 UIElements，
+        /// 再用 <see cref="CreateContentArea"/> 创建一块引擎内容容器。
         /// </summary>
-        protected virtual void BuildToolkitUI(VisualElement root)
+        protected virtual void SetupUI(VisualElement root)
         {
             m_Driver = new Driver(root, Redraw);
             Redraw();
         }
 
         /// <summary>
-        /// 在自定义外壳里"开一块引擎内容区"（保留模式），接上重绘链。
-        /// <paramref name="scroll"/> = false 时外层不带滚动视图。返回的 host 即内容容器。
+        /// 在自定义布局里创建一块引擎内容容器（保留模式），并接上重绘链。
+        /// <paramref name="scroll"/> 为 false 时不带外层滚动视图。返回的内容容器即绘制目标的挂载点。
         /// </summary>
-        protected VisualElement CreateToolkitContent(VisualElement parent, Action draw, bool scroll = true)
+        protected VisualElement CreateContentArea(VisualElement parent, Action draw, bool scroll = true)
         {
             VisualElement host;
             if (scroll)
@@ -86,21 +88,13 @@ namespace RD.EditTool.Editor
                 parent.Add(host);
             }
 
-            Driver driver = null;
-            driver = new Driver(host, () => RunContent(driver, draw));
-            m_ContentDriver = driver;   // 绘制之外（如  选中事件）被回调时也要用它
-            RunContent(driver, draw);   // 立刻画一次
+            var driver = new Driver(host, draw);
+            m_Driver = driver;          // 本窗口内容区驱动；绘制与事件回调共用
+            draw();                     // 立即绘制一次
             return host;
         }
 
-        private void RunContent(Driver driver, Action draw)
-        {
-            m_ActiveDriver = driver;
-            try { draw(); }
-            finally { m_ActiveDriver = null; }
-        }
-
-        /// <summary>默认  分支的绘制体：再把内容画一遍（由 Driver 重绘回调触发）。走 OnDrawContent 以尊重子类的重写。</summary>
+        /// <summary>重绘入口：由 Driver 的重绘回调触发，调用 OnDrawContent 完成实际绘制。</summary>
         private void Redraw()
         {
             if (m_Driver == null) return;
@@ -108,23 +102,25 @@ namespace RD.EditTool.Editor
         }
 
         /// <summary>
-        /// 内容钩子：默认画窗口自身成员；子类（如菜单窗口）重写为自己的外壳。
-        /// 默认外壳在 <see cref="Redraw"/> 里调它；嵌套内容区在 <see cref="RunContent"/> 里调它。
+        /// 内容钩子：决定窗口画什么。默认绘制窗口自身成员；
+        /// 子类（如菜单窗口）可重写以绘制自己的内容。
+        /// 默认布局和自定义布局的内容区都会调用它。
         /// </summary>
         protected virtual void OnDrawContent()
         {
-            DrawTarget(this);
+            DrawObject(this);
         }
 
-        /// <summary>用本窗口会话 + 当前后端画任意对象（承载"画什么"的入口）。</summary>
-        protected void DrawTarget(object target)
+        /// <summary>用本窗口的会话与驱动绘制任意对象，是对 Engine.DrawObject 的封装。</summary>
+        /// <remarks>
+        /// 默认窗口宿主只改内存状态（不编辑可序列化资产），故 onBeforeChange/onChanged 传 null；
+        /// 若子类要编辑可序列化对象，应改为包 <see cref="Engine.BeginChange"/> / <see cref="Engine.EndChange"/>。
+        /// </remarks>
+        protected void DrawObject(object target)
         {
-            var driver = m_ActiveDriver ?? m_ContentDriver ?? m_Driver ?? new Driver(rootVisualElement);
+            var driver = m_Driver ?? new Driver(rootVisualElement);
             Engine.DrawObject(target, this, null, null, m_Session, driver);
         }
-
-        /// <summary>兼容旧名：画指定对象（见 <see cref="DrawTarget"/>）。</summary>
-        protected void DrawTargetObject(object target) => DrawTarget(target);
 
         private void OnDestroy() => OnWindowDestroy();
     }
