@@ -3,15 +3,15 @@
 编辑器序列化层：把"数据怎么存"从绘制引擎和两个宿主里摘出来，单独成包。
 
 - **`Serialization`**：`[Serialize]` 成员的 JSON 序列化内核（成员筛选、写出与读回）；
-- **`SerializedScriptableObject`**：带 JSON 落盘的编辑器资产载体（`ScriptableObject` + `EditorJsonUtility`）。
+- **`SerializedScriptableObject`**：带 JSON 落盘的编辑器资产载体（`ScriptableObject` + `ISerializationCallbackReceiver`，JSON 存进 `m_Data` 字符串字段）。
 
-特性与绘制引擎在 [`cn.rendu.draw`](../cn.rendu.draw/README.md)；检视器宿主 [`cn.rendu.inspector`](../cn.rendu.inspector/README.md) 与窗口宿主 [`cn.rendu.edittool`](../cn.rendu.edittool/README.md) **都可引用本包，互不依赖**。
+[Serialize] 特性在**本包** Runtime 侧，绘制引擎在 [`cn.rendu.draw`](../cn.rendu.draw/README.md)；检视器宿主 [`cn.rendu.inspector`](../cn.rendu.inspector/README.md) 与窗口宿主 [`cn.rendu.edittool`](../cn.rendu.edittool/README.md) **都可引用本包，互不依赖**。
 
 ## 包结构
 
 ```
 cn.rendu.serialization/
-├── package.json                     包元信息（依赖 cn.rendu.draw + cn.rendu.utilities）
+├── package.json                     包元信息（运行时仅依赖 cn.rendu.utilities；cn.rendu.draw 向上依赖本包）
 ├── Editor/
 │   ├── RD.Serialization.Editor.asmdef   程序集：RD.Serialization.Editor（Editor 平台）
 │   ├── AssemblyInfo.cs              开放 Serialization 的 internal 给测试程序集（不扩公共 API）
@@ -37,7 +37,7 @@ cn.rendu.serialization/
 
 | 程序集 | 引用 | 说明 |
 |---|---|---|
-| `RD.Serialization.Editor` | `RD.Draw`、`RD.Draw.Editor`、`RD.Utilities` | `[Serialize]` 特性在 Runtime 侧；成员规则与引擎同源（复用引擎公开的 `Engine.IsUnityValueBagType`）；`RD.Utilities` 供 `SerializationUtility.CreateCopy` 转调深拷 |
+| `RD.Serialization.Editor` | `RD.Serialization`(Runtime)、`RD.Utilities` | `[Serialize]` 在 Runtime 侧；值包判定 `ValueBagTypes` 由本包定义、被 cn.rendu.draw 向上转发共用；`RD.Utilities` 供 `SerializationUtility.CreateCopy` 转调深拷 |
 | `RD.Serialization.Tests` | `RD.Serialization.Editor`、`RD.Draw` | 仅测试用；测试与被测代码同命名空间（见上节的坑） |
 
 ## 深拷贝门面：SerializationUtility
@@ -55,7 +55,7 @@ var copy = SerializationUtility.CreateCopy(original);   // = original.Clone()
 ## 用法
 
 ```csharp
-using RD.Draw;                // 特性命名空间
+using RD.Serialization;          // [Serialize] 特性命名空间（注意：在本包，不是 RD.Draw）
 using RD.Serialization.Editor; // SerializedScriptableObject（本包）
 using UnityEditor;
 

@@ -5,6 +5,7 @@
         "RD.Draw",
         "RD.Draw.Editor",
         "RD.EditTool.Editor",
+        "RD.Serialization",
         "RD.Serialization.Editor",
         "RD.Utilities"
     ],

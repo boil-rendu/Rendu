@@ -2,9 +2,8 @@
   "name": "RD.Serialization.Editor",
   "rootNamespace": "RD.Serialization.Editor",
   "references": [
-    "RD.Draw",
-    "RD.Draw.Editor",
-    "RD.Utilities"
+    "RD.Utilities",
+    "RD.Serialization"
   ],
   "includePlatforms": [
     "Editor"

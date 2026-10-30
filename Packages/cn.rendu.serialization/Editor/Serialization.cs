@@ -5,16 +5,16 @@ using System.Globalization;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
-using RD.Draw;
-using RD.Draw.Editor;                    // Engine.IsUnityValueBagType（成员规则与引擎同源）
 using UnityEngine;
 
 namespace RD.Serialization.Editor
 {
     /// <summary>[Serialize] 成员集合的 JSON 序列化工具。</summary>
     ///
-    /// 成员规则与绘制引擎同源: Unity"属性包"类型的判定直接复用引擎侧公开的
-    /// <see cref="Engine.IsUnityValueBagType"/>(RD.Draw.Editor), 全仓只有一份实现。
+    /// 成员规则与绘制引擎同源: Unity"属性包"类型的判定复用本包 Runtime 的
+    /// <see cref="ValueBagTypes.IsUnityValueBagType"/>。判定是**数据事实**(曲线/渐变的数据在原生对象里),
+    /// 属于序列化器而不属于绘制: 本包位于绘制引擎之下, 由引擎向下引用这条判定 ——
+    /// 方向合法, 全仓仍只有一份实现, 绘制与序列化不会各判各的。
     /// 载体是 <see cref="SerializedScriptableObject"/>(同程序集), 检视器登记在 cn.rendu.inspector。
     public static class Serialization
     {
@@ -61,7 +61,7 @@ namespace RD.Serialization.Editor
             {
                 members = UnityValueTypeMembers(type);
             }
-            else if (Engine.IsUnityValueBagType(type))
+            else if (ValueBagTypes.IsUnityValueBagType(type))
             {
                 members = UnityPropertyBagMembers(type);
             }
@@ -138,8 +138,9 @@ namespace RD.Serialization.Editor
         }
 
         /// <summary>
-        /// Unity"属性包"类型(曲线/渐变)的判定在引擎侧: Engine.IsUnityValueBagType
-        /// (绘制与序列化共用同一条规则; 曲线数据存于原生 m_Ptr, 不能按字段序列化,
+        /// Unity"属性包"类型(曲线/渐变)的判定在本包 Runtime: ValueBagTypes.IsUnityValueBagType
+        /// (绘制与序列化共用同一条规则 —— 绘制引擎位于本包之上, 向下引用这条判定;
+        /// 曲线数据存于原生 m_Ptr, 不能按字段序列化,
         /// 也不能用 FormatterServices 绕过构造函数去造它)。
         /// </summary>
 
@@ -169,7 +170,7 @@ namespace RD.Serialization.Editor
             {
                 // 一个成员都取不到就只能写成 {} , 读回来必然是 default —— 这跟"静默丢数据"没有区别。
                 // 把类型名点出来, 让"忘了标 [Serialize]"当场可见, 而不是等到读档才发现值没了。
-                DrawLog.WarnOnce($"no-member:{type.FullName}",
+                SerializationLog.WarnOnce($"no-member:{type.FullName}",
                                       $"[Inspector] {type.FullName} 没有任何可序列化成员, 本次只能写成 {{}}, " +
                                       "读回来会变回 default —— 它的数据成员需要标 [Serialize]。");
             }
@@ -197,7 +198,7 @@ namespace RD.Serialization.Editor
             }
             catch (Exception e)
             {
-                DrawLog.WarnOnce($"read-member:{ownerType.FullName}.{member.Name}",
+                SerializationLog.WarnOnce($"read-member:{ownerType.FullName}.{member.Name}",
                                       $"[Inspector] 读取成员失败 {ownerType.Name}.{member.Name}: {e.Message}");
                 return null;
             }
@@ -402,7 +403,7 @@ namespace RD.Serialization.Editor
                 {
                     // 单个成员写回失败(类型对不上、setter 抛异常等)不该拖垮整个资产,
                     // 记一条警告后继续还原其余成员。
-                    DrawLog.Warn(
+                    SerializationLog.Warn(
                         $"[Inspector] 反序列化成员失败 {obj.GetType().Name}.{member.Name}: {e.Message}");
                 }
             }
@@ -562,7 +563,7 @@ namespace RD.Serialization.Editor
 
             // 曲线/渐变必须走真实构造函数: FormatterServices.GetUninitializedObject 会绕开它,
             // 对 AnimationCurve 而言那意味着 m_Ptr 还是空的, 随后写 keys 就是在对空指针操作。
-            if (Engine.IsUnityValueBagType(type))
+            if (ValueBagTypes.IsUnityValueBagType(type))
             {
                 try
                 {

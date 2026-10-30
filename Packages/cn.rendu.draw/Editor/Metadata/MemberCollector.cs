@@ -1,7 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using RD.Serialization;
 using UnityEngine;
+
+// [Serialize] 属**下层序列化器**(cn.rendu.serialization, 命名空间 RD.Serialization), 不属本包:
+// 它是"数据要落盘"的声明, 检视器只是顺带认它 —— 这个 using 不能省, 否则私有成员不会被收集。
 
 namespace RD.Draw.Editor.Metadata
 {

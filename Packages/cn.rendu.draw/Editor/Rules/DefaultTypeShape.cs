@@ -14,16 +14,16 @@ namespace RD.Draw.Editor.Rules
     internal sealed class DefaultTypeShape : ITypeShape
     {
         /// <summary>
-        /// Unity"值包"类型的唯一判定: 曲线 / 渐变。
+        /// Unity"值包"类型(曲线 / 渐变)的判定 —— **实现在下层**, 这里只是转发。
         ///
-        /// 放在这里而不是门面上, 是为了让 <see cref="ITypeShape"/> 的实现不必回头依赖
-        /// <see cref="Engine"/>(门面是最外层, 反向依赖会成环)。需要对外暴露时由
-        /// <see cref="Engine.IsUnityValueBagType"/> 转调本方法 —— 全仓仍只有一份实现,
-        /// 绘制与序列化因此不会各判各的。
+        /// "曲线/渐变的数据在原生对象里"是数据事实, 属于独立序列化器
+        /// <see cref="RD.Serialization.ValueBagTypes"/>(cn.rendu.serialization, 位于本包之下);
+        /// 本包向上依赖它, 因此绘制与序列化共用同一条判定, 全仓只有一份实现。
+        /// 与 [Serialize] 同理, 这里用类型全名而非 using: 免得 IDE 在未刷新程序集引用时把 using 当冗余删掉。
         /// </summary>
         internal static bool IsUnityValueBagType(Type type)
         {
-            return type == typeof(AnimationCurve) || type == typeof(Gradient);
+            return RD.Serialization.ValueBagTypes.IsUnityValueBagType(type);
         }
 
         /// <summary>曲线/渐变等"Unity 值类型包": 数据在原生对象里, 展开无意义, 交给专用控件。</summary>

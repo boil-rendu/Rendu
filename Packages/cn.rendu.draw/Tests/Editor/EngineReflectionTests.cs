@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using RD.Serialization;
 using RD.Draw;
 using RD.Draw.Editor;
 using RD.Draw.Editor.Metadata;

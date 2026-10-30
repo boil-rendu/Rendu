@@ -4,6 +4,7 @@
   "references": [
     "RD.Draw",
     "RD.Draw.Editor",
+    "RD.Serialization",
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner"
   ],

@@ -4,7 +4,9 @@
       "version": "file:cn.rendu.draw",
       "depth": 0,
       "source": "embedded",
-      "dependencies": {}
+      "dependencies": {
+        "cn.rendu.serialization": "1.0.0"
+      }
     },
     "cn.rendu.edittool": {
       "version": "file:cn.rendu.edittool",
@@ -45,7 +47,6 @@
       "depth": 0,
       "source": "embedded",
       "dependencies": {
-        "cn.rendu.draw": "1.0.0",
         "cn.rendu.utilities": "1.0.0"
       }
     },

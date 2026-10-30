@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using RD.Draw;
+using RD.Serialization;
 using RD.Serialization.Editor;
 
 namespace RD.PackageManager.Editor

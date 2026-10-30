@@ -103,8 +103,10 @@ namespace RD.Draw.Editor
         /// 是否 Unity"值包"类型(AnimationCurve / Gradient): 数据在原生对象里,
         /// 序列化按整体读写, 绘制走 CurveField/GradientField 而不是展开成员。
         ///
-        /// 判定本身住在 <see cref="DefaultTypeShape"/>(与容器判定同源), 这里只是把它公开出去 ——
-        /// 宿主 cn.rendu.serialization 的序列化规则要跟引擎用**同一条**判定, 不能各写一份。
+        /// 判定本身住在**下层**的独立序列化器 <see cref="RD.Serialization.ValueBagTypes"/>
+        /// (cn.rendu.serialization, 位于本包之下): 它是数据事实, 序列化侧要用, 绘制侧也要用 ——
+        /// 本包向下引用它, 全仓因此只有一份实现, 绘制与序列化不会各判各的。
+        /// 这里与 <see cref="DefaultTypeShape"/> 都只是转发。
         /// </summary>
         public static bool IsUnityValueBagType(Type type)
         {

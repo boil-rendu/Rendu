@@ -3,7 +3,7 @@
   "rootNamespace": "RD",
   "references": [
     "RD.Serialization.Editor",
-    "RD.Draw",
+    "RD.Serialization",
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner"
   ],
