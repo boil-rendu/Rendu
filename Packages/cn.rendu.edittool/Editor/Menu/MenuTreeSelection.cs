@@ -82,6 +82,33 @@ namespace RD.EditTool.Editor
             OnSelectionChanged(SelectionChangedType.ItemAdded);
         }
 
+        /// <summary>追加一项到选中集合(幂等): 已在集合里就不重复加, 也不重复触发事件。</summary>
+        public void AddToSelection(MenuTreeItem item)
+        {
+            if (item == null || m_Selected.Contains(item)) return;
+
+            item.IsSelected = true;
+            m_Selected.Add(item);
+
+            OnSelectionChanged(SelectionChangedType.ItemAdded);
+        }
+
+        /// <summary>反选: 已选中则移出, 否则追加 —— Ctrl/⌘ + 点击的语义。右栏始终只画 <see cref="SelectedValue"/>。</summary>
+        public void ToggleSelect(MenuTreeItem item)
+        {
+            if (item == null) return;
+
+            if (m_Selected.Contains(item))
+            {
+                item.IsSelected = false;
+                m_Selected.Remove(item);
+                OnSelectionChanged(SelectionChangedType.ItemRemoved);
+                return;
+            }
+
+            AddToSelection(item);
+        }
+
         private void OnSelectionChanged(SelectionChangedType type)
         {
             try

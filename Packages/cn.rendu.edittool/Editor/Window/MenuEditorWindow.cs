@@ -10,7 +10,7 @@ namespace RD.EditTool.Editor
     /// 轻量菜单树编辑器窗口
     /// 左侧绘制 BuildMenuTree 返回的菜单树 右侧绘制当前选中项
     /// </summary>
-    public class MenuEditorWindow : EditorWindowBase
+    public class MenuEditorWindow : DrawWindow
     {
         /// <summary>本窗口的菜单树(首次访问时自动构建)</summary>
         protected MenuTree m_MenuTree;
@@ -72,6 +72,35 @@ namespace RD.EditTool.Editor
         /// <summary>菜单项 -> 其行元素引用 的映射, 用于选中态高亮刷新(避免整树重建)。</summary>
         private Dictionary<MenuTreeItem, MenuRowRef> m_MenuRowMap;
 
+        /// <summary>菜单搜索框(顶栏过滤, 只改 display 不重建树)。</summary>
+        private TextField m_SearchFilter;
+
+        /// <summary>承载菜单行的滚动视图(供键盘导航自动滚动)。</summary>
+        private ScrollView m_MenuScroll;
+
+        /// <summary>当前展开/过滤态下的可见有序项(供键盘导航跳过隐藏项)。</summary>
+        private List<MenuTreeItem> m_VisibleOrder;
+
+        /// <summary>当前搜索关键字(空串表示未过滤)。</summary>
+        private string m_Filter = "";
+
+        /// <summary>菜单项拖拽在 DragAndDrop 里用的键: 只认本窗口自己发起的项拖拽。</summary>
+        private const string MenuItemDragKey = "RD.MenuTreeItem";
+
+        /// <summary>位移超过它才算"拖", 免得手抖把一次点击变成拖拽。</summary>
+        private const float DragThreshold = 4f;
+
+        /// <summary>最近一次普通点击的项: Shift 范围选以它为锚点。</summary>
+        private MenuTreeItem m_LastClicked;
+
+        /// <summary>按下时暂存的拖拽候选(真正起拖要等 PointerMove 越过阈值)。</summary>
+        private MenuTreeItem m_DragCandidate;
+
+        /// <summary>按下时的指针位置: 指针事件的 position 是 Vector3(带 z), 与位移阈值比较要同类型。</summary>
+        private Vector3      m_DragStartPos;
+        private bool         m_DragPointerDown;
+        private bool         m_DragStarted;
+
         /// <summary>
         /// 菜单栏宽度 
         /// </summary>
@@ -129,24 +158,24 @@ namespace RD.EditTool.Editor
         /// <summary>强制重建菜单树(例如构建条件变化后调用): 重订阅选中事件并刷新左侧菜单 UI。</summary>
         protected void RebuildMenuTree()
         {
-            if (m_MenuTree != null)
-            {
-                m_MenuTree.Selection.SelectionChanged -= OnMenuSelectionChanged;
-            }
-
             m_MenuTreeBuilt = false;
             m_MenuTree = null;
             EnsureMenuTree();
-
-            if (m_MenuTree != null)
-            {
-                m_MenuTree.Selection.SelectionChanged += OnMenuSelectionChanged;
-            }
+            SubscribeSelectionEvents();   // 新建的树已在 BuildMenuTree 内订阅, 此处幂等补一次
 
             if (m_MenuPanel != null)
             {
                 m_MenuPanel.Clear();
                 BuildMenuUI(m_MenuPanel);
+
+                // 重建后搜索框是新建的(空), 但过滤关键字 m_Filter 仍在:
+                // 回填关键字并重套过滤, 否则"框里没字、树却被过滤着"两种状态会脱节。
+                if (m_SearchFilter != null)
+                {
+                    m_SearchFilter.value = m_Filter;   // 回填(变更回调会顺带重套一次过滤)
+                    ApplyFilter(m_Filter);             // 幂等, 显式保证树的显隐与关键字一致
+                }
+
                 RefreshMenuSelection();
             }
         }
@@ -162,12 +191,66 @@ namespace RD.EditTool.Editor
             public VisualElement Children;  // 叶子项为 null
         }
 
+        /// <summary>
+        /// 统一订阅"菜单选中变化"事件的两个处理器(幂等, 可多处复用):
+        /// - <see cref="OnSelectionChanged"/>      (业务/状态层, 由子类实现): 恢复上次选中、初始化模块、落盘最近选中;
+        /// - <see cref="OnMenuSelectionChanged"/>   (UI 层): 刷新左侧高亮 + 重绘右侧内容。
+        /// 先退订再订阅, 因此无论"首次构建 / 外壳(UI 布局)重建 / 强制重建"都只挂一份回调, 不会重复触发。
+        /// </summary>
+        protected void SubscribeSelectionEvents()
+        {
+            if (m_MenuTree == null) return;
+            m_MenuTree.Selection.SelectionChanged -= OnSelectionChanged;
+            m_MenuTree.Selection.SelectionChanged -= OnMenuSelectionChanged;
+            m_MenuTree.Selection.SelectionChanged += OnSelectionChanged;
+            m_MenuTree.Selection.SelectionChanged += OnMenuSelectionChanged;
+
+            // 拖拽重排后要重建左侧 UI; 同样先退订再订阅, 重建多次也只挂一份
+            m_MenuTree.ItemsReordered -= OnMenuItemsReordered;
+            m_MenuTree.ItemsReordered += OnMenuItemsReordered;
+        }
+
+        /// <summary>基类钩子: 选中变化时的业务/状态处理(恢复选中、初始化模块、记忆最近选中)。子类重写。</summary>
+        protected virtual void OnSelectionChanged(SelectionChangedType obj) { }
+
         private void BuildMenuUI(VisualElement menuPanel)
         {
             m_MenuRowMap = new Dictionary<MenuTreeItem, MenuRowRef>();
 
-            var scroll = new ScrollView { style = { flexGrow = 1f } };
-            menuPanel.Add(scroll);
+            // 外部对象(资源等)拖进菜单: 命中哪个节点由 userData 沿父链反查, 默认不接收 —— 子类重写 OnDropExternalObjects
+            menuPanel.RegisterCallback<DragUpdatedEvent>(evt =>
+            {
+                if (DragAndDrop.objectReferences == null || DragAndDrop.objectReferences.Length == 0) return;
+                DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
+                evt.StopPropagation();
+            });
+
+            menuPanel.RegisterCallback<DragPerformEvent>(evt =>
+            {
+                var objs = DragAndDrop.objectReferences;
+                if (objs == null || objs.Length == 0) return;
+
+                DragAndDrop.AcceptDrag();
+                evt.StopPropagation();
+
+                var target = ResolveItemFromElement(evt.target as VisualElement);
+                if (target != null)
+                {
+                    try { OnDropExternalObjects(target, objs); }
+                    catch (Exception e) { Debug.LogError($"[EditTool] 外部对象拖入失败 {target.Name}\n{e}"); }
+                }
+
+                ResetDragState();
+            });
+
+            // 注: 2022.3 的 UIElements TextField 无 placeholderText(该能力 Unity 6 才有), 故不设占位提示
+            m_SearchFilter = new TextField();
+            m_SearchFilter.style.marginBottom = MenuPadding;
+            m_SearchFilter.RegisterValueChangedCallback(evt => ApplyFilter(evt.newValue));
+            menuPanel.Add(m_SearchFilter);
+
+            m_MenuScroll = new ScrollView { style = { flexGrow = 1f } };
+            menuPanel.Add(m_MenuScroll);
 
             var inner = new VisualElement
             {
@@ -177,9 +260,10 @@ namespace RD.EditTool.Editor
                     paddingBottom = MenuPadding,
                 },
             };
-            scroll.contentContainer.Add(inner);
+            m_MenuScroll.contentContainer.Add(inner);
 
             BuildMenuItems(m_MenuTree.MenuItems, inner);
+            RebuildVisibleOrder();
         }
 
         private void BuildMenuItems(IReadOnlyList<MenuTreeItem> items, VisualElement parent)
@@ -195,7 +279,7 @@ namespace RD.EditTool.Editor
                     style =
                     {
                         flexDirection = FlexDirection.Row,
-                        height = MenuRowHeight,
+                        height = item.RowHeight,      // 每项可调; 默认与 MenuRowHeight 一致
                         alignItems = Align.Center,
                     },
                 };
@@ -242,13 +326,69 @@ namespace RD.EditTool.Editor
                 };
                 row.Add(label);
 
-                // 整行点击: 有子级顺手展开/收起, 然后选中(与旧  行为一致)
-                row.RegisterCallback<ClickEvent>(_ =>
+                // 每项自绘: 在默认行之后追加(徽标 / 内联按钮 / 进度条); 未设置的项与现状像素级一致
+                if (item.CustomDraw != null)
                 {
-                    if (item.HasChildren) SetItemExpanded(item, !item.Toggled);
-                    try { item.Select(); }
+                    try { item.CustomDraw.Invoke(row); }
+                    catch (Exception e) { Debug.LogError($"[EditTool] 菜单项自绘失败 {item.Name}\n{e}"); }
+                }
+
+                // 右键菜单: 没有条目的节点不挂回调 —— UIElements 仍会弹一个空菜单, 不如干脆不注册
+                if (item.ContextMenuEntries.Count > 0)
+                {
+                    row.RegisterCallback<ContextualMenuPopulateEvent>(evt =>
+                    {
+                        foreach (var entry in item.ContextMenuEntries)
+                        {
+                            var e       = entry;   // 逐项捕获, 避免闭包绑到最后一个
+                            var enabled = e.Enabled?.Invoke() ?? true;
+                            evt.menu.AppendAction(e.Text,
+                                                  _ =>
+                                                  {
+                                                      try { e.Action?.Invoke(item); }
+                                                      catch (Exception ex)
+                                                      {
+                                                          Debug.LogError($"[EditTool] 右键菜单执行失败 {item.Name} / {e.Text}\n{ex}");
+                                                      }
+                                                  },
+                                                  enabled ? DropdownMenuAction.Status.Normal
+                                                          : DropdownMenuAction.Status.Disabled);
+                        }
+                    });
+                }
+
+                // 整行点击: Shift / Ctrl(⌘) 走多选, 普通左键仍"有子级顺手展开 + 选中"(与旧行为一致)
+                row.RegisterCallback<ClickEvent>(evt =>
+                {
+                    try
+                    {
+                        // 多选只改选中, 不动展开态 —— 否则 Ctrl 点一下就把子级收起来了
+                        if (evt.shiftKey && m_LastClicked != null)
+                        {
+                            var range = RangeInVisibleOrder(m_LastClicked, item);
+                            if (range != null)
+                            {
+                                m_MenuTree.Selection.Select(range);
+                                return;
+                            }
+                        }
+                        else if (evt.ctrlKey || evt.commandKey)
+                        {
+                            m_MenuTree.Selection.ToggleSelect(item);
+                            m_LastClicked = item;
+                            return;
+                        }
+
+                        if (item.HasChildren) SetItemExpanded(item, !item.Toggled);
+                        item.Select();
+                        m_LastClicked = item;
+                    }
                     catch (Exception e) { Debug.LogError($"[EditTool] 菜单选中失败 {item.Name}\n{e}"); }
                 });
+
+                // 拖放目标解析要靠它: 事件 target 可能是行内的图标 / 文字, 得沿父链把项找回来
+                row.userData = item;
+                SetupRowDrag(row, item);
 
                 parent.Add(row);
 
@@ -278,12 +418,154 @@ namespace RD.EditTool.Editor
             }
         }
 
+        //-------------------------------------- 拖拽 --------------------------------------
+
+        /// <summary>行的拖拽源与落点判定: 源要 Draggable, 落点按悬停行的上/下半段决定。</summary>
+        private void SetupRowDrag(VisualElement row, MenuTreeItem item)
+        {
+            row.RegisterCallback<PointerDownEvent>(evt =>
+            {
+                if (evt.button != 0) return;
+                m_DragPointerDown = true;
+                m_DragCandidate   = item;
+                m_DragStartPos    = evt.position;
+                m_DragStarted     = false;
+            });
+
+            row.RegisterCallback<PointerMoveEvent>(evt =>
+            {
+                if (m_DragStarted || m_DragPointerDown == false) return;
+                if (ReferenceEquals(m_DragCandidate, item) == false) return;
+                if (item.Draggable == false) return;
+                if ((evt.position - m_DragStartPos).magnitude <= DragThreshold) return;
+
+                m_DragStarted = true;
+                DragAndDrop.PrepareStartDrag();
+                DragAndDrop.SetGenericData(MenuItemDragKey, item);
+                DragAndDrop.StartDrag(string.IsNullOrEmpty(item.Name) ? "MenuTreeItem" : item.Name);
+            });
+
+            row.RegisterCallback<PointerUpEvent>(_ => ResetDragState());
+
+            // 作为落点: 只认本窗口发起的项拖拽(外部拖拽由面板那一层处理)
+            row.RegisterCallback<DragUpdatedEvent>(evt =>
+            {
+                var dragged = DragAndDrop.GetGenericData(MenuItemDragKey) as MenuTreeItem;
+                if (dragged == null || ReferenceEquals(dragged, item)) return;
+                DragAndDrop.visualMode = DragAndDropVisualMode.Move;
+                evt.StopPropagation();
+            });
+
+            row.RegisterCallback<DragPerformEvent>(evt =>
+            {
+                var dragged = DragAndDrop.GetGenericData(MenuItemDragKey) as MenuTreeItem;
+                if (dragged == null) return;
+
+                DragAndDrop.AcceptDrag();
+                evt.StopPropagation();
+
+                try
+                {
+                    var (parent, index) = ResolveDropTarget(item, evt.mousePosition, row);
+                    m_MenuTree?.MoveItem(dragged, parent, index);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[EditTool] 菜单项移动失败 {item.Name}\n{e}");
+                }
+                finally
+                {
+                    ResetDragState();
+                }
+            });
+        }
+
+        /// <summary>
+        /// 落点: 悬停行**上半** → 插到它前面(同一父级); **下半** → 有子级就落为第一个子项, 否则插到它后面。
+        /// 与常见树控件一致 —— 想放进某个文件夹, 就往它下半部分拖。
+        /// </summary>
+        private (MenuTreeItem parent, int index) ResolveDropTarget(MenuTreeItem hovered, Vector2 mousePos, VisualElement row)
+        {
+            var list = hovered.Parent != null ? hovered.Parent.ChildMenuItems : m_MenuTree.MenuItems;
+            var idx  = list.IndexOf(hovered);
+
+            // 落点按鼠标落在行的哪一半算: mousePosition 与 worldBound 同为面板坐标系, 无需换算
+            var bound = row.worldBound;
+            var upper = bound.height > 0f && mousePos.y < bound.yMin + bound.height * 0.5f;
+
+            if (upper) return (hovered.Parent, idx < 0 ? 0 : idx);
+            if (hovered.HasChildren) return (hovered, 0);
+            return (hovered.Parent, idx < 0 ? list.Count : idx + 1);
+        }
+
+        /// <summary>
+        /// 取两项之间的连续区间(按当前**可见**序, 过滤/折叠下才符合题意);
+        /// 任一端已不在可见序里(例如被过滤掉了)就返回 null, 调用方退回单选。
+        /// </summary>
+        private MenuTreeItem[] RangeInVisibleOrder(MenuTreeItem a, MenuTreeItem b)
+        {
+            if (m_VisibleOrder == null) return null;
+
+            var ia = m_VisibleOrder.IndexOf(a);
+            var ib = m_VisibleOrder.IndexOf(b);
+            if (ia < 0 || ib < 0) return null;
+
+            var s = Mathf.Min(ia, ib);
+            var e = Mathf.Max(ia, ib);
+            var result = new MenuTreeItem[e - s + 1];
+            for (var i = s; i <= e; i++) result[i - s] = m_VisibleOrder[i];
+            return result;
+        }
+
+        /// <summary>事件 target 可能是行内的图标 / 文字, 沿父链找回它所属的那一项。</summary>
+        private static MenuTreeItem ResolveItemFromElement(VisualElement ve)
+        {
+            while (ve != null)
+            {
+                if (ve.userData is MenuTreeItem item) return item;
+                ve = ve.parent;
+            }
+
+            return null;
+        }
+
+        private void ResetDragState()
+        {
+            m_DragPointerDown = false;
+            m_DragStarted     = false;
+            m_DragCandidate   = null;
+        }
+
+        /// <summary>
+        /// 外部 Unity 对象拖到 target 节点上: 默认不接收, 子类重写决定语义
+        /// (要在菜单里加项的话, 记得自己调 <see cref="RebuildMenuTree"/> 刷新)。
+        /// </summary>
+        protected virtual void OnDropExternalObjects(MenuTreeItem target, UnityEngine.Object[] objects) { }
+
+        /// <summary>项被重排: 树的形状变了, 重建左侧 UI 并保住当前过滤关键字。</summary>
+        private void OnMenuItemsReordered()
+        {
+            if (m_MenuPanel == null || m_MenuTree == null) return;
+
+            m_MenuPanel.Clear();
+            BuildMenuUI(m_MenuPanel);
+
+            if (m_SearchFilter != null)
+            {
+                m_SearchFilter.value = m_Filter;   // 回填(变更回调会顺带重套一次过滤)
+                ApplyFilter(m_Filter);             // 幂等, 保证树的显隐与关键字一致
+            }
+
+            RefreshMenuSelection();
+        }
+
         private void SetItemExpanded(MenuTreeItem item, bool expanded)
         {
             item.Toggled = expanded;
             if (m_MenuRowMap == null || !m_MenuRowMap.TryGetValue(item, out var rowRef)) return;
             if (rowRef.Foldout != null) rowRef.Foldout.text = expanded ? "▾" : "▸";
             if (rowRef.Children != null) rowRef.Children.style.display = expanded ? DisplayStyle.Flex : DisplayStyle.None;
+            RebuildVisibleOrder();
         }
 
         private void RefreshMenuSelection()
@@ -299,7 +581,7 @@ namespace RD.EditTool.Editor
 
         //-------------------------------------- 分割条 --------------------------------------
 
-        //-------------------------------------- 外壳 --------------------------------------
+        //-------------------------------------- 外壳（仅指本窗口 UIElements 布局：菜单+分割条，非引擎的宿主/后端/会话概念） --------------------------------------
 
         /// <summary>空态提示(没选中项时显示); 放在驱动容器**外面**, 免得被按位置复用换掉。</summary>
         private HelpBox m_ContentEmptyHint;
@@ -309,7 +591,7 @@ namespace RD.EditTool.Editor
         /// <summary>
         /// 排布: 左树(菜单) + 可拖分割条 + 右内容(引擎后端)。
         /// </summary>
-        protected override void BuildToolkitUI(VisualElement root)
+        protected override void SetupUI(VisualElement root)
         {
             // 走到这里时 Initialize 已经跑过(基类 DrawWindow.CreateGUI 先 EnsureInitialize 再构建), 直接建树
             EnsureMenuTree();
@@ -317,7 +599,7 @@ namespace RD.EditTool.Editor
             if (m_MenuTree == null)
             {
                 // 没有菜单: 退化成普通窗口
-                base.BuildToolkitUI(root);
+                base.SetupUI(root);
                 return;
             }
 
@@ -351,15 +633,17 @@ namespace RD.EditTool.Editor
             m_ContentEmptyHint.style.marginTop = EmptyHintTopMargin;
             scroll.contentContainer.Add(m_ContentEmptyHint);
 
-            CreateToolkitContent(scroll.contentContainer, RedrawContent, false);
+            CreateContentArea(scroll.contentContainer, RedrawContent, false);
 
             BuildMenuUI(m_MenuPanel);
             RefreshMenuSelection();   // 把初始选中项的高亮画上
 
+            // 键盘导航: 在根容器注册; 搜索框输入中(evt.target 为 TextField)不拦截
+            root.RegisterCallback<KeyDownEvent>(OnMenuKeyDown);
+
             // 菜单选中项变了: 右侧内容要重画、菜单高亮要刷新。
-            // 先退订再订: 外壳重建时会重跑这里, 不退订就会重复回调。
-            m_MenuTree.Selection.SelectionChanged -= OnMenuSelectionChanged;
-            m_MenuTree.Selection.SelectionChanged += OnMenuSelectionChanged;
+            // 统一在 SubscribeSelectionEvents 里幂等订阅(首次构建 / 外壳(UI 布局)重建 / 强制重建共用), 避免重复回调。
+            SubscribeSelectionEvents();
         }
 
         /// <summary>上一次报给引擎的内容区下沿(面板坐标), 用来判断外框是否真的变了。</summary>
@@ -388,7 +672,132 @@ namespace RD.EditTool.Editor
         private void OnMenuSelectionChanged(SelectionChangedType type)
         {
             RefreshMenuSelection();
+            ScrollSelectedIntoView();
             RedrawContent();
+        }
+
+        //-------------------------------------- 搜索 / 键盘导航 --------------------------------------
+
+        /// <summary>按关键字过滤菜单: 只改行 display, 不重建树; 命中项强制展开其祖先路径。</summary>
+        private void ApplyFilter(string q)
+        {
+            if (m_MenuRowMap == null) return;
+            m_Filter = (q ?? "").Trim();
+            bool empty = m_Filter.Length == 0;
+
+            if (empty)
+            {
+                foreach (var kv in m_MenuRowMap)
+                    kv.Value.Row.style.display = RowShownCanonical(kv.Key) ? DisplayStyle.Flex : DisplayStyle.None;
+                RebuildVisibleOrder();
+                return;
+            }
+
+            foreach (var kv in m_MenuRowMap)
+                kv.Value.Row.style.display = DisplayStyle.None;
+
+            foreach (var kv in m_MenuRowMap)
+            {
+                if (!NameMatches(kv.Key, m_Filter)) continue;
+                var n = kv.Key;
+                while (n != null && m_MenuRowMap.TryGetValue(n, out var nr))
+                {
+                    nr.Row.style.display = DisplayStyle.Flex;
+                    n = n.Parent;
+                }
+            }
+            RebuildVisibleOrder();
+        }
+
+        private static bool NameMatches(MenuTreeItem item, string q)
+            => item.Name != null && item.Name.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0;
+
+        /// <summary>无过滤时, 项是否按 Toggled 链可见(其所有祖先都已展开)。</summary>
+        private static bool RowShownCanonical(MenuTreeItem item)
+        {
+            var p = item.Parent;
+            while (p != null)
+            {
+                if (!p.Toggled) return false;
+                p = p.Parent;
+            }
+            return true;
+        }
+
+        /// <summary>按当前 display 重建可见有序项(先序遍历, 供键盘导航)。</summary>
+        private void RebuildVisibleOrder()
+        {
+            if (m_VisibleOrder == null) m_VisibleOrder = new List<MenuTreeItem>();
+            m_VisibleOrder.Clear();
+            if (m_MenuTree == null) return;
+            WalkVisible(m_MenuTree.MenuItems);
+        }
+
+        private void WalkVisible(IReadOnlyList<MenuTreeItem> items)
+        {
+            if (items == null) return;
+            foreach (var item in items)
+            {
+                if (item == null) continue;
+                if (m_MenuRowMap.TryGetValue(item, out var rr) && rr.Row.style.display != DisplayStyle.None)
+                    m_VisibleOrder.Add(item);
+                if (item.HasChildren) WalkVisible(item.ChildMenuItems);
+            }
+        }
+
+        /// <summary>把当前选中项滚入菜单视口(选中变化后调用)。</summary>
+        private void ScrollSelectedIntoView()
+        {
+            if (m_MenuScroll == null || m_MenuTree == null) return;
+            var item = m_MenuTree.Selection.SelectedValue;
+            if (item == null || m_MenuRowMap == null || !m_MenuRowMap.TryGetValue(item, out var rowRef)) return;
+
+            var rowBound = rowRef.Row.worldBound;
+            var viewBound = m_MenuScroll.worldBound;
+            var off = m_MenuScroll.scrollOffset;
+            if (rowBound.yMin < viewBound.yMin)
+                m_MenuScroll.scrollOffset = new Vector2(off.x, off.y + (rowBound.yMin - viewBound.yMin));
+            else if (rowBound.yMax > viewBound.yMax)
+                m_MenuScroll.scrollOffset = new Vector2(off.x, off.y + (rowBound.yMax - viewBound.yMax));
+        }
+
+        private void OnMenuKeyDown(KeyDownEvent evt)
+        {
+            if (evt.target is TextField) return;
+            if (m_MenuTree == null || m_VisibleOrder == null || m_VisibleOrder.Count == 0) return;
+
+            var current = m_MenuTree.Selection.SelectedValue;
+            var idx = current != null ? m_VisibleOrder.IndexOf(current) : -1;
+
+            switch (evt.keyCode)
+            {
+                case KeyCode.UpArrow:   idx = idx <= 0 ? m_VisibleOrder.Count - 1 : idx - 1; break;
+                case KeyCode.DownArrow: idx = idx >= m_VisibleOrder.Count - 1 ? 0 : idx + 1; break;
+                case KeyCode.Home:      idx = 0; break;
+                case KeyCode.End:       idx = m_VisibleOrder.Count - 1; break;
+                case KeyCode.Return:
+                case KeyCode.KeypadEnter:
+                    if (current != null) m_MenuTree.Activate(current);
+                    evt.StopPropagation();
+                    return;
+                default:
+                    if (evt.character == '\0' || char.IsControl(evt.character)) return;
+                    char c = char.ToLowerInvariant(evt.character);
+                    for (int i = 1; i <= m_VisibleOrder.Count; i++)
+                    {
+                        var cand = m_VisibleOrder[(idx + i) % m_VisibleOrder.Count];
+                        if (!string.IsNullOrEmpty(cand.Name) && char.ToLowerInvariant(cand.Name[0]) == c)
+                        {
+                            idx = (idx + i) % m_VisibleOrder.Count;
+                            break;
+                        }
+                    }
+                    break;
+            }
+
+            evt.StopPropagation();
+            if (idx >= 0 && idx < m_VisibleOrder.Count)
+                m_VisibleOrder[idx].Select();
         }
 
         /// <summary>右侧内容: 选中项有值就画它, 否则只留空态提示。</summary>
@@ -401,7 +810,7 @@ namespace RD.EditTool.Editor
                 m_ContentEmptyHint.style.display = target == null ? DisplayStyle.Flex : DisplayStyle.None;
             }
 
-            if (target != null) DrawTargetObject(target);
+            if (target != null) DrawObject(target);
         }
 
         /// <summary>分割条: 与  版同宽同色(布局只占 1px 的一条竖线), 按住拖动改 MenuWidth。</summary>

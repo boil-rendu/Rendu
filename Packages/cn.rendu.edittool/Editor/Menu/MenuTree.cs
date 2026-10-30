@@ -16,6 +16,55 @@ namespace RD.EditTool.Editor
 
         public MenuTreeSelection Selection { get; } = new();
 
+        /// <summary>项被"激活"(Enter / 双击)时触发; 单击选中不触发。</summary>
+        public event Action<MenuTreeItem> ItemActivated;
+
+        /// <summary>激活一个项(触发 <see cref="ItemActivated"/>)。</summary>
+        public void Activate(MenuTreeItem item) => ItemActivated?.Invoke(item);
+
+        /// <summary>项被拖拽重排后触发: 数据层顺序已改, UI 需要重建(窗口侧订阅)。</summary>
+        public event Action ItemsReordered;
+
+        /// <summary>
+        /// 把 item 移到 newParent(null = 根) 下的第 index 位, 并触发 <see cref="ItemsReordered"/>。
+        /// 三种情况直接放弃(不改树、不触发事件): item 不属于本树、目标就是自己、目标在自己的子树里
+        /// —— 最后一种会把整棵子树从树上摘下来, 必须挡住。
+        /// </summary>
+        public void MoveItem(MenuTreeItem item, MenuTreeItem newParent, int index)
+        {
+            if (item == null) return;
+            if (ReferenceEquals(item, newParent)) return;
+            if (newParent != null && IsDescendantOf(newParent, item)) return;
+
+            var from = item.Parent != null ? item.Parent.ChildMenuItems : MenuItems;
+            if (from.Contains(item) == false) return;
+
+            from.Remove(item);
+
+            var to = newParent != null ? newParent.ChildMenuItems : MenuItems;
+            if (index < 0) index = 0;
+            if (index > to.Count) index = to.Count;
+            to.Insert(index, item);
+
+            item.Parent = newParent;
+            item.Tree   = this;
+
+            ItemsReordered?.Invoke();
+        }
+
+        /// <summary>node 是否在 ancestor 的子树里(不含 ancestor 自身)。</summary>
+        private static bool IsDescendantOf(MenuTreeItem node, MenuTreeItem ancestor)
+        {
+            var p = node.Parent;
+            while (p != null)
+            {
+                if (ReferenceEquals(p, ancestor)) return true;
+                p = p.Parent;
+            }
+
+            return false;
+        }
+
         public string ConfigID { get; set; }
 
         public void SelectFirstMenuItem()
