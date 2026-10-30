@@ -68,7 +68,7 @@ public class MyConfig : SerializedScriptableObject
 }
 ```
 
-- **普通字段走 Unity 原生序列化**，`[Serialize]` 标记的、以及 public / `[SerializeField]` 的**复杂成员**（Dictionary、嵌套 POCO、HashSet 等 Unity 序列化器不认的类型）走 JSON 落盘（`EditorJsonUtility`），存进同一个 asset；
+- **普通字段走 Unity 原生序列化**，`[Serialize]` 标记的、以及 public / `[SerializeField]` 的**复杂成员**（Dictionary、嵌套 POCO、HashSet 等 Unity 序列化器不认的类型）走 JSON 落盘（cn.rendu.serialization 的序列化内核），存进同一个 asset；
 - 继承族自带检视器（`[CustomEditor(typeof(SerializedScriptableObject), true)]`），子类不用再登记；
 - 可选钩子：`OnAfterInspectorDeserialize()`（读盘后重算派生值用；与 Unity 的 `OnAfterDeserialize` 接口方法同名冲突，故保留 Inspector 前缀）；
 - **仅限编辑器资产**：基类在 Editor 程序集，运行时资产绝不能用。

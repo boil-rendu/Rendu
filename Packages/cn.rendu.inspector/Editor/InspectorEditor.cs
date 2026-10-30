@@ -30,8 +30,6 @@ namespace RD.Inspector.Editor
     [CanEditMultipleObjects]
     public class InspectorEditor : UnityEditor.Editor
     {
-        private const string UndoName = "Inspector";
-
         /// <summary>本检视器的状态会话: 生存期与 Editor 实例一致, 折叠状态不会泄漏到进程级。</summary>
         private readonly HostState m_Session = Engine.CreateHostState();
 
@@ -68,42 +66,13 @@ namespace RD.Inspector.Editor
 
             // 后端自己沿父链量得到宽(不受内容影响), 不需要视口宽 —— 清掉  时期留下的值
             m_Session.SetViewportWidth(0f);
-            Engine.DrawObject(target, null, OnBeforeChange, OnChanged, m_Session, m_Driver);
+            // 变更胶水统一走引擎; 传 target(序列化根)而非引擎回传的 owner ——
+            // owner 可能是组件内部的普通 C# 对象(如 UIData), 对它 Undo / SetDirty 都不起作用。
+            Engine.DrawObject(target, null,
+                             _ => { Engine.BeginChange(target); },
+                             _ => Engine.EndChange(target),
+                             m_Session, m_Driver);
         }
 
-        /// <summary>
-        /// 引擎即将写入数据: 在修改之前拍 Undo 快照。
-        /// 反射写值绕过了 SerializedProperty 的 Undo 机制, 只有在此刻记录才能让 Ctrl+Z 回到修改前的状态。
-        /// 注意用 Editor.target(序列化根)而不是引擎传回的 owner:
-        /// owner 可能是组件内部的普通 C# 对象(如 UIData), 对它做 Undo / SetDirty 都不起作用。
-        /// </summary>
-        private void OnBeforeChange(object owner)
-        {
-            Undo.RecordObject(target, UndoName);
-        }
-
-        /// <summary>引擎已修改数据: 标记脏并请求重绘, 保证修改能落盘。</summary>
-        private void OnChanged(object owner)
-        {
-            EditorUtility.SetDirty(target);
-
-            // 预制体实例上的反射修改不会被 Unity 自动识别为 override, 需要显式登记
-            if (PrefabUtility.IsPartOfPrefabInstance(target))
-            {
-                PrefabUtility.RecordPrefabInstancePropertyModifications(target);
-            }
-
-            RepaintInspector();
-        }
-
-        /// <summary>请求重绘当前检视器所在的窗口(Editor 自身没有 Repaint 接口)。</summary>
-        private static void RepaintInspector()
-        {
-            var focused = EditorWindow.focusedWindow;
-            if (focused != null)
-            {
-                focused.Repaint();
-            }
-        }
     }
 }

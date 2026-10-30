@@ -4,13 +4,16 @@
   "version": "1.0.0",
   "unity": "2022.3",
   "category": "Editor",
-  "description": "检视器宿主: InspectorEditor(挂到 UnityEditor.Editor) 与 SerializedScriptableObject 整族的 [CustomEditor] 登记。绘制引擎与全部特性在 cn.rendu.draw, 资产载体与序列化内核在 cn.rendu.serialization",
+  "description": "检视器宿主: InspectorEditor(挂到 UnityEditor.Editor) 与 SerializedScriptableObject 整族的 [CustomEditor] 登记。绘制引擎与全部特性在 cn.rendu.draw, 资产载体与序列化内核在 cn.rendu.serialization。使用文档见 Docs/Tutorial.md",
   "author": {
     "name": "Boil",
     "email": "rendu-core@outlook.com",
     "url": "https://github.com/RenduPackages"
   },
-  "repository": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RD-Packages/cn.rendu.inspector"
+  },
   "relatedPackages": {},
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/@RenduPackages"
