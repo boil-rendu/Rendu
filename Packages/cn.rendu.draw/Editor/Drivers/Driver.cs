@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -79,6 +80,15 @@ namespace RD.Draw.Editor
         /// <summary>是否已经在这一轮排过重绘: 一帧里的多次请求合并成一次。</summary>
         private bool m_RedrawScheduled;
 
+        /// <summary>是否正处在一次绘制过程内(BeginDraw..EndDraw) —— 临时诊断用, 用来抓"绘制中又请求重绘"的环。</summary>
+        private bool m_InDraw;
+
+        /// <summary>绘制中请求重绘(探测喂自己)的连续预算: 超过上限就停止喂食, 避免不确定时机的无限红绘环。</summary>
+        private const int MaxProbeRepaints = 30;
+
+        /// <summary>当前剩余预算; 外部触发(交互/缩放/选中/首帧)会重置回 <see cref="MaxProbeRepaints"/>。</summary>
+        private int m_ProbeRepaintBudget = MaxProbeRepaints;
+
         //-------------------------------------- 度量 --------------------------------------
 
         // 布局度量一律以保留模式控件规格为基准(见 RDTheme): 这里不留任何写死的像素值,
@@ -143,6 +153,9 @@ namespace RD.Draw.Editor
         /// 保留模式没有 Layout/Repaint 之分, 读到的是上一次布局结算的位置 ——
         /// 与 "量到 → 缓存 → 重绘"殊途同归, 排版用的都是已结算的值。
         /// </summary>
+        /// <summary>最近一次 <see cref="BeginScroll"/> 创建的滚动区 VE: 表格用它到布局完成后挂几何回调填高(避免整树重建抖动)。</summary>
+        public VisualElement ActiveScroll { get; private set; }
+
         public virtual float MeasureContentTop() => m_Tree.CurrentCursorBottom();
 
         /// <summary>
@@ -215,6 +228,8 @@ namespace RD.Draw.Editor
 
         public virtual void BeginDraw()
         {
+            m_InDraw = true;
+
             // 注意: 这里不能清 m_ClickedKey。点击与消费在同一个 OnGUI 帧内, 每帧清一次是对的;
             // 保留模式下点击发生在两次绘制之间, 在绘制开头清就会把点击抹掉, Button() 永远读不到。
             // 消费时机改到 EndDraw(这一轮没被消费 = 对应按钮这次没画到, 丢弃)
@@ -255,8 +270,11 @@ namespace RD.Draw.Editor
             }
             else if (m_WidthRetry++ == 0)
             {
+                UnityEngine.Debug.Log("[ContentJitter] EndDraw width retry");
                 RequestRepaint();
             }
+
+            m_InDraw = false;
         }
 
         /// <summary>
@@ -267,7 +285,23 @@ namespace RD.Draw.Editor
         {
             if (m_RedrawAction == null || m_RedrawScheduled) return;
 
+            if (m_InDraw)
+            {
+                // 绘制中请求重绘 = 探测喂自己(测量→缓存→重绘)。正常收敛几帧就停; 若卡在来回摆
+                // (表格按"可用下沿 − 当前位置"填高时尤其容易踩), 到预算上限就停, 避免不确定时机的
+                // 无限红绘环。预算用尽后这一轮不再喂食, 直到有外部触发重置。
+                if (m_ProbeRepaintBudget-- <= 0) return;
+                var fr = new StackTrace().GetFrame(1);
+                UnityEngine.Debug.Log($"[ContentJitter-Draw] RequestRepaint during draw from {fr?.GetMethod()?.DeclaringType?.Name}.{fr?.GetMethod()?.Name} (budget {m_ProbeRepaintBudget})");
+            }
+            else
+            {
+                // 外部触发(交互/缩放/选中/首帧自愈): 重置预算, 允许新一轮收敛。
+                m_ProbeRepaintBudget = MaxProbeRepaints;
+            }
+
             m_RedrawScheduled = true;
+
             m_Root.schedule.Execute(() =>
             {
                 m_RedrawScheduled = false;
@@ -374,6 +408,7 @@ namespace RD.Draw.Editor
         {
             var view = m_Tree.Take(() => new ScrollView(ScrollViewMode.Vertical), null);
             view.style.maxHeight = maxHeight;
+            ActiveScroll = view;
 
             // 只有竖向滚动条: 横向不滚, 内容再宽也只在原处裁掉。
             // 不关的话底部会凭空多出一条横条, 两种后端一眼就不一样
@@ -1067,6 +1102,7 @@ namespace RD.Draw.Editor
         /// <summary>控件被用户改动: 记下这个控件并排一次绘制(否则引擎永远看不到这次改动)。</summary>
         private void NoteChanged(VisualElement control)
         {
+            UnityEngine.Debug.Log($"[ContentJitter] NoteChanged {control.GetType().Name}");
             m_ChangedElements.Add(control);
             RequestRepaint();
         }

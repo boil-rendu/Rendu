@@ -1,8 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 using RD.Draw.Editor.Metadata;
 using RD.Draw.Editor.Rendering;
 using RD.Draw.Editor.Rules;
@@ -219,23 +221,24 @@ namespace RD.Draw.Editor.Tables
 
                 if (useScroll)
                 {
-                    // 高度有界, 避免与外层窗口滚动视图互相抢空间; 滚动区只含数据行(headerRows=0)
+                    // 高度有界, 避免与外层窗口滚动视图互相抢空间; 滚动区只含数据行(headerRows=0)。
+                    // 先给一个"按行数估"的预估高度(见 TableFillHeight 的兜底分支); 真正的"填满外框剩余高度"
+                    // 放到布局完成后的几何回调里直接改 style.maxHeight(只触发廉价回流, 不再整树重建)。
+                    // 旧逻辑用"量到→缓存→整树重绘"在每帧反复重排, 堆叠多表时串行传导成十几帧 —— 打开/切页签抖动的根因。
                     var maxHeight = TableFillHeight(target, member, list.Count, 0, table.NumberOfItemsPerPage);
 
-                    // 两处探测都必须在"滚动区真的存在"的那一刻做(建树时它还不存在), 因此挂到
-                    // 解释器的钩子上:
-                    //   - 进区前量当前位置(供下一帧算剩余高度);
-                    //   - 进区后量视口宽(供下一帧均分列宽)。
-                    // 与量宽同一套节奏: 量到 → 缓存 → 重绘, 排版用上一帧的值。
+                    // 视口宽仍按老办法量(滚动区已存在, 量完下一帧均分列宽); 填高改走几何回调。
                     var scrollNode = m_Builder.BeginScroll(ref scroll, maxHeight);
-                    scrollNode.BeforeBegin = _ => ProbeContentTop(target, member);
                     scrollNode.AfterBegin = _ =>
                     {
                         // 数据行就在这个滚动区里: 量一次视口宽, 同时喂给列宽分发(下一帧用)与诊断。
-                        // 后端量不到时(没实现 IDriverMeasure)返回 0, 两边都走各自的兜底。
                         var viewport = m_Ctx.Driver.MeasureScrollViewportWidth();
                         MeasureTableRowWidth(target, member, viewport);
                         m_Sink.SetTableScrollWidth(viewport);
+
+                        // 布局完成后, 用当前滚动区的实际位置直接填高, 不再触发整树重建(消除抖动)。
+                        var sv = m_Ctx.Driver.ActiveScroll;
+                        if (sv != null) RegisterTableFill(sv);
                     };
                     scrollNode.End = value => m_Ctx.Session.SetScroll(target, member.RawName, value);
                 }
@@ -288,7 +291,7 @@ namespace RD.Draw.Editor.Tables
         /// 表格开 DrawScrollView 时的滚动区高度上限。
         ///
         /// 优先**填满外框剩下的高度**: 数据区底边贴着表格盒的下沿, 窗口拉高(视口变高)时跟着拉长。
-        /// 算法: 可用下沿 − 滚动区所在的纵坐标(<see cref="ProbeContentTop"/> 上一帧量到的值)。
+        /// 算法: 可用下沿 − 滚动区所在的纵坐标(现在由几何回调在布局完成后直接量、直接填, 见 <see cref="ApplyTableFill"/>)。
         ///
         /// 下沿有两个来源: 由宿主经 HostState 报(它拿不到视口矩形), 或
         /// 后端自己就在 ScrollView 里、直接量得到(见 <see cref="Driver.AvailableBottom"/>)。
@@ -310,7 +313,7 @@ namespace RD.Draw.Editor.Tables
             if (bottom <= 1f) bottom = m_Ctx.Driver.AvailableBottom;
             if (bottom <= 1f) return byRows;
 
-            // 位置取**上一帧量到的值**(见 ProbeContentTop): 当场量会让 Layout 与 Repaint 各算一个高度
+            // 初值兜底: 下面取上一帧缓存的位置; 真正"填满外框剩余高度"已改由几何回调 ApplyTableFill 在布局完成后处理。
             var top = m_Ctx.Session.GetContentTop(target, member.RawName);
             if (top <= 1f) return byRows;
 
@@ -323,25 +326,83 @@ namespace RD.Draw.Editor.Tables
         }
 
         /// <summary>
-        /// 量一次"滚动区当前落在窗口的哪个高度", 变了就存进会话并请求重绘(下一帧按新值算剩余高度)。
+        /// 把"表格滚动区填满外框剩余高度"放到布局完成后的几何回调里做: 直接改滚动区的
+        /// <c>style.maxHeight</c>(只触发廉价回流, 不重建整棵树), 从而消除"量到→缓存→整树重绘"
+        /// 在每帧反复重排、堆叠多表时串行传导成十几帧的打开/切页签抖动。
         ///
-        /// 为什么不能当场用:  GetRect 只有 Repaint 事件给出结算后的位置, Layout 事件里
-        /// 是 0 —— 当场用就会让两个 pass 算出不同的滚动区高度(布局按旧值、重绘按新值),
-        ///  随后报控件数与布局不一致。所以沿用"量宽"那套: 量到 → 缓存 → 请求重绘。
+        /// 与旧探针同一套几何关系(下沿 − 当前位置), 但用屏幕坐标的 worldBound 折算到外层滚动区的内容坐标,
+        /// 与宿主报的下沿(ContentBottom / AvailableBottom)同一坐标系, 滚动安全。
         /// </summary>
-        private void ProbeContentTop(object target, CachedMember member)
+        private static readonly ConditionalWeakTable<VisualElement, EventCallback<GeometryChangedEvent>> SFillHandlers = new();
+        private static readonly ConditionalWeakTable<VisualElement, FillIter> SFillIters = new();
+
+        private sealed class FillIter
         {
-            // 上下沿都拿不到时量了也没人用, 省掉这次探测(下沿由宿主报、可用宽由后端直接量)
-            if (m_Ctx.Session.ContentBottom <= 1f && m_Ctx.Driver.AvailableBottom <= 1f) return;
+            public int Value;
+        }
 
-            // 探测本身有布局副作用: 上面这个条件只依赖会话里的值(同一帧两个 pass 一致), 次数是固定的
-            var top = m_Ctx.Driver.MeasureContentTop();
-            if (top <= 1f) return;
+        private void RegisterTableFill(VisualElement scrollView)
+        {
+            // 滚动区 VE 是池化复用的: 复用时先卸掉上一轮挂的回调, 再挂新的, 保证每轮只有一个存活。
+            if (SFillHandlers.TryGetValue(scrollView, out var old))
+            {
+                scrollView.UnregisterCallback(old);
+                SFillHandlers.Remove(scrollView);
+            }
 
-            if (Mathf.Abs(top - m_Ctx.Session.GetContentTop(target, member.RawName)) <= 0.5f) return;
+            EventCallback<GeometryChangedEvent> handler = _ => ApplyTableFill(scrollView);
+            SFillHandlers.Add(scrollView, handler);
+            scrollView.RegisterCallback(handler);
+        }
 
-            m_Ctx.Session.SetContentTop(target, member.RawName, top);
-            m_Ctx.Driver.RequestRepaint();
+        private void ApplyTableFill(VisualElement scrollView)
+        {
+            var driver = m_Ctx.Driver;
+
+            // 屏幕坐标 top 折算到外层滚动区的内容坐标(加 scrollOffset, 因为屏幕 = 内容 − scrollOffset),
+            // 与下沿(宿主报的 ContentBottom, 也是内容坐标的固定下沿)同系 —— 这样未滚动 / 已滚动都正确(原探针只在未滚动时一致)。
+            var outer = FindOuterScroll(scrollView);
+            if (outer == null) return;
+            var topContent = scrollView.worldBound.y + outer.scrollOffset.y;
+            if (topContent <= 1f) return;
+
+            var bottom = m_Ctx.Session.ContentBottom;   // 固定内容下沿(宿主报)
+            if (bottom <= 1f) bottom = driver.AvailableBottom;
+            if (bottom <= 1f) return;
+
+            var maxH = bottom - topContent - driver.BoxInsets;
+            if (maxH <= 1f) return;
+
+            var minimum = driver.LineHeight * MinTableVisibleRows + driver.ScrollbarHeight;
+            maxH = Mathf.Max(maxH, minimum);
+
+            var cur = scrollView.style.maxHeight.value.value;   // StyleLength → Length → float
+            if (Mathf.Abs(maxH - cur) <= 1f)   // 1px 滞后, 吸收亚像素, 避免来回摆
+            {
+                SFillIters.Remove(scrollView);
+                return;
+            }
+
+            // 安全闸: 同一 VE 连续改太多次(>100)就停, 防几何环把 CPU 打满(正常收敛远小于此)。
+            if (SFillIters.TryGetValue(scrollView, out var iter))
+            {
+                if (iter.Value > 100) return;
+                iter.Value++;
+            }
+            else
+            {
+                SFillIters.Add(scrollView, new FillIter { Value = 1 });
+            }
+
+            scrollView.style.maxHeight = maxH;
+        }
+
+        private static ScrollView FindOuterScroll(VisualElement element)
+        {
+            for (var e = element.parent; e != null; e = e.parent)
+                if (e is ScrollView s) return s;
+
+            return null;
         }
 
         /// <summary>
@@ -353,7 +414,7 @@ namespace RD.Draw.Editor.Tables
         /// 为什么不会"越撑越宽": 滚动区的矩形由外框给定, 与里面画什么无关(表格再宽也顶不大它);
         /// 再加上 <see cref="ClampTableWidth"/> 与根宽这道上限, 不存在"内容撑宽 → 再排更宽"的反馈环。
         ///
-        /// 时机与 <see cref="ProbeContentTop"/> 同理: 只有 Repaint 事件拿得到结算后的矩形,
+        /// 时机同理: 只有 Repaint 事件拿得到结算后的矩形,
         /// 所以量到 → 缓存 → 请求重绘, 排版用上一帧的值。
         /// </summary>
         private void MeasureTableRowWidth(object target, CachedMember member, float width)
