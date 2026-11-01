@@ -12,13 +12,13 @@ namespace RD.PackageManager.Editor
     /// </summary>
     public class RDPackageManagerWindow : GenericToolWindow
     {
-        [MenuItem("RD/PackageManager/包管理集成工具", false, 150)]
+        [MenuItem("RD/PackageManager/包管理集成工具/打开", false, 150)]
         public static void OpenWindow()
         {
             GetWindow<RDPackageManagerWindow>("RD包管理").Show();
         }
 
-        //错误时使用的 面板出现了错误 会导致如何都打不开 就需要先关闭
+        [MenuItem("RD/PackageManager/包管理集成工具/关闭", false, 151)]
         public static void CloseWindow()
         {
             GetWindow<RDPackageManagerWindow>()?.Close();
