@@ -9,7 +9,7 @@ cn.rendu.edittool/
 ├── Editor/
 │   ├── RD.EditTool.Editor.asmdef   程序集：RD.EditTool.Editor（Editor 平台）
 │   ├── Window/                     窗口宿主层
-│   │   ├── EditorWindowBase.cs         轻量编辑器窗口基类（继承 DrawWindow）
+│   │   ├── DrawWindow.cs               抽象编辑器窗口基类（继承 EditorWindow）
 │   │   ├── MenuEditorWindow.cs         左菜单树 + 可拖拽分割条 + 右内容面板
 │   │   └── WindowTypes.cs              停靠窗口类型注册表（RegisterWindowType / GetAllWindowTypes）
 │   ├── Menu/                       菜单树数据模型（纯数据，绘制在 MenuEditorWindow）
@@ -20,12 +20,10 @@ cn.rendu.edittool/
 │   │   ├── ToolModuleBase.cs           工具模块最底层基类（Initialize / OnDestroy 契约）
 │   │   ├── BaseToolModule.cs           工具模块基类（持有宿主窗口 / 菜单树 / 模块名 / 自定义数据）
 │   │   └── BaseTreeMenuItem.cs         菜单项模板（首次选中初始化一次 → Select）+ TreeMenuItem<T> 泛型封装
-│   ├── Mvvm/                       通用 MVVM 基础设施（命令 / ViewModel，与窗口宿主无关，可复用）
-│   │   ├── ICommand.cs                 ICommand / ICommand<T> 命令契约
-│   │   ├── CommandBase.cs              命令基类（CanExecute / Validate / ExecuteWithValidation）
-│   │   └── ViewModelBase.cs            INotifyPropertyChanged + IDisposable 的 ViewModel 基类
-│   └── Prefs/
-│       └── EditorPrefsValue.cs         EditorPrefs 强类型泛型包装
+│   └── Mvvm/                       通用 MVVM 基础设施（命令 / ViewModel，与窗口宿主无关，可复用）
+│       ├── ICommand.cs                 ICommand / ICommand<T> 命令契约
+│       ├── CommandBase.cs              命令基类（CanExecute / Validate / ExecuteWithValidation）
+│       └── ViewModelBase.cs            INotifyPropertyChanged + IDisposable 的 ViewModel 基类
 └── Tests/Editor/                       EditMode 测试（RD.EditTool.Tests.Editor；MenuTreeTests 14 例）
 ```
 
@@ -44,7 +42,7 @@ cn.rendu.edittool/
 
 单数 `RD.EditTool` 会**遮蔽 `UnityEditor.EditorWindow` 类型**：C# 名称查找先扫外层命名空间 `RD` 的成员（找到命名空间 `RD.EditTool` 就停），轮不到 `using UnityEditor` —— 于是任何 `RD.*` 命名空间下裸写 `EditorWindow` 都会 CS0118。这与 `RD.Inspector.Editor` 里裸写 `Editor` 的坑同源（见 inspector 教程 0.3 节）。程序集名不参与查找，保持单数 `RD.EditTool.Editor`。
 
-## EditorWindowBase
+## DrawWindow
 
 普通窗口；`OnGUI` 里自动用引擎绘制**窗口自身**的成员：
 
@@ -53,7 +51,7 @@ using RD.Draw;
 using RD.EditTool.Editor;
 using UnityEditor;
 
-public class MyWindow : EditorWindowBase
+public class MyWindow : DrawWindow
 {
     [MenuItem("Tools/My Window")]
     private static void OpenWindow() => GetWindow<MyWindow>("My").Show();
@@ -86,7 +84,7 @@ public class MyToolWindow : MenuEditorWindow
     [MenuItem("Tools/My Tool")]
     public static void OpenWindow() => GetWindow<MyToolWindow>("My Tool").Show();
 
-    private EditorPrefsValue<string> m_LastSelectMenuPrefs = new("MyTool_LastSelectMenu", "全局设置");
+    private readonly RD.Utilities.PrefsValue<string> m_LastSelectMenuPrefs = new("MyTool_LastSelectMenu", null, "");
 
     protected override MenuTree BuildMenuTree()
     {
@@ -136,7 +134,7 @@ public class ResCheckModule : BaseToolModule
 约定：
 
 - 菜单项是 `TreeMenuItem<T>`（`BaseTreeMenuItem` 的泛型封装）：**首次选中 `Initialize()` 一次**，之后每次选中走子类的 `Select()`；窗口销毁时基类统一调所有模块的 `OnDestroy()`；
-- 上次选中项（菜单名 + 模块路径）持久化在 EditorPrefs，重开窗口自动恢复并展开父级；
+- 上次选中项（菜单名 + 模块路径）通过 cn.rendu.utilities 的 `PrefsValue<T>` 持久化（底层 PlayerPrefs），重开窗口自动恢复并展开父级；
 - 建树 / 选中 / 销毁的异常都被接住并记日志，不会把窗口打炸；
 - `[ToolMenu]` 的名字与文件 `ToolMenuAttribute.cs` 一致，框架本身是通用的（历史名 UIAutoMenu 已废弃）。
 
@@ -178,12 +176,12 @@ tree.ConfigID = "xxx";          // 供使用方做持久化标识
 
 建树的隐式约定（同名路径**就地替换**而非重复添加、重复选中不重复触发事件等）由 `MenuTreeTests` 固化为行为契约。
 
-## EditorPrefsValue&lt;T&gt;
+## PrefsValue&lt;T&gt;（来自 cn.rendu.utilities）
 
-`EditorPrefs` 的强类型包装（string / int / float / bool / 枚举），窗口宽度、上次选中项之类的小状态一行落盘：
+`PrefsValue<T>`（来自 cn.rendu.utilities，包裹 `PlayerPrefs`）的强类型包装（string / int / float / bool / 枚举），窗口宽度、上次选中项之类的小状态一行落盘：
 
 ```csharp
-private readonly EditorPrefsValue<float> m_MenuWidthPrefs = new("MyTool_MenuWidth", 300f);
+private readonly RD.Utilities.PrefsValue<float> m_MenuWidthPrefs = new("MyTool_MenuWidth", null, 300f);
 ```
 
 ## 测试
@@ -192,7 +190,7 @@ private readonly EditorPrefsValue<float> m_MenuWidthPrefs = new("MyTool_MenuWidt
 
 ## 与引擎的接口
 
-`EditorWindowBase` 内部已经持有一份 `HostState`（折叠 / 滚动状态各窗口独立、不串台）并在绘制时把它传到 `Engine.DrawObject`，子类不需要直接管 session：
+`DrawWindow` 内部已经持有一份 `HostState`（折叠 / 滚动状态各窗口独立、不串台）并在绘制时把它传到 `Engine.DrawObject`，子类不需要直接管 session：
 
 | 子类会调用的入口 | 说明 |
 |---|---|

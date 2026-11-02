@@ -3,13 +3,16 @@
   "displayName": "RD.EditTool",
   "version": "1.0.0",
   "unity": "2022.3",
-  "description": "编辑器窗口宿主(IMGUI / UI Toolkit): EditorWindowBase / MenuEditorWindow / MenuTree / EditorPrefsValue / GenericToolWindow 工具模块框架, 绘制引擎与全部特性来自 cn.rendu.draw, 供 RD 全仓使用",
+  "description": "编辑器窗口宿主(IMGUI / UI Toolkit): DrawWindow / MenuEditorWindow / MenuTree / GenericToolWindow 工具模块框架, 绘制引擎与全部特性来自 cn.rendu.draw, 供 RD 全仓使用。使用文档见 Docs/Tutorial.md",
   "author": {
     "name": "Boil",
     "email": "rendu-core@outlook.com",
     "url": "https://github.com/RenduPackages"
   },
-  "repository": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RD-Packages/cn.rendu.edittool"
+  },
   "relatedPackages": {},
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/@RenduPackages"
