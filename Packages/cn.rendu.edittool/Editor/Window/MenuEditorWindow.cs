@@ -291,10 +291,14 @@ namespace RD.EditTool.Editor
             m_ContentEmptyHint.style.marginTop = EmptyHintTopMargin;
             scroll.contentContainer.Add(m_ContentEmptyHint);
 
+            // 宿主是新的, 上次目标作废 —— 必须先作废再建: CreateContentArea 里会同步首画一次,
+            // 那一次就该吃下"整树重建"; 若放到建之后才清, 首画已把目标记下、这里再清一次,
+            // 就会多走一轮 TargetChanged(白清一次树)才收敛。
+            m_LastDrawnTarget = null;
+
             // 内容区挂上驱动后即画第一遍; 这之前的所有 RedrawContent(建外壳时的默认选中)
             // 都被 ContentDriverReady 挡住, 不会画到整窗 root 上。
-            m_ContentHost     = CreateContentArea(scroll.contentContainer, RedrawContent, false);
-            m_LastDrawnTarget = null;   // 宿主是新的, 上次目标作废: 下一画必走整树重建
+            m_ContentHost = CreateContentArea(scroll.contentContainer, RedrawContent, false);
 
             var host = m_ContentHost;
 
@@ -374,8 +378,9 @@ namespace RD.EditTool.Editor
             if (bottom <= 1f) return;
             if (Mathf.Abs(bottom - m_LastContentBottom) <= 0.5f) return;
 
+            var previous = m_LastContentBottom;
             m_LastContentBottom = bottom;
-            Debug.Log($"[ContentJitter] bottom {m_LastContentBottom:F2} -> {bottom:F2} (Δ{(bottom - m_LastContentBottom):F2}, scrollOffsetY={scroll.scrollOffset.y:F2}) => RequestRedraw");
+            Debug.Log($"[ContentJitter] bottom {previous:F2} -> {bottom:F2} (Δ{(bottom - previous):F2}, scrollOffsetY={scroll.scrollOffset.y:F2}) => RequestRedraw");
             m_Session.SetContentBottom(bottom);
 
             // 延后重绘: 回调发生在布局阶段, 当场重画等于在事件处理里重入布局。

@@ -183,10 +183,28 @@ namespace RD.Draw.Editor
         }
 
         /// <summary>
-        /// 滚动区的内容组由 ScrollView 给定宽(已扣掉竖向滚动条), 沿父链解析到的就是视口宽;
-        /// 保留模式没有 Layout/Repaint 之分, 也不存在"读到未结算矩形"的问题。
+        /// 滚动区视口宽: 只认**当前容器(contentContainer)自己**已结算的宽, 不往祖先退。
+        ///
+        /// 不能用 <see cref="ContentWidth"/>: 它会沿父链退到"第一个布局过的祖先"当兜底。
+        /// 表格重建后内容组还没布局时, 退到的是表格盒子宽(没扣 padding / 竖向滚动条),
+        /// 比真实视口宽出一截; 下一帧内容组布局好又是真实视口宽 —— 两个值每帧交替,
+        /// <c>TableRenderer.MeasureTableRowWidth</c> 就每帧都当成"新的视口宽"再 RequestRepaint,
+        /// 形成重绘死环(实测 ~30 帧才被探测预算截停)。
+        ///
+        /// 未布局时返回 0: 调用方据此跳过本次测量, 沿用上一帧缓存, 表格退回"按盒子层数估内缩"
+        /// 的老路 —— 稳定不抖, 只是右侧可能差几像素, 远好过整树反复重建。
         /// </summary>
-        public virtual float MeasureScrollViewportWidth() => ContentWidth;
+        public virtual float MeasureScrollViewportWidth()
+        {
+            var container = m_Tree.CurrentContainer;
+            if (container == null) return 0f;
+
+            var width = container.resolvedStyle.width;
+            if (float.IsNaN(width) || width < MinUsableWidth) return 0f;
+
+            var padding = container.resolvedStyle.paddingLeft + container.resolvedStyle.paddingRight;
+            return Mathf.Max(width - padding, 0f);
+        }
 
         /// <summary>
         /// 沿父链取**最近的**有效宽度: 当前最内层容器 > 父 > 爷..., 遇到第一个就停。
@@ -413,6 +431,12 @@ namespace RD.Draw.Editor
             // 只有竖向滚动条: 横向不滚, 内容再宽也只在原处裁掉。
             // 不关的话底部会凭空多出一条横条, 两种后端一眼就不一样
             view.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
+
+            // 竖向滚动条必须 AlwaysVisible: 它的显隐会直接改变滚动区视口宽,
+            // 而表格拿"视口宽"去均分列宽(见 TableRenderer.MeasureTableRowWidth)。
+            // 显隐一跳, 视口宽就 751↔704 抖一下, 每帧都触发 RequestRepaint → 重绘反馈环。
+            // 常驻(哪怕空表也留轨道)换视口宽恒定, 列宽一次收敛, 不再重绘。
+            view.verticalScrollerVisibility = ScrollerVisibility.AlwaysVisible;
 
             // UIElements 自己维护滚动位置: 首帧用会话里的值播种, 之后以控件为准(不再来回搬)
             if (scroll != view.scrollOffset) view.scrollOffset = scroll;
