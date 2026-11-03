@@ -3,13 +3,16 @@
   "displayName": "RD.Utilities",
   "version": "1.0.0",
   "unity": "2022.3",
-  "description": "通用工具库(运行时): 集合扩展(CollectionExtensions) + 反射深拷贝(ObjectExtensions.Clone)。零依赖, 不引用任何业务包, 运行时与编辑器都能用",
+  "description": "通用工具库(运行时): 集合扩展(CollectionExtensions) + 反射深拷贝(ObjectExtensions.Clone)。零依赖, 不引用任何业务包, 运行时与编辑器都能用。使用文档见 Docs/Tutorial.md",
   "author": {
     "name": "Boil",
     "email": "rendu-core@outlook.com",
     "url": "https://github.com/RenduPackages"
   },
-  "repository": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RD-Packages/cn.rendu.utilities"
+  },
   "relatedPackages": {},
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/@RenduPackages"
