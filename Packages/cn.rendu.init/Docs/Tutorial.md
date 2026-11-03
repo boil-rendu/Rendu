@@ -18,7 +18,7 @@
    - `CodeMode`（`Client=1` / `Server=2` / `ClientServer=3`）
    - `Address`（如 `127.0.0.1:10101`）
 2. Inspector 点 **Set Main Package** → `MainPackageSelector.SetAsMainPackage` 写出根目录 `MainPackage.txt`（首行主包名，其后逐行主包的 `cn.rendu.*` 依赖），并把主包 `RD.sln` 硬链到工程根。
-3. Inspector 点 **Set Code Mode** → 执行 `Bin/RD.Init.dll --CodeMode=X` → 读 `MainPackage.txt` → `CodeModeChangeHelper` 重写各包 `AssemblyReference.asmref`，切换 Client / Server / ClientServer 的编译范围。
+3. Inspector 点 **Set Code Mode** → 执行 `dotnet run --project Packages/cn.rendu.init/DotNet~/RD.CodeMode/RD.CodeMode.csproj -- --CodeMode=X` → 读 `MainPackage.txt` → `CodeModeChangeHelper` 重写各包 `AssemblyReference.asmref`，切换 Client / Server / ClientServer 的编译范围。
 
 ## 第 3 章 验证与排错
 

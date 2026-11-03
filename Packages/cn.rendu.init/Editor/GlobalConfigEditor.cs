@@ -51,13 +51,13 @@ namespace RD.Init.Editor
                 {
                     EditorGUILayout.PropertyField(iterator, true);
                     EditorGUILayout.BeginHorizontal();
-                    if (GUILayout.Button("Set Code Mode"))
-                    {
-                        RefreshAssemblyReferenceByCodeMode(globalConfig.CodeMode);
-                    }
                     if (GUILayout.Button("Set Main Package"))
                     {
                         SetMainPackageBySceneName(globalConfig);
+                    }
+                    if (GUILayout.Button("Set Code Mode"))
+                    {
+                        RefreshAssemblyReferenceByCodeMode(globalConfig.CodeMode);
                     }
                     EditorGUILayout.EndHorizontal();
                     continue;
@@ -80,7 +80,10 @@ namespace RD.Init.Editor
 
         private static void RefreshAssemblyReferenceByCodeMode(CodeMode codeMode)
         {
-            Process process = ProcessHelper.DotNet($"Bin/RD.Init.dll --CodeMode={codeMode}", ".", true);
+            // 以工程方式直接运行 CodeMode 工具(dotnet run --project), 避免依赖预先构建并拷贝到 Bin/RD.Init.dll。
+            // 旧写法依赖 Bin/RD.Init.dll, 但该文件实际不存在(工具工程名为 RD.CodeMode 且从未部署到该路径);
+            // 文件缺失时 dotnet 会退回扫描工程根目录, 而工程根含多个 .csproj, 于是报"包含多个项目文件"错误。
+            Process process = ProcessHelper.DotNet($"run --project Packages/cn.rendu.init/DotNet~/RD.CodeMode/RD.CodeMode.csproj -- --CodeMode={codeMode}", ".", true);
             process.WaitForExit();
             if (process.ExitCode != 0)
             {
