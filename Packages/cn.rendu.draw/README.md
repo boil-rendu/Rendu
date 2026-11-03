@@ -9,12 +9,12 @@
 
 > 引擎之上分三层，都只依赖本包：**cn.rendu.serialization**（序列化层：`SerializedScriptableObject` / `Serialization`）、**cn.rendu.inspector**（检视器宿主：`InspectorEditor` 与资产载体整族的 `[CustomEditor]` 登记）、**cn.rendu.edittool**（工具窗口宿主：`MenuEditorWindow` 等）。两个宿主并列，互不依赖；序列化层同样可被任宿主单独引用。本包程序集名是 `RD.Draw` / `RD.Draw.Editor`；检视器宿主包 cn.rendu.inspector 的程序集是 `RD.Inspector.Editor`（命名空间同名，没跟着改）。
 
-> **第一次使用请先看教程**：[`Documentation~/Tutorial.md`](Documentation~/Tutorial.md) —— 从零接入、到写出自己的工具窗口，按步骤走并有排错手册；本文件是特性手册，适合查阅。
+> **第一次使用请先看教程**：[`Docs/Tutorial.md`](Docs/Tutorial.md) —— 从零接入、到写出自己的工具窗口，按步骤走并有排错手册；本文件是特性手册，适合查阅。
 >
 > 设计取向：特性名与用法贴近主流检视器的习惯（便于迁移），但**零第三方依赖**（纯 C# + Unity API）。
 > 文档里每个特性的"生效情况"都是照引擎源码逐项核对过的实测结论，不是照抄别处文档 —— 哪些参数当前没读取，下文都明确标出。
 
-![检视器面板：一个类能画成什么样子](Documentation~/images/01-overview.png)
+![检视器面板：一个类能画成什么样子](Docs/images/01-overview.png)
 
 *图 1：同一个类里的字段、分组、按钮、表格 —— 引擎按特性把它们画出来（示意图，非截图）。*
 
@@ -44,7 +44,7 @@
 cn.rendu.draw/
 ├── package.json                     包元信息（name / displayName / version）
 ├── README.md                        本文件（特性手册）
-├── Documentation~/                  文档资源（Unity 不导入 `~` 结尾的目录）
+├── Docs/                            文档资源（Tutorial、架构设计、示意图）
 │   ├── Tutorial.md                  使用教程（怎么用：第 13 章排错、第 14 章选型）
 │   ├── images/                      文档配图
 │   └── generate_images.py           生成这些配图的脚本
@@ -181,7 +181,7 @@ cn.rendu.draw/
 | `RD.Draw.Editor` | `RD.Draw` | **Editor-only**。全包没有任何 `[MenuItem]`，也没有任何 `[CustomEditor]`（检视器宿主在 cn.rendu.inspector 包）：画什么、入口在哪，全部由使用方决定 |
 | `RD.Draw.Tests.Editor` | 前两者 | 仅测试用；通过 `InternalsVisibleTo` 访问引擎的 internal 元数据 |
 
-> 结论：**Runtime 代码只需要引用 `RD.Draw`**（用特性）；**写自定义宿主的 Editor 代码要引用 `RD.Draw.Editor`**（引擎）；引擎之上分三层，引包即用 —— 序列化 **cn.rendu.serialization**（程序集 `RD.Serialization.Editor`）、检视器宿主 **cn.rendu.inspector**（程序集 `RD.Inspector.Editor`）、工具窗口宿主 **cn.rendu.edittool**（`EditorWindowBase` / `MenuEditorWindow` / `MenuTree` / `EditorPrefsValue<T>`）。后两者并列，互不依赖。
+> 结论：**Runtime 代码只需要引用 `RD.Draw`**（用特性）；**写自定义宿主的 Editor 代码要引用 `RD.Draw.Editor`**（引擎）；引擎之上分三层，引包即用 —— 序列化 **cn.rendu.serialization**（程序集 `RD.Serialization.Editor`）、检视器宿主 **cn.rendu.inspector**（程序集 `RD.Inspector.Editor`）、工具窗口宿主 **cn.rendu.edittool**（`DrawWindow` / `MenuEditorWindow` / `MenuTree`）；持久化用 cn.rendu.utilities 的 `PrefsValue<T>`）。后两者并列，互不依赖。
 > 如果工程用 asmdef 组织代码，Editor 目录可以通过 **Assembly Definition Reference（`.asmref`）** 归并进自己的 Editor 程序集，从而天然拥有这些能力。
 
 ### Components 层（组合控件）
@@ -199,7 +199,7 @@ cn.rendu.draw/
 
 独立弹窗（类型选择器）**不在这一层**：它们在 `Editor/Selectors/`，自带 `EditorWindow`、独立窗口、不经过绘制后端 —— 那层的规则只有一条：只碰公开契约与 Unity 编辑器 API，不碰引擎内部、不掺业务语义。
 
-![包结构：三层，业务零耦合](Documentation~/images/06-architecture.png)
+![包结构：三层，业务零耦合](Docs/images/06-architecture.png)
 
 *图 2：Runtime 只放特性；Editor 放引擎与引擎之上的组合控件（宿主在另外两个包）；业务类型永远不出现在这套包里。*
 
@@ -259,7 +259,7 @@ public class MyEditorAsset : SerializedScriptableObject
 
 ### 2.3 编辑器窗口
 
-窗口宿主已迁至独立包 **`cn.rendu.edittool`**（程序集 `RD.EditTool.Editor`，命名空间 `RD.EditTool.Editor`）：`EditorWindowBase`、`MenuEditorWindow`、`MenuTree`、`EditorPrefsValue<T>`。
+窗口宿主已迁至独立包 **`cn.rendu.edittool`**（程序集 `RD.EditTool.Editor`，命名空间 `RD.EditTool.Editor`）：`DrawWindow`、`MenuEditorWindow`、`MenuTree`；持久化用 cn.rendu.utilities 的 `PrefsValue<T>`。
 
 - 窗口包引用 `RD.Draw` / `RD.Draw.Editor`，用 `Engine.DrawObject` 绘制窗口自身与右侧面板；
 - 跨程序集宿主各持独立会话的入口：`Engine.CreateHostState()` 创建不透明状态句柄，绘制时传 `DrawObject(target, host, onBeforeChange, onChanged, state)`，各窗口的折叠 / 滚动状态互不串台；
@@ -334,7 +334,7 @@ public void OnGUI()
 - 引擎有深度上限与环检测（"正在绘制"集合 + parent 判定），自引用 / 循环引用会被剪断；**绘制侧上限 `Engine.MaxDepth = 24`**（序列化侧是 32，见第 6 节）；
 - 折叠（展开）状态存在会话里（`HostSession`，成员状态按宿主对象弱引用分桶），域重载后回到默认展开。
 
-![成员可见性规则](Documentation~/images/02-visibility-rules.png)
+![成员可见性规则](Docs/images/02-visibility-rules.png)
 
 *图 3：字段 / 属性 / 方法各自的"画与不画"判定（示意图）。*
 
@@ -386,7 +386,7 @@ public void OnGUI()
 | `[TitleGroup("名字")]` | `Alignment`、`HorizontalLine`、`BoldTitle` | 带横线的大标题分组 | 生效（`IndentChildren` 未读取）。`Alignment`：`Left`/`Centered`/`Right` 生效；分组没有副标题，`Split` 退化为 `Left` |
 | `[TabGroup("页签名")]` | — | 页签分组 | **降级实现**：引擎当前把它当作垂直组绘制（源码注释原话："页签分组暂按垂直组降级"） |
 
-![六种分组容器的样子](Documentation~/images/03-groups.png)
+![六种分组容器的样子](Docs/images/03-groups.png)
 
 *图 4：分组特性的实际视觉效果；注意 `TabGroup` 当前是垂直组降级（示意图）。*
 
@@ -415,7 +415,7 @@ public void OnGUI()
 - 无参方法也可以（引擎按"无参方法"取值）；
 - `[ShowIf].Animate` 参数当前**未读取**（不校验、不报错，只是没有动画）。
 
-![条件显隐与启禁的四种写法](Documentation~/images/04-conditions.png)
+![条件显隐与启禁的四种写法](Docs/images/04-conditions.png)
 
 *图 5：`ShowIf` / `HideIf` / `EnableIf` / `DisableIf` 在条件成立与不成立时的表现（示意图）。*
 
@@ -511,7 +511,7 @@ private IEnumerable GetTeamSelectList()
 
 **判定规则：字符串以 `@` 开头才算表达式**（`ExpressionEvaluator.IsExpression`）。不带 `@` 的参数一律按"成员名 / 方法名"反射处理。
 
-![表达式求值管线](Documentation~/images/05-expressions.png)
+![表达式求值管线](Docs/images/05-expressions.png)
 
 *图 6：从特性里的字符串到布尔结果 —— 解析只做一次，求值每次都重读数据（示意图）。*
 
@@ -594,7 +594,7 @@ private IEnumerable GetTeamSelectList()
 
 > 本节内容（`SerializedScriptableObject` 与序列化器 `Serialization`）在独立的序列化包 **cn.rendu.serialization** 的 `Editor/`（程序集 `RD.Serialization.Editor`）。要点回顾：
 
-- 普通字段走 Unity 原生序列化；`[Serialize]`标记的与 public / `[SerializeField]` 的**复杂成员**（Dictionary、嵌套 POCO、HashSet 等）走 `EditorJsonUtility` JSON 落盘，存进同一个 asset；
+- 普通字段走 Unity 原生序列化；`[Serialize]`标记的与 public / `[SerializeField]` 的**复杂成员**（Dictionary、嵌套 POCO、HashSet 等）走 cn.rendu.serialization 的 JSON 序列化内核落盘，存进同一个 asset；
 - 继承族自带检视器（整族登记在 cn.rendu.inspector），子类无需再登记；
 - 行为契约由 cn.rendu.serialization 的 `SerializationTests`（19 例）钉住；"Unity 属性包类型（曲线/渐变）"的判定 `Engine.IsUnityValueBagType` 留在本包引擎侧（绘制与序列化共用同一条规则，全仓一份实现）。
 
@@ -602,9 +602,11 @@ private IEnumerable GetTeamSelectList()
 
 ## 7. 编辑器窗口与菜单树（已迁出）
 
-`EditorWindowBase` / `MenuEditorWindow` / `MenuTree` / `EditorPrefsValue<T>` 已迁至独立包 **`cn.rendu.edittool`**（命名空间 `RD.EditTool.Editor`，详见该包 README）；菜单树建树规则（路径自动补齐、同名就地替换、深度优先遍历、选中事件）的行为契约也随包迁移（`MenuTreeTests`，14 例）。
+`DrawWindow` / `MenuEditorWindow` / `MenuTree` 在 **`cn.rendu.edittool`**，持久化用 cn.rendu.utilities 的 `PrefsValue<T>`（命名空间 `RD.EditTool.Editor`，详见该包 README）；菜单树建树规则（路径自动补齐、同名就地替换、深度优先遍历、选中事件）的行为契约也随包迁移（`MenuTreeTests`，14 例）。
 
 引擎侧不变的承诺：`Engine.DrawObject` 仍接受 `EditorWindow host`（传窗口实例表示窗口自绘），窗口包的右侧面板就是用它绘制任意普通 C# 对象 —— **任何 `class` 都能直接当面板内容**，`[Button]` 照常出按钮。
+
+![菜单树窗口：左树 + 右面板](Docs/images/07-menu-window.png)
 
 ---
 
@@ -720,7 +722,7 @@ public class SerializedScriptableObjectEditor : InspectorEditor { }
 - 条件里的成员名解析不到（写错名字）时的语义是**视为可见**（宁可不隐藏，也不因一个拼错的名字把成员整片吞掉），并在首次遇到时记一条 `WarnOnce` 点出"哪个类型、哪个名字没解析到" —— 这条路径以前是完全静默的：成员一直显示，谁也想不到是名字写错了；
 - 引擎按类型缓存成员与分组树，**新增成员后需要等域重载**（改动代码本来就会触发编译）；
 - 绘制热路径上的重复工作都有缓存，**稳态零分配**：成员清单、分组树（含每个节点的混排条目，见 `GroupNode.Entries`）、表格列结构（按元素类型缓存；列宽是"这次绘制"的结果，绘制期用浅拷贝，不写回缓存）之外，还包括"每个成员按特性类型筛选出的特性数组"（`CachedMember.GetAttrs<T>`）、标题 / 分组头 / `DisplayAsString` 的 `GUIStyle`（按锚点×加粗分档缓存）、按钮 / 工具栏 / emoji 的 `GUIContent`（按按钮规格、labels 数组引用、贴图缓存；立即模式单线程复用）、按钮的 `GUILayoutOption` 数组（按宽 / 高 / 是否撑宽缓存）、枚举下拉的标签数组 / `[Flags]` 判定与位掩码（按枚举类型缓存）、成员标签的 `FriendlyName` 记忆化与计数文案、行号文案（`IndexText`，缓到 #511）、`[Required]` 值类型的默认值（按类型缓存）、`[ValueDropdown]` 候选项的 `Text`/`Value` 访问器（按候选项类型缓存）、"`(类型, 名字, 形参个数) → 无参方法 / 字段 / 属性`"的反射查找结果（引擎与表达式求值器共用同一份解析规则与缓存），以及表达式的 AST 与索引器元数据（见 §5.5）。同一个成员每帧只反射读一次值（`[Required]` 校验与渲染链共用这一次结果）。缓存同样活到域重载，所以上面那条"靠域重载生效"对它们一并适用；
-- 折叠状态、滚动位置是会话内缓存（不写盘；窗口的菜单宽度、上次选中项要持久化请用 cn.rendu.edittool 的 `EditorPrefsValue<T>`）；
+- 折叠状态、滚动位置是会话内缓存（不写盘；窗口的菜单宽度、上次选中项要持久化请用 cn.rendu.utilities 的 `PrefsValue<T>`）；
 - 表达式**已支持索引器**（`@Items[0]`、`@Map['key']`、`@Child.Items[1]`，调用结果后也能接，如 `@GetScaled(2)[1]`）：覆盖数组 / 字符串 / `List<T>` / `Dictionary<K,V>` 与自定义 `this[...]` 索引器；**越界或键缺失返回 `null`**，不会中断整段绘制。仍不支持位运算与自增自减；
 - 表达式解析会校验收尾：写了一半的表达式（如 `@Items[0`）整体返回 `null`，而不是被静默截断成一个错值；
 - 表达式里的数字字面量一律是 `double`；方法调用（`InvokeRaw`）会先按形参类型显式收窄，因此 **`@Foo(1, 2)` 可以调用 `Foo(int, int)`**，`Foo(SomeEnum)` 也能接收整数字面量。收窄只覆盖数值与枚举形参，其余类型原样交给反射 binder；
@@ -787,12 +789,12 @@ public class EnemyConfig : MonoBehaviour
 
 ### 11.2 纯工具窗口
 
-> 基类 `EditorWindowBase` 已迁至 **cn.rendu.edittool**（命名空间 `RD.EditTool.Editor`）；示例里演示的特性与引擎行为不变。
+> 基类 `DrawWindow` 已迁至 **cn.rendu.edittool**（命名空间 `RD.EditTool.Editor`）；示例里演示的特性与引擎行为不变。
 
 ```csharp
-using RD.EditTool.Editor;          // EditorWindowBase 所在包
+using RD.EditTool.Editor;          // DrawWindow 所在包
 
-public class MyToolWindow : EditorWindowBase
+public class MyToolWindow : DrawWindow
 {
     [Button("打开文档", 30, Icon = SdfIconType.Info)]   // Icon 只有部分字形有映射, 见 §11.2
     [PropertyOrder(-99999)]

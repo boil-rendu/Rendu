@@ -7,9 +7,9 @@
 
 用法:
     python3 -m venv .venv && .venv/bin/pip install Pillow
-    .venv/bin/python "Documentation~/generate_images.py"
+    .venv/bin/python "Docs/generate_images.py"
 
-输出: Documentation~/images/*.png
+输出: Docs/images/*.png
 """
 
 import os
@@ -482,7 +482,7 @@ def fig_architecture():
     # Runtime
     box(d, 40, 104, W - 80, 118, fill=PANEL, outline=BORDER)
     d.rectangle((40, 104, W - 40, 138), fill=BAR)
-    txt(d, 56, 121, "Runtime / RD.EditorKit", 14, TEXT, bold=True, anchor="lm")
+    txt(d, 56, 121, "Runtime / RD.Draw", 14, TEXT, bold=True, anchor="lm")
     txt(d, W - 60, 121, "autoReferenced = true，可被 Runtime 代码引用", 12, MUTED, anchor="rm")
     items = ["LabelText", "ShowIf / HideIf", "BoxGroup / TabGroup", "Button / InlineButton",
              "TableList", "ValueDropdown", "ShowInInspector", "Serialize"]
@@ -500,13 +500,11 @@ def fig_architecture():
     # Editor
     box(d, 40, 268, W - 80, 146, fill=PANEL, outline=BORDER)
     d.rectangle((40, 268, W - 40, 302), fill=BAR)
-    txt(d, 56, 285, "Editor / RD.EditorKit.Editor", 14, TEXT, bold=True, anchor="lm")
+    txt(d, 56, 285, "Editor / RD.Draw.Editor", 14, TEXT, bold=True, anchor="lm")
     txt(d, W - 60, 285, "Editor-only，不 using 任何业务类型", 12, WARN, anchor="rm")
     mods = [
         ("Engine", "反射收集成员 + 绘制（唯一入口 DrawObject）"),
-        ("InspectorExpression", "表达式求值（含 AST 缓存）"),
-        ("Serialization", "JSON 序列化与读回"),
-        ("EditorWindowBase", "窗口基类（含左树右面板）"),
+        ("ExpressionEvaluator", "表达式求值（含 AST 缓存）"),
         ("HostSession / Log", "会话状态 / 日志出口"),
     ]
     cy = 312

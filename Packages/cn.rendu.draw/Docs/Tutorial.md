@@ -24,7 +24,7 @@
 - [第 6 章 列表、表格、字典、下拉](#第-6-章-列表表格字典下拉)
 - [第 7 章 表达式系统（`@`）](#第-7-章-表达式系统)
 - [第 8 章 编辑器数据资产：SerializedScriptableObject](#第-8-章-编辑器数据资产inspectorserializedscriptableobject)
-- [第 9 章 工具窗口：EditorWindowBase](#第-9-章-工具窗口inspectoreditorwindow)
+- [第 9 章 工具窗口：DrawWindow](#第-9-章-工具窗口inspectoreditorwindow)
 - [第 10 章 菜单树窗口：做一个真正的工具](#第-10-章-菜单树窗口做一个真正的工具)
 - [第 11 章 自己写宿主：直接用 Engine.DrawObject](#第-11-章-自己写宿主直接用-inspectorenginedrawobject)
 - [第 12 章 综合实战：从零做一个关卡配置面板](#第-12-章-综合实战从零做一个关卡配置面板)
@@ -45,7 +45,7 @@
 |---|---|---|
 | `MonoBehaviour` / `ScriptableObject` | 继承 `InspectorEditor` + `[CustomEditor]`（**cn.rendu.inspector** 宿主包） | 替换某个组件原生检视器 |
 | 编辑器数据资产 | 继承 `SerializedScriptableObject`（**cn.rendu.serialization** 的 `RD.Serialization.Editor`；整族检视器登记在 cn.rendu.inspector） | 带 JSON 落盘的编辑器配置资产 |
-| `EditorWindow` 自身 | 继承 `EditorWindowBase`（**cn.rendu.edittool** 包） | 纯工具窗口（不必是 Unity 对象） |
+| `EditorWindow` 自身 | 继承 `DrawWindow`（**cn.rendu.edittool** 包） | 纯工具窗口（不必是 Unity 对象） |
 | **任意普通 C# 对象** | 继承 `MenuEditorWindow`（**cn.rendu.edittool** 包），或直接调 `Engine.DrawObject(obj, window)` | 工具窗口右半边的"模块面板" |
 
 最后一行是关键差异：**被画的对象不必是 `UnityEngine.Object`**。一个普通 `class LevelModule { [Button("执行")] void Run() {} }` 就能当面板内容，`[Button]` 照常出按钮。这是做编辑器工具时最省事的地方。
@@ -70,7 +70,7 @@
 | Runtime 代码（只用特性） | `RD.Draw` |
 | Editor 代码（直接用引擎） | `RD.Draw.Editor`（它已依赖 `RD.Draw`） |
 | 检视器（`InspectorEditor` / `SerializedScriptableObject`） | `RD.Inspector.Editor`（cn.rendu.inspector 包，它已依赖前两者） |
-| 工具窗口（`EditorWindowBase` / `MenuEditorWindow` / `MenuTree` / `EditorPrefsValue<T>`） | `RD.EditTool.Editor`（cn.rendu.edittool 包，它已依赖特性与引擎） |
+| 工具窗口（`DrawWindow` / `MenuEditorWindow` / `MenuTree`）；持久化用 cn.rendu.utilities 的 `PrefsValue<T>` | `RD.EditTool.Editor`（cn.rendu.edittool 包，它已依赖特性与引擎） |
 
 如果工程用 asmdef 组织，Editor 程序集的 `references` 里要加这两项。本仓库里的真实写法是 `Packages/cn.rendu.packagemanager/Editor/RD.PackageManager.Editor.asmdef`（只摘录关键字段）：
 
@@ -93,7 +93,7 @@
 | `RD.Draw.Editor`（cn.rendu.draw 的引擎程序集） | `Engine`、`ExpressionEvaluator`、`HostState`（`CreateHostState` 发的不透明句柄）、`Log`、`Icons` |
 | `RD.Serialization.Editor`（cn.rendu.serialization 序列化包） | 序列化内核 `Serialization` 与资产载体 `SerializedScriptableObject` |
 | `RD.Inspector.Editor`（cn.rendu.inspector 宿主包，程序集 `RD.Inspector.Editor`） | `InspectorEditor`，及 `SerializedScriptableObject` 的 `[CustomEditor]` 整族登记 |
-| `RD.EditTool.Editor`（cn.rendu.edittool 包） | `EditorWindowBase`、`MenuEditorWindow`、`MenuTree`、`EditorPrefsValue<T>` —— 注意是复数 `EditorWindows`：单数 `RD.EditTool` 会遮蔽 `UnityEditor.EditorWindow` 类型（坑同下） |
+| `RD.EditTool.Editor`（cn.rendu.edittool 包） | `DrawWindow`、`MenuEditorWindow`、`MenuTree`；持久化用 cn.rendu.utilities 的 `PrefsValue<T>` —— 注意是复数 `EditorWindows`：单数 `RD.EditTool` 会遮蔽 `UnityEditor.EditorWindow` 类型（坑同下） |
 | `RD.Utilities`（cn.rendu.utilities 通用工具包） | `CollectionExtensions`（`HashSet.AddRange`）、`ObjectExtensions.Clone<T>`（反射深拷）—— 零依赖，运行时可用 |
 
 > 坑：`InspectorEditor` 继承 `UnityEditor.Editor`。因为文件位于 `RD.Inspector.Editor` 命名空间内，**简单名 `Editor` 会被解析成命名空间 `RD.Inspector` 下的 `Editor`**，写 `: Editor` 报 CS0118。基类一定写全：`: InspectorEditor`（本包已提供），自己写别的基类时写 `: UnityEditor.Editor`。
@@ -367,7 +367,7 @@ public int Tint;
 
 - 组名字符串**必须一字不差**，`"战斗"` 与 `"战斗 "`（多个空格）是两个组；
 - 组内成员全部被条件藏起来时，组会消失（默认行为），如果你希望"空框还在"，把 `HideWhenChildrenAreInvisible = false`；
-- 展开状态存在会话对象 `HostSession` 里：**按"被绘制的对象 → 组路径 / 成员名"两级分桶**（`ConditionalWeakTable<object, ObjectState>` + 两个 `Dictionary<string,bool>`）。所以：
+- 展开状态存在会话里：`HostState` 是不透明句柄，`HostSession` 是内部会话，**按"被绘制的对象 → 组路径 / 成员名"两级分桶**（`ConditionalWeakTable<object, ObjectState>` + 两个 `Dictionary<string,bool>`）。所以：
   - 同窗口内两个同类型对象（或同一列表的两行元素）的折叠**互不影响**；
   - **两个窗口各自持有一个会话，状态不共享**（窗口 A 里展开的组，窗口 B 里还是默认状态）；
   - 会话不写盘、域重载后回到默认；对象被回收时它的状态桶自动释放。
@@ -991,7 +991,7 @@ protected override void OnAfterInspectorDeserialize()
 
 ---
 
-## 第 9 章 工具窗口：`EditorWindowBase`
+## 第 9 章 工具窗口：`DrawWindow`
 
 > **本章与第 10 章的内容已迁至独立包 `cn.rendu.edittool`**（程序集 `RD.EditTool.Editor`），见该包的 `README.md`。迁移后不变的承诺：
 >
@@ -1004,9 +1004,11 @@ protected override void OnAfterInspectorDeserialize()
 ## 第 10 章 菜单树窗口：做一个真正的工具
 
 > **已迁至 `cn.rendu.edittool`**。
-> `MenuEditorWindow` 的"左树 + 右面板"、`MenuTree` 的建树规则（路径自动补齐、同名就地替换、深度优先遍历、选中事件）与 `EditorPrefsValue<T>` 都在 `cn.rendu.edittool`，行为契约由随包迁移的 `MenuTreeTests`（14 例）钉住。
+> `MenuEditorWindow` 的"左树 + 右面板"、`MenuTree` 的建树规则（路径自动补齐、同名就地替换、深度优先遍历、选中事件）与 `PrefsValue<T>`（cn.rendu.utilities）都在各自包，行为契约由随包迁移的 `MenuTreeTests`（14 例）钉住。
 >
 > 本仓库的成熟用法仍可对照阅读：`Packages/cn.rendu.ui/Editor/UITool/Window/UITool.cs`。
+
+![菜单树窗口：左树 + 右面板](images/07-menu-window.png)
 
 ---
 
@@ -1029,9 +1031,35 @@ public static void DrawObject(object target,
 | `onBeforeChange` | 数据**即将写入前**回调 → 宿主在此拍 Undo 快照 |
 | `onChanged` | 数据**已修改后**回调 → 宿主标记脏、登记 prefab override、请求重绘 |
 
-### 11.2 宿主必须自己承担的三件事
+> 另有接收 `HostState`（来自 `CreateHostState()`，跨多次 `DrawObject` 保活折叠/滚动状态）与自定义 `Driver`（换肤/自绘控件）的重载；以及第 11.2 节的引擎共享变更胶水 `BeginChange` / `EndChange` 可替代这两个回调。
 
-反思一下 `InspectorEditor` 做了什么，你自建宿主就得做同样的事：
+### 11.2 推荐：用引擎共享变更胶水 `BeginChange` / `EndChange`
+
+`DrawObject` 暴露的 `onBeforeChange` / `onChanged` 回调只是"你能插手"的口子；真正拍 `Undo`、标脏、`RecordPrefabInstancePropertyModifications`、`Repaint` 的逻辑，引擎已经统一封装在 `Engine.BeginChange` / `Engine.EndChange` 里（`Editor/Api/Engine.cs`）。`cn.rendu.inspector` 的 `InspectorEditor` 内部就是委托这套胶水处理的——自建宿主直接复用即可，不必再手写一遍。
+
+两种等价写法：
+
+- **作用域风格（推荐）**：在 `using (Engine.BeginChange(target)) { ... 改字段 ... }` 内做修改。`ChangeScope` 在构造时拍 `Undo.RecordObject(target)`，在 `Dispose` 时标脏 + 登记 prefab override + `Repaint`。
+
+  ```csharp
+  using (Engine.BeginChange(target))
+  {
+      module.SomeField = newValue;
+  }
+  ```
+
+- **回调风格**：对单点变更调用 `Engine.EndChange(target)`，效果与作用域 `Dispose` 一致。
+
+  ```csharp
+  module.SomeField = newValue;
+  Engine.EndChange(target);
+  ```
+
+> 注意：`BeginChange` / `EndChange` 只对 **`UnityEngine.Object`** 自动管 Undo / 脏标记 / 重绘。**纯 C# 对象（非 `UnityEngine.Object`）引擎不自动处理**——这类宿主仍要走下面的手动回调（11.3）。
+
+### 11.3 宿主兜底：纯 C# 对象仍需手动回调
+
+反思一下 `InspectorEditor` 做了什么，你自建宿主对 `UnityEngine.Object` 可交给 11.2 的胶水；但若面板画的是**纯 C# 对象**，就得自己承担下面三件事：
 
 ```csharp
 private void OnBeforeChange(object owner) => Undo.RecordObject(target, "Inspector");
@@ -1049,7 +1077,7 @@ private void OnChanged(object owner)
 
 **漏掉 `onChanged` 的后果：改动不落盘**（面板上看着变了，磁盘上没变，切场景就没了）。另外注意注释里那条经验：用 `Editor.target`（序列化根）而不是引擎回传的 `owner` 去 Undo / SetDirty —— `owner` 可能是组件内部的普通 C# 对象，对它做 Undo 不起作用。
 
-### 11.3 示例：在原生检视器里嵌一块本包面板
+### 11.4 示例：在原生检视器里嵌一块本包面板
 
 ```csharp
 [CustomEditor(typeof(LevelRoot))]
@@ -1063,16 +1091,17 @@ public class LevelRootEditor : UnityEditor.Editor
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("关卡模块", EditorStyles.boldLabel);
 
-        EditorGUI.BeginChangeCheck();
-        Engine.DrawObject(root.Module, null, o => Undo.RecordObject(target, "Module"), o =>
+        // 推荐：用引擎共享胶水。BeginChange 在作用域内为 target 拍 Undo，
+        // DrawObject 内对 root.Module 的改动在作用域结束时自动标脏 + 重绘。
+        using (Engine.BeginChange(target))
         {
-            EditorUtility.SetDirty(target);
-            Repaint();
-        });
-        if (EditorGUI.EndChangeCheck()) Repaint();
+            Engine.DrawObject(root.Module, null);
+        }
     }
 }
 ```
+
+> 旧写法（手动 `onBeforeChange` / `onChanged` 回调，或外层套 `EditorGUI.BeginChangeCheck` / `EndChangeCheck`）依然有效，只是对 `UnityEngine.Object` 宿主已不必再写。面板对象若是纯 C# 对象，请退回 11.3 的手动回调。
 
 ### 11.4 什么时候值得这么做
 
@@ -1324,9 +1353,9 @@ public class LevelConfigEditor : InspectorEditor { }
 | 提示 / 两段式提示 / 标题 | `[InfoBox]` / `[DetailedInfoBox]`（不是可展开控件，见 2.6）/ `[Title]` |
 | 编辑器数据资产 | 继承 `SerializedScriptableObject` + `[Serialize]` |
 | 组件检视器 | 继承 `InspectorEditor` + `[CustomEditor]` |
-| 工具窗口 | 继承 `EditorWindowBase`（cn.rendu.edittool） |
+| 工具窗口 | 继承 `DrawWindow`（cn.rendu.edittool） |
 | 左树右面板工具 | 继承 `MenuEditorWindow`（cn.rendu.edittool）+ `BuildMenuTree()` |
-| 持久化上次选项/窗口宽度 | `EditorPrefsValue<T>`（cn.rendu.edittool） |
+| 持久化上次选项/窗口宽度 | `PrefsValue<T>`（cn.rendu.utilities） |
 | 图标枚举 → Texture | `Icons.FromSdf(SdfIconType.X)`（只映射少数字形族，其余返回 `null`） |
 
 ---
@@ -1365,7 +1394,7 @@ public class LevelConfigEditor : InspectorEditor { }
 - 不显示 prefab override 标记，也无法右键还原单个属性；
 - `[Flags]` 枚举只能单选；
 - 成员清单/分组树/反射查找条件/AST 都是**按类型缓存**的，靠域重载刷新；
-- `HostSession` 承担折叠与滚动状态（宿主弱引用分桶，宿主回收即释放，不写盘）。
+- `HostState` 是不透明句柄，`HostSession` 是内部会话（宿主弱引用分桶，宿主回收即释放，不写盘）承担折叠与滚动状态；作者拿到的是 `HostState`。
 
 ---
 
@@ -1374,8 +1403,12 @@ public class LevelConfigEditor : InspectorEditor { }
 ### 16.1 源码地图
 
 - **特性定义**：`Runtime/Attributes/`（纯数据，加特性先看这里；按 Conditions / Constraints / Appearance / Collections 分语义）；
-- **门面**：`Editor/Api/Engine.cs` —— 只有 `DrawObject`（画）、`CreateHostState`（状态句柄）、`SetDiagnosticSink`（诊断接管）三个入口，其余一概不代理；
-- **编排与绘制**：`Editor/Rendering/` —— `InspectorRenderer`（组合根 + 递归遍历）、`MemberRenderChain`（这个成员由谁画）、`ValueControlChain`（这个值用哪个控件）、`DrawChain`（两条链的共同机制）；
+- **门面**：`Editor/Api/Engine.cs` —— 绘制入口 `DrawObject`、状态句柄 `CreateHostState`、诊断接管 `SetDiagnosticSink`，以及变更胶水 `BeginChange` / `EndChange`（统一封装 Undo / 标脏 / prefab override / 重绘，详见第 11 章）；其余一概不代理；
+- **编排与绘制（后端一致性重构后的两层）**：`Editor/Rendering/` 与 `Editor/Widgets/` —— 顶层 **`Renderer`**（单解释器，`public sealed`，`Render(Widget, RenderContext)` 为 `internal`）把 `DrawObject` 的输入递归解释成 **`Widget` 控件树**（抽象基类 `internal`，含 `ControlWidget` / `RootWidget`）；`InspectorRenderer`（组合根 + 递归遍历成员）据此驱动 `MemberRenderChain`（这个成员由谁画）/ `ValueControlChain`（这个值用哪个控件）/ `DrawChain`（两条链的共同机制）。
+  - 自绘控件：`ControlRenderer`（`internal`，实现 `IControlRenderer`，自绘 Toggle / Slider / Toolbar，否则回退 `DriverControlRenderer`）；
+  - 度量与布局：`RDTheme`（`internal static`，颜色/度量常量）、`LayoutPolicy`（`internal static`，各控件布局策略）；
+  - 对象池：`WidgetPool`（`internal static`）。
+  - 可见性提醒：除 `Renderer` 类本身为 `public` 外，`Widget` / `IControlRenderer` / `RDTheme` / `LayoutPolicy` / `ControlRenderer` / `WidgetPool` 当前均为 `internal`，`Renderer.Render` 也是 `internal`——它们不是供外部继承的公开扩展点（详见 `BackendConsistencyDesign.md`）。
 - **规则（纯判定，不碰 UI）**：`Editor/Rules/` —— `VisibilityEvaluator`（显隐/启禁）、`GroupResolver`（分组树）、`ValueAccessor`（取值与成员查找）、`ValueOps`（真值/数值/容差相等）；
 - **元数据与缓存**：`Editor/Metadata/` —— `MemberCollector`（成员发现与排序）、`CachedMember`、`EnumCatalog`；
 - **表格**：`Editor/Tables/` —— `TableSchema`（列结构推导）、`TableRenderer`（分页/横向滚动/单元格嵌套）；
