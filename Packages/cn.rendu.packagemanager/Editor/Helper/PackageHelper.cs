@@ -262,22 +262,15 @@ namespace RD.PackageManager.Editor
             EditorUtility.SetDirty(m_PackageInfoAsset);
         }
 
-        private static bool         m_Requesting;
-        private static ListRequest  m_ListRequest;
-        private static Action<bool> m_RequestAllCallback;
+        private static bool                        m_Requesting;
+        private static ListRequest                 m_ListRequest;
+        private static readonly List<Action<bool>> m_RequestAllCallbacks = new();
 
         public static void CheckUpdateAll(Action<bool> callback)
         {
-            m_RequestAllCallback = null;
-
-            if (m_Requesting)
+            try
             {
-                Debug.Log($"请求中请稍等...请勿频繁请求");
-                callback?.Invoke(false);
-                return;
-            }
-
-            if (m_PackageInfoAsset == null)
+                if (m_PackageInfoAsset == null)
             {
                 var result = LoadAsset();
                 if (!result)
@@ -285,6 +278,24 @@ namespace RD.PackageManager.Editor
                     callback?.Invoke(false);
                     return;
                 }
+            }
+
+            // 上一次请求若已结束却未清理干净(回调丢失/异常), 复位, 避免永久卡在"请求中"
+            if (m_Requesting && (m_ListRequest == null || m_ListRequest.IsCompleted))
+            {
+                EditorApplication.update -= CheckUpdateAllProgress;
+                m_Requesting = false;
+                m_RequestAllCallbacks.Clear();
+                EditorUtility.ClearProgressBar();
+            }
+
+            // 已有请求在途: 把回调挂到同一请求上, 等它完成一起回调。
+            // 旧实现用单个静态回调且开头置空: 多个模块(库/版本管理)首次选中都会调本方法,
+            // 后发起者会覆盖先发起者的回调, 先发起者永远等不到回调 → 卡在"请求中"。
+            if (m_Requesting)
+            {
+                if (callback != null) m_RequestAllCallbacks.Add(callback);
+                return;
             }
 
             var currentTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -296,10 +307,58 @@ namespace RD.PackageManager.Editor
 
             m_PackageInfoAsset.LastUpdateTime = currentTime;
             EditorUtility.DisplayCancelableProgressBar("同步信息", "正在请求全部包信息...", 0f);
-            m_RequestAllCallback     =  callback;
-            m_Requesting             =  true;
-            m_ListRequest            =  Client.List();
+
+            ListRequest request;
+            try
+            {
+                request = Client.List();
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                EditorUtility.ClearProgressBar();
+                callback?.Invoke(false);
+                return;
+            }
+
+            m_ListRequest = request;
+            m_Requesting  = true;
+            if (callback != null) m_RequestAllCallbacks.Add(callback);
+            EditorApplication.update -= CheckUpdateAllProgress; // 防重复订阅
             EditorApplication.update += CheckUpdateAllProgress;
+            }
+            catch (Exception e)
+            {
+                // 同步阶段任何异常(如解析包版本号失败)都必须兜底回调, 否则调用方
+                // (版本管理/库/更新窗口) 会永远停在"请求中..."。返回 false 让模块进入空数据态而非卡死。
+                Debug.LogException(e);
+                EditorUtility.ClearProgressBar();
+                callback?.Invoke(false);
+            }
+        }
+
+        /// <summary>结束本次全部包信息请求, 统一回调所有等待者(成功/失败/取消)。</summary>
+        private static void FinishAllRequest(bool result)
+        {
+            EditorApplication.update -= CheckUpdateAllProgress;
+            m_Requesting = false;
+            EditorUtility.ClearProgressBar();
+
+            if (m_RequestAllCallbacks.Count == 0) return;
+
+            var callbacks = m_RequestAllCallbacks.ToArray();
+            m_RequestAllCallbacks.Clear();
+            foreach (var cb in callbacks)
+            {
+                try
+                {
+                    cb?.Invoke(result);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
+            }
         }
 
         private static void CheckUpdateAllProgress()
@@ -309,20 +368,12 @@ namespace RD.PackageManager.Editor
             {
                 if (EditorUtility.DisplayCancelableProgressBar("同步信息", "正在请求全部包信息...", 0f))
                 {
-                    EditorApplication.update -= CheckUpdateAllProgress;
-                    m_Requesting = false;
-                    EditorUtility.ClearProgressBar();
                     Debug.Log("[Package] 用户取消了全部包信息请求");
-                    m_RequestAllCallback?.Invoke(false);
-                    m_RequestAllCallback = null;
+                    FinishAllRequest(false);
                 }
 
                 return;
             }
-
-            EditorApplication.update -= CheckUpdateAllProgress;
-            m_Requesting             =  false;
-            EditorUtility.ClearProgressBar();
 
             if (m_ListRequest.Status == StatusCode.Success)
             {
@@ -340,15 +391,13 @@ namespace RD.PackageManager.Editor
                 }
 
                 UpdateAllLastPackageInfo();
-                m_RequestAllCallback?.Invoke(true);
+                FinishAllRequest(true);
             }
             else
             {
                 Debug.LogError(m_ListRequest.Error.message);
-                m_RequestAllCallback?.Invoke(false);
+                FinishAllRequest(false);
             }
-
-            m_RequestAllCallback = null;
         }
 
         private static HashSet<string> m_RequestTargets = new();
@@ -413,6 +462,12 @@ namespace RD.PackageManager.Editor
 
         public static long GetVersionToLong(string version)
         {
+            if (string.IsNullOrEmpty(version))
+            {
+                Debug.LogError($"包版本号为空, 无法转换成长整型, 已跳过: {version}");
+                return 0;
+            }
+
             var splitVersion = version.Split(".");
             if (splitVersion.Length != 3)
             {

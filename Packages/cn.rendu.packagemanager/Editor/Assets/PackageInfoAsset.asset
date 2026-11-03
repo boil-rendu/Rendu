@@ -134,5 +134,6 @@ MonoBehaviour:
   - cn.rendu.inspector
   - cn.rendu.edittool
   - cn.rendu.draw
-  LastUpdateTime: 1793665501
+  - cn.rendu.init
+  LastUpdateTime: 1793689302
   UpdateInterval: 3600

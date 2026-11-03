@@ -21,7 +21,7 @@ namespace RD.PackageManager.Editor
                 {
                     string jsonContent = File.ReadAllText(configPath);
                     DefaultInfo = JsonUtility.FromJson<PackageDefaultInfo>(jsonContent);
-                    Debug.Log($"[PackageViewModel] Loaded default config from {configPath}");
+                    // Debug.Log($"[PackageViewModel] Loaded default config from {configPath}");
                 }
                 catch (System.Exception e)
                 {
