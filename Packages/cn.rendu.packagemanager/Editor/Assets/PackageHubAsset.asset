@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e1033248b64b463a924ac350651e62cb, type: 3}
   m_Name: PackageHubAsset
   m_EditorClassIdentifier: 
-  m_Data: '{"AllPackageData":{},"LastUpdateTime":1792653876,"UpdateInterval":3600}'
+  m_Data: '{"AllPackageData":{},"LastUpdateTime":1793625079,"UpdateInterval":3600}'

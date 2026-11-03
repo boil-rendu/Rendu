@@ -13,8 +13,6 @@ MonoBehaviour:
   m_Name: PackageInfoAsset
   m_EditorClassIdentifier: 
   AllLastPackageInfo:
-  - Name: cn.rendu.init
-    Version: 
   - Name: cn.rendu.utilities
     Version: 
   - Name: cn.rendu.serialization
@@ -22,6 +20,8 @@ MonoBehaviour:
   - Name: cn.rendu.packagemanager
     Version: 
   - Name: cn.rendu.inspector
+    Version: 
+  - Name: cn.rendu.init
     Version: 
   - Name: cn.rendu.edittool
     Version: 
@@ -134,5 +134,5 @@ MonoBehaviour:
   - cn.rendu.inspector
   - cn.rendu.edittool
   - cn.rendu.draw
-  LastUpdateTime: 1793268510
+  LastUpdateTime: 1793665501
   UpdateInterval: 3600

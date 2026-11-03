@@ -113,7 +113,7 @@ namespace RD.PackageManager.Editor
             GUILayout.Space(10);
             if (GUILayout.Button("RDPackageManager 包管理文档"))
             {
-                Application.OpenURL("https://lib9kmxvq7k.feishu.cn/wiki/DzqwwwBJvixRvtkCI4dcatGcnAd");
+                RDPackageDocumentModule.OpenLocalDocSection("Packages/cn.rendu.packagemanager/Docs/Tutorial.md", "4.2 更新检查窗口");
             }
             GUILayout.Space(10);
             

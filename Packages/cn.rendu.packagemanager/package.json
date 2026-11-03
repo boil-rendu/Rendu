@@ -3,11 +3,11 @@
   "displayName": "RD.PackageManager",
   "version": "1.0.2",
   "unity": "2022.3",
-  "category": "Core/Manager|UI/YIUI",
-  "description": "RDPackageManager RD包管理 >>> 文档: https://lib9kmxvq7k.feishu.cn/wiki/DzqwwwBJvixRvtkCI4dcatGcnAd",
+  "category": "Core/Manager",
+  "description": "包管理器：集成工具窗口（库 / 版本管理 / 创建 / 更新 / 文档 模块）、包创建窗口、更新检查窗口，统一管 RD 包的版本、依赖与生成。面板由 cn.rendu.draw 绘制，窗口壳复用 cn.rendu.edittool 的 GenericToolWindow。使用文档见 Docs/Tutorial.md",
   "author": {
     "name": "YIYI",
-    "url": "https://github.com/LiShengYang-yiyi/YIUI/tree/YIUI-RD9.0"
+    "url": "https://github.com/RD-Packages"
   },
   "repository": {
     "type": "git",
