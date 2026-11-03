@@ -22,7 +22,7 @@ namespace RD
     {
         private static int Main(string[] args)
         {
-            Options options = null;
+            Options options = new Options();
             // 命令行参数
             Parser.Default.ParseArguments<Options>(Environment.GetCommandLineArgs())
                     .WithNotParsed(error => throw new Exception($"命令行格式错误! {error}"))
