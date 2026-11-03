@@ -3,7 +3,7 @@
   "displayName": "RD.Init",
   "version": "1.0.0",
   "unity": "2022.3",
-  "description": "RD 初始化包",
+  "description": "RD 多包工程的初始化与治理工具（编辑器侧）: 依赖解析、主包选择、包 Git 信息读取、代码模式切换、全局配置与「移入包」窗口；含 MongoDB 驱动等插件。使用文档见 Docs/Tutorial.md",
   "author": {
     "name": "Boil",
     "email": "rendu-core@outlook.com",
